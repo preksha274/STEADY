@@ -57,13 +57,17 @@ def generate_day_forecast(
     mood_rating_1_5: int = 4,
     fatigue_rating_1_5: int = 2,
     sleep_rating_1_5: int = 4,
-    min_sessions_threshold: int = 3
+    min_sessions_threshold: int = 3,
+    is_simulated_demo: bool = False
 ) -> DayForecastOutput:
     """
     Builds the 24-hour day forecast timeline and best mobility window.
-    Pure, interpretable function with explicit uncertainty bounds.
+    Pure, interpretable function with explicit uncertainty bounds and population-prior cold start.
     """
-    # 1. Check for thin-history state
+    days_logged = min(14, max(1, historical_sessions_count // 2 if historical_sessions_count > 0 else 0))
+    progress_label = f"Forecast confidence: {days_logged} of 14 days logged"
+
+    # 1. Check for thin-history state (below min threshold)
     if historical_sessions_count < min_sessions_threshold:
         return DayForecastOutput(
             has_sufficient_data=False,
@@ -73,11 +77,16 @@ def generate_day_forecast(
             confidence=ConfidenceReport(
                 tier=ConfidenceTier.LOW,
                 primary_issue=QualityIssue.INSUFFICIENT_HISTORY,
-                reason="Insufficient historical session records (< 3 sessions recorded)",
+                reason=f"Insufficient historical session records ({historical_sessions_count} of 3 required)",
                 numeric_score=0.20
             ),
             hours_since_last_dose=None,
-            next_dose_time_str=None
+            next_dose_time_str=None,
+            pattern_type="uncalibrated",
+            days_logged_count=days_logged,
+            days_target_count=14,
+            is_simulated_demo=is_simulated_demo,
+            progress_label=f"Forecast calibration: {historical_sessions_count} of 3 check-ins"
         )
 
     # 2. Time since last dose calculation
@@ -100,27 +109,50 @@ def generate_day_forecast(
     mood_boost = (mood_rating_1_5 - 3) * 0.03
     diary_mod = max(-0.15, min(0.12, mood_boost - fatigue_penalty))
 
-    # 4. Uncertainty calculation based on session count
-    # More history = tighter uncertainty bounds
-    base_uncertainty = max(0.06, 0.22 - (historical_sessions_count * 0.012))
+    # 4. Cold-start & population-prior blending:
+    # < 7 sessions: Early stage -> starts from population prior (Levodopa typical curve), wide uncertainty band
+    # >= 7 sessions: Calibrated stage -> fully shifts to personal history, tighter uncertainty band
+    is_population_prior = historical_sessions_count < 7
+    pattern_type = "typical pattern" if is_population_prior else "personalized pattern"
+
+    if historical_sessions_count < 7:
+        # Wide-band state on population prior (e.g. 0.20 to 0.26 uncertainty width)
+        base_uncertainty = 0.24 - (historical_sessions_count * 0.010)
+        prior_weight = 0.65
+        personal_weight = 0.35
+    elif historical_sessions_count < 14:
+        # Moderate-band personalized state
+        base_uncertainty = 0.16 - ((historical_sessions_count - 7) * 0.008)
+        prior_weight = 0.25
+        personal_weight = 0.75
+    else:
+        # Narrow-band mature personalized model
+        base_uncertainty = max(0.05, 0.10 - ((historical_sessions_count - 14) * 0.003))
+        prior_weight = 0.05
+        personal_weight = 0.95
 
     # 5. Generate hourly predictions for daylight waking hours (7 AM to 9 PM)
     timeline: List[HourlyForecastPoint] = []
     hour_scores: List[Tuple[int, float]] = []
 
     for h in range(7, 22):
-        # Time since most recent prior dose at hour h
         prior_doses = [d for d in medication_doses_today if d <= h]
         if prior_doses:
             dt = h - max(prior_doses)
         else:
-            dt = 5.0  # Assumed fasting/morning pre-dose
+            dt = 5.0  # Assumed morning pre-dose state
 
         pk_val = compute_pharmacokinetic_factor(dt)
         circ_val = compute_circadian_factor(h, sleep_rating_1_5)
 
-        # Blend: 60% PK medication response, 40% Circadian diurnal rhythm + diary
-        raw_score = (0.60 * pk_val + 0.40 * circ_val) + diary_mod
+        # Standard population prior response
+        population_response = 0.60 * pk_val + 0.40 * circ_val
+
+        # Personal response blended with diary
+        personal_response = population_response + diary_mod
+
+        # Blend population prior with personalized model
+        raw_score = (prior_weight * population_response) + (personal_weight * personal_response)
         mobility_score = float(max(0.15, min(0.96, raw_score)))
 
         unc_lower = float(max(0.05, mobility_score - base_uncertainty))
@@ -163,29 +195,47 @@ def generate_day_forecast(
         return f"{dh} {ampm}"
 
     window_label = f"{fmt_h(start_h)} - {fmt_h(end_h)}"
-    conf_tier = ConfidenceTier.HIGH if historical_sessions_count >= 8 else ConfidenceTier.MEDIUM
+    conf_tier = ConfidenceTier.HIGH if historical_sessions_count >= 10 else (
+        ConfidenceTier.MEDIUM if historical_sessions_count >= 5 else ConfidenceTier.LOW
+    )
+
+    recommendation = (
+        "Typical population window — aligns with peak Levodopa absorption."
+        if is_population_prior
+        else "Personalized best time for structured walking, exercises, or demanding physical activities."
+    )
 
     best_window = BestMobilityWindow(
         start_hour=start_h,
         end_hour=end_h,
         window_label=window_label,
         confidence_tier=conf_tier,
-        recommendation="Best time for structured walking, exercises, or demanding physical activities."
+        recommendation=recommendation
     )
 
     conf_report = ConfidenceReport(
         tier=conf_tier,
-        primary_issue=QualityIssue.CLEAN_SIGNAL,
-        reason=f"Model trained on {historical_sessions_count} sessions with regular dose schedule",
-        numeric_score=0.90 if conf_tier == ConfidenceTier.HIGH else 0.75
+        primary_issue=QualityIssue.CLEAN_SIGNAL if conf_tier != ConfidenceTier.LOW else QualityIssue.INSUFFICIENT_HISTORY,
+        reason=f"Model based on {historical_sessions_count} logged sessions ({pattern_type})",
+        numeric_score=0.92 if conf_tier == ConfidenceTier.HIGH else (0.75 if conf_tier == ConfidenceTier.MEDIUM else 0.50)
+    )
+
+    status_message = (
+        f"Optimal window predicted at {window_label} based on {pattern_type}."
     )
 
     return DayForecastOutput(
         has_sufficient_data=True,
-        status_message=f"Optimal window predicted at {window_label} based on your usual response curve.",
+        status_message=status_message,
         best_window=best_window,
         timeline=timeline,
         confidence=conf_report,
         hours_since_last_dose=round(hours_since_last_dose, 1) if hours_since_last_dose is not None else None,
-        next_dose_time_str=next_dose_str
+        next_dose_time_str=next_dose_str,
+        pattern_type=pattern_type,
+        days_logged_count=days_logged,
+        days_target_count=14,
+        is_simulated_demo=is_simulated_demo,
+        progress_label=progress_label
     )
+

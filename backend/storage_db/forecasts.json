@@ -2,24 +2,24 @@
   "forecast_today_user_sarah_test": {
     "id": "forecast_today_user_sarah_test",
     "user_id": "user_sarah_test",
-    "created_at": "2026-09-25T03:31:57.001747+00:00",
-    "updated_at": "2026-09-25T03:31:57.001747+00:00",
+    "created_at": "2026-09-25T13:45:20.990021+00:00",
+    "updated_at": "2026-09-25T13:45:20.990021+00:00",
     "has_sufficient_data": true,
-    "status_message": "Optimal window predicted at 9 AM - 10 AM based on your usual response curve.",
+    "status_message": "Optimal window predicted at 9 AM - 10 AM based on personalized pattern.",
     "best_window": {
       "start_hour": 9,
       "end_hour": 10,
       "window_label": "9 AM - 10 AM",
-      "confidence_tier": "medium",
-      "recommendation": "Best time for structured walking, exercises, or demanding physical activities."
+      "confidence_tier": "high",
+      "recommendation": "Personalized best time for structured walking, exercises, or demanding physical activities."
     },
     "timeline": [
       {
         "hour": 7,
         "hour_label": "7 AM",
         "predicted_mobility_score": 0.6,
-        "uncertainty_lower": 0.47,
-        "uncertainty_upper": 0.74,
+        "uncertainty_lower": 0.52,
+        "uncertainty_upper": 0.69,
         "is_optimal_window": false,
         "state_label": "Steady Window"
       },
@@ -27,8 +27,8 @@
         "hour": 8,
         "hour_label": "8 AM",
         "predicted_mobility_score": 0.87,
-        "uncertainty_lower": 0.74,
-        "uncertainty_upper": 1.0,
+        "uncertainty_lower": 0.79,
+        "uncertainty_upper": 0.96,
         "is_optimal_window": true,
         "state_label": "Optimal Mobility Window"
       },
@@ -36,7 +36,7 @@
         "hour": 9,
         "hour_label": "9 AM",
         "predicted_mobility_score": 0.95,
-        "uncertainty_lower": 0.81,
+        "uncertainty_lower": 0.86,
         "uncertainty_upper": 1.0,
         "is_optimal_window": true,
         "state_label": "Optimal Mobility Window"
@@ -45,8 +45,8 @@
         "hour": 10,
         "hour_label": "10 AM",
         "predicted_mobility_score": 0.89,
-        "uncertainty_lower": 0.76,
-        "uncertainty_upper": 1.0,
+        "uncertainty_lower": 0.81,
+        "uncertainty_upper": 0.98,
         "is_optimal_window": true,
         "state_label": "Optimal Mobility Window"
       },
@@ -54,8 +54,8 @@
         "hour": 11,
         "hour_label": "11 AM",
         "predicted_mobility_score": 0.79,
-        "uncertainty_lower": 0.66,
-        "uncertainty_upper": 0.93,
+        "uncertainty_lower": 0.71,
+        "uncertainty_upper": 0.88,
         "is_optimal_window": true,
         "state_label": "Optimal Mobility Window"
       },
@@ -63,8 +63,8 @@
         "hour": 12,
         "hour_label": "12 PM",
         "predicted_mobility_score": 0.69,
-        "uncertainty_lower": 0.55,
-        "uncertainty_upper": 0.82,
+        "uncertainty_lower": 0.6,
+        "uncertainty_upper": 0.77,
         "is_optimal_window": false,
         "state_label": "Steady Window"
       },
@@ -72,8 +72,8 @@
         "hour": 13,
         "hour_label": "1 PM",
         "predicted_mobility_score": 0.62,
-        "uncertainty_lower": 0.49,
-        "uncertainty_upper": 0.76,
+        "uncertainty_lower": 0.54,
+        "uncertainty_upper": 0.71,
         "is_optimal_window": false,
         "state_label": "Steady Window"
       },
@@ -81,8 +81,8 @@
         "hour": 14,
         "hour_label": "2 PM",
         "predicted_mobility_score": 0.6,
-        "uncertainty_lower": 0.47,
-        "uncertainty_upper": 0.74,
+        "uncertainty_lower": 0.52,
+        "uncertainty_upper": 0.69,
         "is_optimal_window": false,
         "state_label": "Steady Window"
       },
@@ -90,8 +90,8 @@
         "hour": 15,
         "hour_label": "3 PM",
         "predicted_mobility_score": 0.58,
-        "uncertainty_lower": 0.44,
-        "uncertainty_upper": 0.71,
+        "uncertainty_lower": 0.49,
+        "uncertainty_upper": 0.66,
         "is_optimal_window": false,
         "state_label": "Steady Window"
       },
@@ -99,8 +99,8 @@
         "hour": 16,
         "hour_label": "4 PM",
         "predicted_mobility_score": 0.55,
-        "uncertainty_lower": 0.42,
-        "uncertainty_upper": 0.69,
+        "uncertainty_lower": 0.47,
+        "uncertainty_upper": 0.64,
         "is_optimal_window": false,
         "state_label": "Steady Window"
       },
@@ -108,8 +108,8 @@
         "hour": 17,
         "hour_label": "5 PM",
         "predicted_mobility_score": 0.53,
-        "uncertainty_lower": 0.39,
-        "uncertainty_upper": 0.66,
+        "uncertainty_lower": 0.44,
+        "uncertainty_upper": 0.61,
         "is_optimal_window": false,
         "state_label": "Wearing Off Risk"
       },
@@ -117,8 +117,8 @@
         "hour": 18,
         "hour_label": "6 PM",
         "predicted_mobility_score": 0.5,
-        "uncertainty_lower": 0.36,
-        "uncertainty_upper": 0.64,
+        "uncertainty_lower": 0.41,
+        "uncertainty_upper": 0.58,
         "is_optimal_window": false,
         "state_label": "Wearing Off Risk"
       },
@@ -126,8 +126,8 @@
         "hour": 19,
         "hour_label": "7 PM",
         "predicted_mobility_score": 0.48,
-        "uncertainty_lower": 0.34,
-        "uncertainty_upper": 0.61,
+        "uncertainty_lower": 0.39,
+        "uncertainty_upper": 0.56,
         "is_optimal_window": false,
         "state_label": "Wearing Off Risk"
       },
@@ -135,8 +135,8 @@
         "hour": 20,
         "hour_label": "8 PM",
         "predicted_mobility_score": 0.46,
-        "uncertainty_lower": 0.32,
-        "uncertainty_upper": 0.59,
+        "uncertainty_lower": 0.37,
+        "uncertainty_upper": 0.54,
         "is_optimal_window": false,
         "state_label": "Wearing Off Risk"
       },
@@ -144,19 +144,24 @@
         "hour": 21,
         "hour_label": "9 PM",
         "predicted_mobility_score": 0.44,
-        "uncertainty_lower": 0.31,
-        "uncertainty_upper": 0.58,
+        "uncertainty_lower": 0.36,
+        "uncertainty_upper": 0.53,
         "is_optimal_window": false,
         "state_label": "Wearing Off Risk"
       }
     ],
     "confidence": {
-      "tier": "medium",
+      "tier": "high",
       "primary_issue": "clean_signal",
-      "reason": "Model trained on 7 sessions with regular dose schedule",
-      "numeric_score": 0.75
+      "reason": "Model based on 19 logged sessions (personalized pattern)",
+      "numeric_score": 0.92
     },
-    "hours_since_last_dose": 1.5,
-    "next_dose_time_str": null
+    "hours_since_last_dose": 11.8,
+    "next_dose_time_str": null,
+    "pattern_type": "personalized pattern",
+    "days_logged_count": 9,
+    "days_target_count": 14,
+    "is_simulated_demo": false,
+    "progress_label": "Forecast confidence: 9 of 14 days logged"
   }
 }

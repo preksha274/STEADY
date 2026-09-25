@@ -162,16 +162,178 @@ def extract_pose_gait_features(
     )
 
 
-def evaluate_move_coach_rules(
+def evaluate_exercise_pose_rules(
+    exercise_type: str,
     features: DerivedGaitFeatures,
     target_tempo_bpm: int = 88,
     measured_cadence_spm: Optional[float] = None,
     rep_count: int = 0
 ) -> List[MoveCoachPrompt]:
     """
+    Dedicated rule-based feedback engine tailored for specific therapeutic exercises.
+    """
+    prompts: List[MoveCoachPrompt] = []
+    ex = exercise_type.lower()
+
+    if ex in ["big_reach", "reach", "lsvt_big"]:
+        # Big Arm Reach: Encourage maximal extension and symmetry
+        min_arm = min(features.left_arm_swing_deg, features.right_arm_swing_deg)
+        if min_arm < 50.0:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.BIGGER_REACH,
+                prompt_text="Bigger reach! Stretch your fingertips toward the ceiling",
+                severity="warning",
+                triggered_metric="min_arm_swing_deg",
+                metric_value=min_arm,
+                target_threshold=70.0
+            ))
+        if features.arm_swing_asymmetry_pct > 30.0:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.SYMMETRIC_ARM_SWING,
+                prompt_text="Reach equally high with both arms",
+                severity="info",
+                triggered_metric="arm_swing_asymmetry_pct",
+                metric_value=features.arm_swing_asymmetry_pct,
+                target_threshold=20.0
+            ))
+
+    elif ex in ["high_knees", "marching", "marching_in_place"]:
+        # High Stepping / Marching in Place
+        min_knee = min(features.left_knee_flexion_deg, features.right_knee_flexion_deg)
+        if min_knee > 130.0:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.LIFT_KNEES_HIGH,
+                prompt_text="Lift your knees to hip height — clear the floor",
+                severity="warning",
+                triggered_metric="knee_flexion_deg",
+                metric_value=min_knee,
+                target_threshold=110.0
+            ))
+        if features.trunk_inclination_deg > 12.0:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.STAND_TALLER,
+                prompt_text="Keep your chest upright while marching",
+                severity="info",
+                triggered_metric="trunk_inclination_deg",
+                metric_value=features.trunk_inclination_deg,
+                target_threshold=8.0
+            ))
+
+    elif ex in ["torso_twist", "trunk_rotation"]:
+        # Axial Torso Rotation
+        prompts.append(MoveCoachPrompt(
+            code=MoveCoachFeedbackCode.ROTATE_TORSO,
+            prompt_text="Rotate smoothly through your ribcage — look in direction of turn",
+            severity="info",
+            triggered_metric="axial_rotation",
+            metric_value=25.0,
+            target_threshold=35.0
+        ))
+
+    elif ex in ["sit_to_stand", "chair_transfers"]:
+        # Sit-to-Stand
+        if features.trunk_inclination_deg < 10.0 and features.left_knee_flexion_deg < 120.0:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.STAND_UP_FULL,
+                prompt_text="Push firmly through heels to full standing posture",
+                severity="warning",
+                triggered_metric="knee_extension_deg",
+                metric_value=features.left_knee_flexion_deg,
+                target_threshold=170.0
+            ))
+
+    elif ex in ["heel_toe_rock", "balance_rock"]:
+        # Heel-to-Toe Rocking
+        prompts.append(MoveCoachPrompt(
+            code=MoveCoachFeedbackCode.WEIGHT_TRANSFER,
+            prompt_text="Shift weight smoothly from heels to toes with metronome rhythm",
+            severity="info",
+            triggered_metric="balance_shift",
+            metric_value=1.0,
+            target_threshold=1.0
+        ))
+
+    elif ex in ["lateral_step", "clock_step", "side_step"]:
+        # Lateral Side Stepping
+        if features.step_width_norm < 0.35:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.SIDE_STEP_WIDE,
+                prompt_text="Step wider out to the side — solid base of support",
+                severity="warning",
+                triggered_metric="step_width_norm",
+                metric_value=features.step_width_norm,
+                target_threshold=0.5
+            ))
+
+    elif ex in ["posture_reset", "scapular_squeeze"]:
+        # Scapular Retraction & Chin Tuck
+        if features.trunk_inclination_deg > 8.0:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.RETRACT_SHOULDERS,
+                prompt_text="Pull shoulder blades back and down — align ears over shoulders",
+                severity="warning",
+                triggered_metric="trunk_inclination_deg",
+                metric_value=features.trunk_inclination_deg,
+                target_threshold=5.0
+            ))
+
+    elif ex in ["finger_tap_open", "hand_open_close"]:
+        # Hand Open-Close Agility
+        prompts.append(MoveCoachPrompt(
+            code=MoveCoachFeedbackCode.FULL_HAND_EXPANSION,
+            prompt_text="Open fingers as wide as possible, then snap shut firmly",
+            severity="info",
+            triggered_metric="finger_amplitude",
+            metric_value=0.8,
+            target_threshold=1.0
+        ))
+
+    # General rhythm pacing check
+    if measured_cadence_spm is not None and measured_cadence_spm > 0:
+        ratio = measured_cadence_spm / float(target_tempo_bpm)
+        if ratio > 1.25:
+            prompts.append(MoveCoachPrompt(
+                code=MoveCoachFeedbackCode.SLOW_DOWN,
+                prompt_text="Slow down slightly — match the metronome pulse",
+                severity="warning",
+                triggered_metric="cadence_ratio",
+                metric_value=ratio,
+                target_threshold=1.0
+            ))
+
+    if not prompts:
+        prompts.append(MoveCoachPrompt(
+            code=MoveCoachFeedbackCode.EXCELLENT_RHYTHM,
+            prompt_text="Excellent form! Maintain this amplitude and rhythm",
+            severity="praise",
+            triggered_metric="overall_form",
+            metric_value=1.0,
+            target_threshold=1.0
+        ))
+
+    return prompts
+
+
+def evaluate_move_coach_rules(
+    features: DerivedGaitFeatures,
+    target_tempo_bpm: int = 88,
+    measured_cadence_spm: Optional[float] = None,
+    rep_count: int = 0,
+    exercise_type: Optional[str] = None
+) -> List[MoveCoachPrompt]:
+    """
     Transparent rule-based feedback engine for live coaching.
     Returns prioritized list of explainable prompts.
     """
+    if exercise_type and exercise_type.lower() != "walking":
+        return evaluate_exercise_pose_rules(
+            exercise_type=exercise_type,
+            features=features,
+            target_tempo_bpm=target_tempo_bpm,
+            measured_cadence_spm=measured_cadence_spm,
+            rep_count=rep_count
+        )
+
     prompts: List[MoveCoachPrompt] = []
 
     # Rule 1: Posture - Trunk forward lean check
@@ -261,7 +423,8 @@ def process_pose_stream_frame(
     frame: PoseFrame,
     target_tempo_bpm: int = 88,
     measured_cadence_spm: Optional[float] = None,
-    current_rep: int = 0
+    current_rep: int = 0,
+    exercise_type: Optional[str] = None
 ) -> MoveCoachFeedbackOutput:
     """
     End-to-end frame processor for live Move Coach camera feedback.
@@ -274,7 +437,8 @@ def process_pose_stream_frame(
         features=features,
         target_tempo_bpm=target_tempo_bpm,
         measured_cadence_spm=measured_cadence_spm,
-        rep_count=current_rep
+        rep_count=current_rep,
+        exercise_type=exercise_type
     )
 
     # 3. Beat sync calculation

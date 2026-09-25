@@ -101,6 +101,11 @@ export default function DayForecastNeuroDiaryPage() {
             <span className="text-[10px] bg-[#EFF6FF] text-[#2563EB] font-semibold px-2 py-0.5 rounded-full border border-[#BFDBFE]">
               Core 3
             </span>
+            {isDemoMode && (
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                Simulated Demo Patient
+              </span>
+            )}
           </div>
           <p className="text-xs text-[#64748B] mt-0.5">
             Hourly ON/OFF window prediction with overlaid patient context
@@ -127,8 +132,14 @@ export default function DayForecastNeuroDiaryPage() {
               </div>
             </div>
           </div>
-          <ConfidenceBadge level={forecast.confidenceLevel} reason="Calculated from baseline & daily diary responses" />
+          <div className="flex flex-col items-end gap-1">
+            <ConfidenceBadge level={forecast.confidenceLevel} reason="Calculated from baseline & daily diary responses" />
+            <span className="text-[10px] font-medium text-[#2563EB]/90">
+              {isDemoMode ? "Forecast confidence: 21 of 14 days logged" : "Forecast confidence: 5 of 14 days logged"}
+            </span>
+          </div>
         </div>
+
 
         <p className="text-xs text-[#172554] font-normal leading-relaxed">
           Peak medication effect interval. Movement and outdoor tasks are easiest during this window.

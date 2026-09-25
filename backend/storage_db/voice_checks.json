@@ -70,5 +70,149 @@
     "notes": "Voice loud and steady this morning",
     "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
     "label": "Voice loudness & non-motor check-in"
+  },
+  "voi_cec9d9635091": {
+    "id": "voi_cec9d9635091",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T08:06:15.040444+00:00",
+    "updated_at": "2026-09-25T08:06:15.040444+00:00",
+    "voice_metrics": {
+      "duration_s": 3.0,
+      "rms_dbfs": -21.3,
+      "pitch_stability_pct": 100.0,
+      "vocal_effort_tier": "mild",
+      "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Full 3s sustained vowel captured (3.0s, -21.3 dBFS)",
+        "numeric_score": 0.95
+      }
+    },
+    "nonmotor_metrics": {
+      "pain_score": 2,
+      "fatigue_score": 2,
+      "anxiety_score": 1,
+      "sleep_score": 4,
+      "composite_nonmotor_index": 1.75,
+      "comparison_text": "Compared to your usual",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Patient self-reported daily ratings verified",
+        "numeric_score": 1.0
+      }
+    },
+    "notes": "Voice loud and steady this morning",
+    "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+    "label": "Voice loudness & non-motor check-in"
+  },
+  "voi_7b43b1ae38d9": {
+    "id": "voi_7b43b1ae38d9",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T09:01:46.541846+00:00",
+    "updated_at": "2026-09-25T09:01:46.541846+00:00",
+    "voice_metrics": {
+      "duration_s": 3.0,
+      "rms_dbfs": -21.3,
+      "pitch_stability_pct": 100.0,
+      "vocal_effort_tier": "mild",
+      "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Full 3s sustained vowel captured (3.0s, -21.3 dBFS)",
+        "numeric_score": 0.95
+      }
+    },
+    "nonmotor_metrics": {
+      "pain_score": 2,
+      "fatigue_score": 2,
+      "anxiety_score": 1,
+      "sleep_score": 4,
+      "composite_nonmotor_index": 1.75,
+      "comparison_text": "Compared to your usual",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Patient self-reported daily ratings verified",
+        "numeric_score": 1.0
+      }
+    },
+    "notes": "Voice loud and steady this morning",
+    "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+    "label": "Voice loudness & non-motor check-in"
+  },
+  "voi_090a7a625f3e": {
+    "id": "voi_090a7a625f3e",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T09:53:00.451857+00:00",
+    "updated_at": "2026-09-25T09:53:00.451857+00:00",
+    "voice_metrics": {
+      "duration_s": 3.0,
+      "rms_dbfs": -21.3,
+      "pitch_stability_pct": 100.0,
+      "vocal_effort_tier": "mild",
+      "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Full 3s sustained vowel captured (3.0s, -21.3 dBFS)",
+        "numeric_score": 0.95
+      }
+    },
+    "nonmotor_metrics": {
+      "pain_score": 2,
+      "fatigue_score": 2,
+      "anxiety_score": 1,
+      "sleep_score": 4,
+      "composite_nonmotor_index": 1.75,
+      "comparison_text": "Compared to your usual",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Patient self-reported daily ratings verified",
+        "numeric_score": 1.0
+      }
+    },
+    "notes": "Voice loud and steady this morning",
+    "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+    "label": "Voice loudness & non-motor check-in"
+  },
+  "voi_4dc0ac8c78fc": {
+    "id": "voi_4dc0ac8c78fc",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T13:45:21.495713+00:00",
+    "updated_at": "2026-09-25T13:45:21.495713+00:00",
+    "voice_metrics": {
+      "duration_s": 3.0,
+      "rms_dbfs": -21.3,
+      "pitch_stability_pct": 100.0,
+      "vocal_effort_tier": "mild",
+      "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Full 3s sustained vowel captured (3.0s, -21.3 dBFS)",
+        "numeric_score": 0.95
+      }
+    },
+    "nonmotor_metrics": {
+      "pain_score": 2,
+      "fatigue_score": 2,
+      "anxiety_score": 1,
+      "sleep_score": 4,
+      "composite_nonmotor_index": 1.75,
+      "comparison_text": "Compared to your usual",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Patient self-reported daily ratings verified",
+        "numeric_score": 1.0
+      }
+    },
+    "notes": "Voice loud and steady this morning",
+    "disclaimer": "Loudness & vocal sustain measurement. Not a diagnostic clinical biomarker.",
+    "label": "Voice loudness & non-motor check-in"
   }
 }

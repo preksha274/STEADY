@@ -2,21 +2,36 @@
   "base_user_sarah_test": {
     "id": "base_user_sarah_test",
     "user_id": "user_sarah_test",
-    "created_at": "2026-09-25T03:31:56.969689+00:00",
-    "updated_at": "2026-09-25T03:31:56.969689+00:00",
+    "created_at": "2026-09-25T13:45:20.752079+00:00",
+    "updated_at": "2026-09-25T13:45:20.752079+00:00",
     "average_tremor_amplitude": 0.46,
     "average_tremor_frequency_hz": 4.75,
-    "total_sessions_count": 7,
-    "last_session_id": "ses_a701de0bf107"
+    "total_sessions_count": 19,
+    "last_session_id": "ses_b10986348598"
   },
   "base_user_alice": {
     "id": "base_user_alice",
     "user_id": "user_alice",
-    "created_at": "2026-09-25T03:31:57.172386+00:00",
-    "updated_at": "2026-09-25T03:31:57.172386+00:00",
+    "created_at": "2026-09-25T13:45:22.072694+00:00",
+    "updated_at": "2026-09-25T13:45:22.072694+00:00",
     "average_tremor_amplitude": 0.1407,
     "average_tremor_frequency_hz": 5.0,
-    "total_sessions_count": 2,
-    "last_session_id": "ses_4ce4ed7c8211"
+    "total_sessions_count": 6,
+    "last_session_id": "ses_01d4fb46e6c4"
+  },
+  "base_user_sarah_default": {
+    "id": "base_user_sarah_default",
+    "user_id": "user_sarah_default",
+    "created_at": "2026-09-25T08:12:36.048378+00:00",
+    "updated_at": "2026-09-25T08:12:36.048378+00:00",
+    "average_tremor_amplitude": 0.22,
+    "average_tremor_frequency_hz": 4.8,
+    "average_gait_speed_mps": 0.98,
+    "beta_band_power": 0.26,
+    "total_sessions_count": 42,
+    "is_calibrated": true,
+    "is_simulated_demo": true,
+    "demo_tag": "Simulated Demo Patient",
+    "label": "Personal baseline active (Simulated Demo)"
   }
 }

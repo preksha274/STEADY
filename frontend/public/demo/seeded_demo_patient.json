@@ -1,0 +1,22 @@
+{
+  "user_id": "user_sarah_default",
+  "patient_name": "Sarah (Simulated Demo Patient)",
+  "is_simulated_demo": true,
+  "demo_tag": "Simulated Demo Patient",
+  "total_days_logged": 21,
+  "total_sessions_logged": 42,
+  "baseline": {
+    "user_id": "user_sarah_default",
+    "average_tremor_amplitude": 0.22,
+    "average_tremor_frequency_hz": 4.8,
+    "average_gait_speed_mps": 0.98,
+    "beta_band_power": 0.26,
+    "total_sessions_count": 42,
+    "is_calibrated": true,
+    "is_simulated_demo": true,
+    "demo_tag": "Simulated Demo Patient",
+    "label": "Personal baseline active (Simulated Demo)"
+  },
+  "recent_sessions_count": 42,
+  "last_updated": "2026-09-25T08:12:30.309318+00:00"
+}
