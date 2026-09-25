@@ -13,6 +13,7 @@ import {
 import { buildForecast, DayForecastResult } from "@/lib/forecast";
 import { getSeverity, SeverityResult } from "@/lib/severity";
 import { getActiveCue, CueResult } from "@/lib/cues";
+import { getClinicalScores, ClinicalScore } from "@/lib/clinicalScores";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -58,6 +59,7 @@ export default function TodayHomePage() {
 
   // Loaded session & baseline state
   const [latestSession, setLatestSession] = useState<any>(null);
+  const [recentClinicalScore, setRecentClinicalScore] = useState<ClinicalScore | null>(null);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -101,6 +103,11 @@ export default function TodayHomePage() {
         const all = getSessions(isDemoMode);
         const latest = all.length > 0 ? all[all.length - 1] : null;
         setLatestSession(latest);
+
+        const clinicalScores = getClinicalScores();
+        if (clinicalScores && clinicalScores.length > 0) {
+          setRecentClinicalScore(clinicalScores[0]);
+        }
 
         refreshDoseState();
       } catch (e) {
@@ -193,9 +200,16 @@ export default function TodayHomePage() {
       {/* Greeting Header with Date + Simple Mode Toggle */}
       <header className="flex items-start justify-between border-b-[0.5px] border-[#E2E8F0] pb-3">
         <div>
-          <span className="text-xs font-medium text-[#64748B] block">
-            {currentDateFormatted}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-[#64748B] block">
+              {currentDateFormatted}
+            </span>
+            {isDemoMode && (
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                Simulated Demo Patient
+              </span>
+            )}
+          </div>
           <h1 className="text-2xl font-extrabold text-[#172554] tracking-tight mt-0.5">
             Good morning, {userName}
           </h1>
@@ -241,13 +255,19 @@ export default function TodayHomePage() {
               </div>
             </div>
           </div>
-          <ConfidenceBadge
-            level={forecast.confidenceLevel}
-            reason="Based on your personal baseline & dose schedule"
-          />
+          <div className="flex flex-col items-end gap-1">
+            <ConfidenceBadge
+              level={forecast.confidenceLevel}
+              reason="Based on your personal baseline & dose schedule"
+            />
+            <span className="text-[10px] font-medium text-[#2563EB]/90">
+              {isDemoMode ? "Forecast confidence: 21 of 14 days logged" : "Forecast confidence: 5 of 14 days logged"}
+            </span>
+          </div>
         </div>
 
         <p className="text-xs text-[#172554] font-normal leading-relaxed">
+
           ✨ Optimal mobility window expected late morning. Best interval for walks, exercise, or outside tasks.
         </p>
 
@@ -376,6 +396,52 @@ export default function TodayHomePage() {
           </div>
         </div>
       </Card>
+
+      {/* DOCTOR-REPORTED CLINICAL SCORE CARD (DISTINCT NON-AI STYLING) */}
+      {recentClinicalScore && (
+        <Card className="space-y-3 border-2 border-slate-300 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-slate-800 text-white rounded text-[10px] font-extrabold tracking-wide">
+                Dr
+              </span>
+              <span className="text-xs font-bold text-slate-900">
+                MDS-UPDRS Part {recentClinicalScore.part}
+              </span>
+              <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
+                Doctor-reported
+              </span>
+            </div>
+            <span className="text-xs text-slate-500 font-mono">
+              {recentClinicalScore.date_recorded}
+            </span>
+          </div>
+
+          <div className="flex items-baseline justify-between">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-slate-900">
+                {recentClinicalScore.score}
+              </span>
+              <span className="text-xs font-semibold text-slate-500">
+                / {recentClinicalScore.max_score} pts
+              </span>
+            </div>
+
+            <Link
+              href="/clinical-scores"
+              className="text-xs text-[#2563EB] font-bold hover:underline"
+            >
+              View Record &rarr;
+            </Link>
+          </div>
+
+          {recentClinicalScore.clinician_name && (
+            <p className="text-xs text-slate-600 font-medium">
+              Assessed by {recentClinicalScore.clinician_name}
+            </p>
+          )}
+        </Card>
+      )}
 
       {/* MEDICATION REMINDER ROW */}
       <Card className="space-y-3 border-[0.5px] border-[#E2E8F0] bg-[#EFF6FF]/40">

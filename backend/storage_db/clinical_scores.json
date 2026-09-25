@@ -1,0 +1,34 @@
+{
+  "cli_337be0e388aa": {
+    "id": "cli_337be0e388aa",
+    "user_id": "default_user",
+    "created_at": "2026-09-25T09:02:15.766684+00:00",
+    "updated_at": "2026-09-25T09:02:15.766684+00:00",
+    "patient_id": "default_user",
+    "author_user_id": "default_user",
+    "author_role": "patient",
+    "scale": "MDS-UPDRS",
+    "part": "III",
+    "score": 63.0,
+    "max_score": 132.0,
+    "clinician_name": null,
+    "date_recorded": "2026-09-25",
+    "notes": null
+  },
+  "cli_f933fe71c4d7": {
+    "id": "cli_f933fe71c4d7",
+    "user_id": "test_patient_01",
+    "created_at": "2026-09-25T09:03:10.250706+00:00",
+    "updated_at": "2026-09-25T09:03:10.250706+00:00",
+    "patient_id": "test_patient_01",
+    "author_user_id": "test_patient_01",
+    "author_role": "patient",
+    "scale": "MDS-UPDRS",
+    "part": "III",
+    "score": 30.0,
+    "max_score": 132.0,
+    "clinician_name": "Dr. Thorne",
+    "date_recorded": "2026-09-25",
+    "notes": "Follow-up clinic visit. Good response to morning dose."
+  }
+}

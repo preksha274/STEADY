@@ -22,5 +22,53 @@
     "hazard_trigger": "Quick pivot",
     "freeze_count": 1,
     "recommended_cue": "Audio Beat (88 BPM)"
+  },
+  "dan_ddb91bba1ad0": {
+    "id": "dan_ddb91bba1ad0",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T08:06:14.879754+00:00",
+    "updated_at": "2026-09-25T08:06:14.932962+00:00",
+    "room_name": "Kitchen",
+    "spot_name": "Island Turn",
+    "risk_level": "medium",
+    "hazard_trigger": "Quick pivot",
+    "freeze_count": 1,
+    "recommended_cue": "Audio Beat (88 BPM)"
+  },
+  "dan_9e27fb9e84ad": {
+    "id": "dan_9e27fb9e84ad",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T09:01:46.333836+00:00",
+    "updated_at": "2026-09-25T09:01:46.352447+00:00",
+    "room_name": "Kitchen",
+    "spot_name": "Island Turn",
+    "risk_level": "medium",
+    "hazard_trigger": "Quick pivot",
+    "freeze_count": 1,
+    "recommended_cue": "Audio Beat (88 BPM)"
+  },
+  "dan_7f465ed69323": {
+    "id": "dan_7f465ed69323",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T09:53:00.337507+00:00",
+    "updated_at": "2026-09-25T09:53:00.361056+00:00",
+    "room_name": "Kitchen",
+    "spot_name": "Island Turn",
+    "risk_level": "medium",
+    "hazard_trigger": "Quick pivot",
+    "freeze_count": 1,
+    "recommended_cue": "Audio Beat (88 BPM)"
+  },
+  "dan_562aad71f969": {
+    "id": "dan_562aad71f969",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T13:45:21.165902+00:00",
+    "updated_at": "2026-09-25T13:45:21.237551+00:00",
+    "room_name": "Kitchen",
+    "spot_name": "Island Turn",
+    "risk_level": "medium",
+    "hazard_trigger": "Quick pivot",
+    "freeze_count": 1,
+    "recommended_cue": "Audio Beat (88 BPM)"
   }
 }

@@ -54,6 +54,24 @@ class MoveCoachFeedbackCode(str, Enum):
     MATCH_THE_BEAT = "match_the_beat"
     INCREASE_STEP_HEIGHT = "increase_step_height"
     SYMMETRIC_ARM_SWING = "symmetric_arm_swing"
+    ROTATE_TORSO = "rotate_torso"
+    LIFT_KNEES_HIGH = "lift_knees_high"
+    STAND_UP_FULL = "stand_up_full"
+    WEIGHT_TRANSFER = "weight_transfer"
+    SIDE_STEP_WIDE = "side_step_wide"
+    RETRACT_SHOULDERS = "retract_shoulders"
+    FULL_HAND_EXPANSION = "full_hand_expansion"
+
+
+class ExerciseType(str, Enum):
+    BIG_REACH = "big_reach"              # LSVT BIG Overhead & Lateral Reach
+    HIGH_KNEES = "high_knees"            # Marching in Place / Step Clearance
+    TORSO_TWIST = "torso_twist"          # Axial Trunk Rotation & Mobility
+    SIT_TO_STAND = "sit_to_stand"        # Chair Transfers & Quad Power
+    HEEL_TOE_ROCK = "heel_toe_rock"      # Ankle Dorsiflexion & Dynamic Balance
+    LATERAL_STEP = "lateral_step"        # Multi-Directional Clock Stepping
+    POSTURE_RESET = "posture_reset"      # Scapular Retraction & Chin Alignment
+    FINGER_TAP_OPEN = "finger_tap_open"  # Rapid Hand Open-Close Agility
 
 
 # ==========================================
@@ -229,6 +247,12 @@ class DayForecastOutput(BaseModel):
     confidence: ConfidenceReport
     hours_since_last_dose: Optional[float] = None
     next_dose_time_str: Optional[str] = None
+    pattern_type: str = "personalized pattern"  # "typical pattern" | "personalized pattern" | "uncalibrated"
+    days_logged_count: int = 0
+    days_target_count: int = 14
+    is_simulated_demo: bool = False
+    progress_label: Optional[str] = None
+
 
 
 # ==========================================

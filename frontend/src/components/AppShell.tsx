@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { BottomNav } from "./BottomNav";
 import { FreezeAssistModal } from "./FreezeAssistModal";
 import { MedicationDoseLogModal } from "./MedicationDoseLogModal";
+import { VoiceAssistantModal } from "./VoiceAssistantModal";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       {!hideBottomNav && <BottomNav />}
       <FreezeAssistModal />
       <MedicationDoseLogModal />
+      <VoiceAssistantModal />
     </div>
   );
 };

@@ -62,6 +62,14 @@ from .datasets import (
     generate_nemar_eeg_sample
 )
 
+from .routine_planner import (
+    generate_today_session_plan,
+    TodaySessionPlan,
+    PlannedExercise,
+    PostureMode,
+    EXERCISE_LIBRARY
+)
+
 __all__ = [
     # Types
     "ConfidenceTier",
@@ -93,6 +101,10 @@ __all__ = [
     "FreezeIndexResult",
     "VoiceLoudnessResult",
     "NonMotorCheckResult",
+    "TodaySessionPlan",
+    "PlannedExercise",
+    "PostureMode",
+    "EXERCISE_LIBRARY",
     # Functions
     "extract_motion_features",
     "extract_eeg_features",
@@ -109,6 +121,7 @@ __all__ = [
     "compute_freeze_index",
     "analyze_voice_sustained_vowel",
     "compute_nonmotor_check",
+    "generate_today_session_plan",
     "generate_gait_assessment_sample",
     "generate_oxford_voice_sample",
     "generate_nemar_eeg_sample"

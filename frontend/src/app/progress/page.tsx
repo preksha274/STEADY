@@ -17,6 +17,7 @@ import {
   getDoseLogs,
 } from "@/lib/diary";
 import { getSeverity, SeverityResult } from "@/lib/severity";
+import { getClinicalScores, ClinicalScore } from "@/lib/clinicalScores";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -35,6 +36,7 @@ import {
   Gauge,
   Info,
   Scale,
+  Stethoscope,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -297,6 +299,65 @@ export default function ProgressTimelinePage() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      {/* DOCTOR-REPORTED CLINICAL SCORES SECTION (DISTINCT NON-AI STYLING) */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between pl-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 bg-slate-800 text-white rounded text-[10px] font-extrabold tracking-wide">
+              Dr
+            </span>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Doctor-Reported Clinical Scores (MDS-UPDRS)
+            </h2>
+          </div>
+          <Link
+            href="/clinical-scores"
+            className="text-[11px] text-[#2563EB] font-bold hover:underline"
+          >
+            + Log Score
+          </Link>
+        </div>
+
+        <div className="space-y-2.5">
+          {getClinicalScores().slice(0, 2).map((score) => (
+            <div
+              key={score.id}
+              className="p-3.5 bg-white rounded-[18px] border-2 border-slate-300 shadow-xs space-y-2 text-left"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-900">
+                    Part {score.part} Assessment
+                  </span>
+                  <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
+                    Doctor-reported
+                  </span>
+                </div>
+                <span className="text-xs text-slate-500 font-mono">
+                  {score.date_recorded}
+                </span>
+              </div>
+
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-black text-slate-900">
+                    {score.score}
+                  </span>
+                  <span className="text-xs text-slate-500 font-semibold">
+                    / {score.max_score} points
+                  </span>
+                </div>
+                {score.clinician_name && (
+                  <span className="text-[11px] text-slate-600 italic">
+                    {score.clinician_name}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* SESSION LIST WITH COLORED DOT + "CHANGE FROM BASELINE" INDICATOR PER ROW */}
       <div className="space-y-2.5">
