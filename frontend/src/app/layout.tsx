@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MovePilot - Parkinson's Movement Companion",
-  description: "A personalized Parkinson's movement companion & forecast engine.",
+  title: "STEADY — Parkinson's Movement Companion",
+  description: "A personalized Parkinson's movement companion & forecast engine combining phone-sensor movement data, camera-based pose analysis, and patient-reported context.",
 };
 
 export default function RootLayout({

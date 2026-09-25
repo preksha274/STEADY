@@ -2,42 +2,68 @@
 
 @theme {
   --color-primary: #2563EB;
-  --color-primary-dark: #1D4ED8;
-  --color-indigo: #6366F1;
-  --color-purple: #8B5CF6;
-  --color-cyan: #06B6D4;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-page-bg: #F8FAFC;
-  --color-section-bg: #EFF6FF;
-  --color-card-border: #E2E8F0;
-  --color-heading: #172554;
-  --color-body-text: #64748B;
+  --color-primary-blue: #2563EB;
+  --color-indigo-accent: #6366F1;
+  --color-purple-accent: #8B5CF6;
+  --color-cyan-teal: #06B6D4;
+  --color-success-green: #10B981;
+  --color-warning-amber: #F59E0B;
+  --color-error-red: #EF4444;
+
+  --color-background: #F8FAFC;
+  --color-section: #EFF6FF;
+  --color-white: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-divider: #E2E8F0;
+  --color-navy: #172554;
+  --color-slate: #64748B;
 
   --color-chart-tremor: #6366F1;
   --color-chart-gyroscope: #06B6D4;
   --color-chart-gait: #10B981;
+  --color-chart-ecg: #EF4444;
   --color-chart-baseline: #8B5CF6;
   --color-chart-warning: #F59E0B;
+
+  --font-inter: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
   --background: #F8FAFC;
   --foreground: #172554;
+  --color-bg-brand-grad: linear-gradient(135deg, #2563EB 0%, #6366F1 50%, #8B5CF6 100%);
+  --color-bg-back-grad: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 50%, #ECFEFF 100%);
 }
 
 body {
   background-color: #F8FAFC;
   color: #172554;
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Typography constraints according to spec:
+   Headings 600–700, body 400, buttons 500. Never use weights outside that set. */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: #172554;
+}
+
+button {
+  font-weight: 500;
+}
+
+p, span, div, label, input, textarea {
+  font-weight: 400;
 }
 
 .bg-brand-gradient {
   background: linear-gradient(135deg, #2563EB 0%, #6366F1 50%, #8B5CF6 100%);
 }
 
+.bg-background-gradient,
 .bg-soft-gradient {
   background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 50%, #ECFEFF 100%);
 }
@@ -46,4 +72,15 @@ body {
   background: linear-gradient(135deg, #2563EB 0%, #6366F1 50%, #8B5CF6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Minimum tap target rule: ≥ 44px */
+.tap-target-44 {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.tap-target-48 {
+  min-height: 48px;
+  min-width: 48px;
 }

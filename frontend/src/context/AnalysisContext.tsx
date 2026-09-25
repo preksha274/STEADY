@@ -109,8 +109,14 @@ interface AnalysisContextType {
   eegResult: EEGAnalysisResult | null;
   gaitResult: GaitAnalysisResult | null;
   isDemoMode: boolean;
+  isSimpleMode: boolean;
+  isFreezeModalOpen: boolean;
+  isDoseLogModalOpen: boolean;
   isLoaded: boolean;
   setIsDemoMode: (enabled: boolean) => void;
+  setIsSimpleMode: (enabled: boolean) => void;
+  setIsFreezeModalOpen: (open: boolean) => void;
+  setIsDoseLogModalOpen: (open: boolean) => void;
   setIMUResult: (result: IMUAnalysisResult | null) => void;
   setEEGResult: (result: EEGAnalysisResult | null) => void;
   setGaitResult: (result: GaitAnalysisResult | null) => void;
@@ -126,31 +132,40 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [eegResult, setEEGResultState] = useState<EEGAnalysisResult | null>(null);
   const [gaitResult, setGaitResultState] = useState<GaitAnalysisResult | null>(null);
   const [isDemoMode, setIsDemoModeState] = useState<boolean>(true);
+  const [isSimpleMode, setIsSimpleModeState] = useState<boolean>(false);
+  const [isFreezeModalOpen, setIsFreezeModalOpen] = useState<boolean>(false);
+  const [isDoseLogModalOpen, setIsDoseLogModalOpen] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
 
-  // Load from localStorage on mount & seed demo sessions if needed (Rule 4: useEffect client only)
+  // Load from localStorage on mount & seed demo sessions if needed
   useEffect(() => {
     try {
-      // Seed demo sessions & diary on first load if empty
       seedDemoSessions(false);
       seedDemoDiary(false);
 
-      const storedDemoMode = localStorage.getItem("movepilot_demo_mode");
+      const storedDemoMode = localStorage.getItem("steady_demo_mode") || localStorage.getItem("movepilot_demo_mode");
       if (storedDemoMode !== null) {
         setIsDemoModeState(JSON.parse(storedDemoMode));
       }
 
-      const storedIMU = localStorage.getItem("movepilot_imu_result");
+      const storedSimpleMode = localStorage.getItem("steady_simple_mode") || localStorage.getItem("movepilot_display_mode");
+      if (storedSimpleMode !== null) {
+        if (storedSimpleMode === "simple" || storedSimpleMode === "true") {
+          setIsSimpleModeState(true);
+        }
+      }
+
+      const storedIMU = localStorage.getItem("steady_imu_result") || localStorage.getItem("movepilot_imu_result");
       if (storedIMU) {
         setIMUResultState(JSON.parse(storedIMU));
       }
-      const storedEEG = localStorage.getItem("movepilot_eeg_result");
+      const storedEEG = localStorage.getItem("steady_eeg_result") || localStorage.getItem("movepilot_eeg_result");
       if (storedEEG) {
         setEEGResultState(JSON.parse(storedEEG));
       }
-      const storedGait = localStorage.getItem("movepilot_gait_result");
+      const storedGait = localStorage.getItem("steady_gait_result") || localStorage.getItem("movepilot_gait_result");
       if (storedGait) {
         setGaitResultState(JSON.parse(storedGait));
       }
@@ -164,9 +179,18 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setIsDemoMode = (enabled: boolean) => {
     setIsDemoModeState(enabled);
     try {
-      localStorage.setItem("movepilot_demo_mode", JSON.stringify(enabled));
+      localStorage.setItem("steady_demo_mode", JSON.stringify(enabled));
     } catch (e) {
       console.error("Failed to save demo mode setting", e);
+    }
+  };
+
+  const setIsSimpleMode = (enabled: boolean) => {
+    setIsSimpleModeState(enabled);
+    try {
+      localStorage.setItem("steady_simple_mode", enabled ? "simple" : "standard");
+    } catch (e) {
+      console.error("Failed to save simple mode setting", e);
     }
   };
 
@@ -174,9 +198,9 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIMUResultState(result);
     try {
       if (result) {
-        localStorage.setItem("movepilot_imu_result", JSON.stringify(result));
+        localStorage.setItem("steady_imu_result", JSON.stringify(result));
       } else {
-        localStorage.removeItem("movepilot_imu_result");
+        localStorage.removeItem("steady_imu_result");
       }
     } catch (e) {
       console.error("Failed to persist IMU result", e);
@@ -187,9 +211,9 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setEEGResultState(result);
     try {
       if (result) {
-        localStorage.setItem("movepilot_eeg_result", JSON.stringify(result));
+        localStorage.setItem("steady_eeg_result", JSON.stringify(result));
       } else {
-        localStorage.removeItem("movepilot_eeg_result");
+        localStorage.removeItem("steady_eeg_result");
       }
     } catch (e) {
       console.error("Failed to persist EEG result", e);
@@ -200,9 +224,9 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setGaitResultState(result);
     try {
       if (result) {
-        localStorage.setItem("movepilot_gait_result", JSON.stringify(result));
+        localStorage.setItem("steady_gait_result", JSON.stringify(result));
       } else {
-        localStorage.removeItem("movepilot_gait_result");
+        localStorage.removeItem("steady_gait_result");
       }
     } catch (e) {
       console.error("Failed to persist Gait result", e);
@@ -213,9 +237,9 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIMUResultState(null);
     setEEGResultState(null);
     setGaitResultState(null);
-    localStorage.removeItem("movepilot_imu_result");
-    localStorage.removeItem("movepilot_eeg_result");
-    localStorage.removeItem("movepilot_gait_result");
+    localStorage.removeItem("steady_imu_result");
+    localStorage.removeItem("steady_eeg_result");
+    localStorage.removeItem("steady_gait_result");
   };
 
   const resetDemoData = () => {
@@ -231,8 +255,14 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         eegResult,
         gaitResult,
         isDemoMode,
+        isSimpleMode,
+        isFreezeModalOpen,
+        isDoseLogModalOpen,
         isLoaded,
         setIsDemoMode,
+        setIsSimpleMode,
+        setIsFreezeModalOpen,
+        setIsDoseLogModalOpen,
         setIMUResult,
         setEEGResult,
         setGaitResult,
