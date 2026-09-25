@@ -1,0 +1,22 @@
+{
+  "base_user_sarah_test": {
+    "id": "base_user_sarah_test",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T03:31:56.969689+00:00",
+    "updated_at": "2026-09-25T03:31:56.969689+00:00",
+    "average_tremor_amplitude": 0.46,
+    "average_tremor_frequency_hz": 4.75,
+    "total_sessions_count": 7,
+    "last_session_id": "ses_a701de0bf107"
+  },
+  "base_user_alice": {
+    "id": "base_user_alice",
+    "user_id": "user_alice",
+    "created_at": "2026-09-25T03:31:57.172386+00:00",
+    "updated_at": "2026-09-25T03:31:57.172386+00:00",
+    "average_tremor_amplitude": 0.1407,
+    "average_tremor_frequency_hz": 5.0,
+    "total_sessions_count": 2,
+    "last_session_id": "ses_4ce4ed7c8211"
+  }
+}

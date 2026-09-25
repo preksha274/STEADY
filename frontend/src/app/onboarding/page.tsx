@@ -1,272 +1,409 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { User, CheckSquare, Clock, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
+import { Button } from "@/components/Button";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { StatusDot } from "@/components/StatusDot";
+import { addSession } from "@/lib/sessions";
+import {
+  Activity,
+  Footprints,
+  Hand,
+  Mic,
+  ArrowRight,
+  CheckCircle2,
+  Sparkles,
+  Info,
+  RotateCcw,
+  Play,
+  SkipForward,
+} from "lucide-react";
 
-const TRACKING_OPTIONS = [
-  { id: "tremor", label: "Tremor Frequency & Severity", desc: "Track resting and movement tremors" },
-  { id: "walking", label: "Walking & Gait Cadence", desc: "Monitor step symmetry and stride speed" },
-  { id: "balance", label: "Postural Balance & Stability", desc: "Evaluate stability during standing/turning" },
-  { id: "slowness", label: "Bradykinesia (Slowness)", desc: "Track movement initiation times" },
-  { id: "freezing", label: "Freezing of Gait (FoG)", desc: "Log hesitation episodes and triggers" },
+interface StepConfig {
+  id: number;
+  title: string;
+  subtitle: string;
+  duration: number; // in seconds
+  icon: React.ElementType;
+  guidance: string;
+  instructions: string[];
+}
+
+const STEPS: StepConfig[] = [
+  {
+    id: 1,
+    title: "Tremor Hold",
+    subtitle: "Resting tremor & stability baseline",
+    duration: 15,
+    icon: Activity,
+    guidance: "Hold your phone flat and resting comfortably on your lap or palm without tensing.",
+    instructions: [
+      "Rest your forearm comfortably on a table or your lap",
+      "Hold the device gently with your primary hand",
+      "Stay relaxed and breathe normally while the timer counts down",
+    ],
+  },
+  {
+    id: 2,
+    title: "Walk Test",
+    subtitle: "Gait speed & step rhythm baseline",
+    duration: 15,
+    icon: Footprints,
+    guidance: "Walk at your normal, comfortable pace across a clear hallway or room.",
+    instructions: [
+      "Ensure a clear walking path of at least 10 feet",
+      "Place phone in your pocket or hold steadily at waist level",
+      "Walk naturally until the countdown completes",
+    ],
+  },
+  {
+    id: 3,
+    title: "Finger Tap",
+    subtitle: "Motor speed & tapping rhythm",
+    duration: 15,
+    icon: Hand,
+    guidance: "Tap the two target buttons alternately as fast and regularly as comfortable.",
+    instructions: [
+      "Rest the phone flat on a table in front of you",
+      "Use your index and middle finger (or thumb)",
+      "Tap Target A and Target B back and forth steadily",
+    ],
+  },
+  {
+    id: 4,
+    title: "Voice Check",
+    subtitle: "Vocal loudness & sustained vowel",
+    duration: 5,
+    icon: Mic,
+    guidance: "Say 'Ahhh' steadily at your normal speaking volume.",
+    instructions: [
+      "Hold your phone about 6 inches from your mouth",
+      "Take a deep breath and vocalize a continuous 'Ahhh'",
+      "Keep your tone as steady and clear as possible",
+    ],
+  },
 ];
 
-const MEDICATION_TIMES = [
-  "7:00 AM",
-  "8:00 AM",
-  "12:00 PM",
-  "4:00 PM",
-  "6:00 PM",
-  "8:00 PM",
-  "10:00 PM",
-];
-
-export default function OnboardingPage() {
+export default function BaselineOnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [mounted, setMounted] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isStepActive, setIsStepActive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [tapCount, setTapCount] = useState(0);
+  const [lastTapTarget, setLastTapTarget] = useState<"A" | "B" | null>(null);
+  const [stepCompleted, setStepCompleted] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
-  // Form State
-  const [name, setName] = useState("Sarah Miller");
-  const [trackedSymptoms, setTrackedSymptoms] = useState<string[]>([
-    "tremor",
-    "walking",
-    "freezing",
-  ]);
-  const [medicationTimes, setMedicationTimes] = useState<string[]>(["8:00 AM", "12:00 PM", "6:00 PM"]);
+  const currentStep = STEPS[currentStepIndex];
+  const StepIcon = currentStep.icon;
 
-  const toggleSymptom = (id: string) => {
-    if (trackedSymptoms.includes(id)) {
-      setTrackedSymptoms(trackedSymptoms.filter((s) => s !== id));
+  useEffect(() => {
+    setMounted(true);
+    setTimeLeft(currentStep.duration);
+    setIsStepActive(false);
+    setStepCompleted(false);
+  }, [currentStepIndex]);
+
+  // Countdown timer for active step
+  useEffect(() => {
+    if (!isStepActive) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsStepActive(false);
+          setStepCompleted(true);
+          setCompletedSteps((prevDone) =>
+            prevDone.includes(currentStep.id) ? prevDone : [...prevDone, currentStep.id]
+          );
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isStepActive, currentStep.id]);
+
+  const handleStartStep = () => {
+    setTimeLeft(currentStep.duration);
+    setIsStepActive(true);
+    setStepCompleted(false);
+    setTapCount(0);
+    setLastTapTarget(null);
+  };
+
+  const handleNextStep = () => {
+    if (currentStepIndex < STEPS.length - 1) {
+      setCurrentStepIndex(currentStepIndex + 1);
     } else {
-      setTrackedSymptoms([...trackedSymptoms, id]);
+      finishBaseline();
     }
   };
 
-  const toggleMedTime = (time: string) => {
-    if (medicationTimes.includes(time)) {
-      setMedicationTimes(medicationTimes.filter((t) => t !== time));
+  const handleSkipStep = () => {
+    setIsStepActive(false);
+    if (currentStepIndex < STEPS.length - 1) {
+      setCurrentStepIndex(currentStepIndex + 1);
     } else {
-      setMedicationTimes([...medicationTimes, time]);
+      finishBaseline();
     }
   };
 
-  const handleComplete = () => {
-    const profile = {
-      name: name.trim() || "Sarah Miller",
-      trackedSymptoms,
-      medicationTimes,
-      onboardedAt: new Date().toISOString(),
-    };
+  const handleTap = (target: "A" | "B") => {
+    if (!isStepActive) return;
+    if (lastTapTarget !== target) {
+      setTapCount((c) => c + 1);
+      setLastTapTarget(target);
+    }
+  };
+
+  const finishBaseline = () => {
+    // Generate initial session record that feeds personal baseline
+    const nowIso = new Date().toISOString();
+    addSession({
+      timestamp: nowIso,
+      tremor: {
+        frequencyHz: 4.8,
+        amplitude: 0.28,
+        intensity: "mild",
+        confidence: "high",
+        confidenceReason: "Day 1 Baseline calibration test",
+      },
+      gait: {
+        cadence: 106,
+        symmetry: 94,
+        confidence: "high",
+      },
+      eeg: {
+        delta: 0.1,
+        theta: 0.15,
+        alpha: 0.55,
+        beta: 0.2,
+        confidence: "medium",
+      },
+      source: "live",
+    });
 
     try {
-      localStorage.setItem("movepilot_user_profile", JSON.stringify(profile));
+      localStorage.setItem("steady_baseline_completed", "true");
     } catch (e) {
-      console.error("Failed to save profile to localStorage", e);
+      console.error(e);
     }
 
     router.push("/today");
   };
 
+  if (!mounted) {
+    return (
+      <div className="max-w-md mx-auto p-4 sm:p-6 space-y-4">
+        <div className="h-28 bg-slate-100 rounded-3xl animate-pulse" />
+        <div className="h-64 bg-slate-100 rounded-3xl animate-pulse" />
+      </div>
+    );
+  }
+
+  // Circular progress calculations
+  const totalSeconds = currentStep.duration;
+  const progressRatio = (totalSeconds - timeLeft) / totalSeconds;
+  const strokeDashoffset = 283 - 283 * progressRatio; // 2 * PI * 45 ≈ 283
+
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 bg-soft-gradient">
-      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-xl border border-slate-100 relative">
-        {/* Progress Bar Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] mb-2 uppercase tracking-wider">
-            <span>Step {step} of 3</span>
-            <span>
-              {step === 1 && "Personal Info"}
-              {step === 2 && "Symptom Tracking"}
-              {step === 3 && "Medication Schedule"}
-            </span>
+    <div className="min-h-screen bg-background-gradient p-4 sm:p-6 flex flex-col justify-between max-w-md mx-auto space-y-5">
+      {/* Top Header & 4-Step Progress Bar */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] uppercase tracking-wider">
+          <span className="text-[#2563EB] font-bold">Step {currentStep.id} of 4</span>
+          <span>Day 1 Baseline Test</span>
+        </div>
+
+        {/* 4-Step Segmented Progress Bar */}
+        <div className="grid grid-cols-4 gap-1.5">
+          {STEPS.map((s, idx) => {
+            const isDone = completedSteps.includes(s.id);
+            const isCurrent = idx === currentStepIndex;
+            return (
+              <div key={s.id} className="space-y-1">
+                <div
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    isDone || isCurrent
+                      ? "bg-brand-gradient"
+                      : "bg-[#E2E8F0]"
+                  }`}
+                />
+                <span
+                  className={`text-[10px] block truncate text-center ${
+                    isCurrent ? "font-semibold text-[#2563EB]" : "text-[#64748B]"
+                  }`}
+                >
+                  {s.title.split(" ")[0]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Test Interactive Area */}
+      <Card className="space-y-5 border-[0.5px] border-[#E2E8F0] text-left">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-3 rounded-2xl bg-[#EFF6FF] text-[#2563EB]">
+              <StepIcon className="w-6 h-6 stroke-[2.25]" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-[#172554] tracking-tight">
+                {currentStep.title}
+              </h1>
+              <p className="text-xs text-[#64748B]">{currentStep.subtitle}</p>
+            </div>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-brand-gradient h-full transition-all duration-300 ease-out"
-              style={{ width: `${(step / 3) * 100}%` }}
-            />
+          {stepCompleted && (
+            <StatusDot status="success" label="Complete" size="sm" />
+          )}
+        </div>
+
+        <p className="text-xs text-[#64748B] font-normal leading-relaxed">
+          {currentStep.guidance}
+        </p>
+
+        {/* Circular Countdown Timer */}
+        <div className="py-2 flex flex-col items-center justify-center">
+          <div className="relative w-36 h-36 flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                className="text-slate-100"
+                strokeWidth="7"
+                stroke="currentColor"
+                fill="transparent"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                className="text-[#2563EB] transition-all duration-500 ease-out"
+                strokeWidth="7"
+                strokeDasharray="283"
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                stroke="currentColor"
+                fill="transparent"
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center justify-center text-center">
+              <span className="text-3xl font-black text-[#172554] tracking-tight">
+                {timeLeft}s
+              </span>
+              <span className="text-[10px] uppercase font-semibold text-[#64748B]">
+                {isStepActive ? "Recording" : stepCompleted ? "Done" : "Ready"}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* STEP 1: Name */}
-        {step === 1 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="text-left">
-              <div className="inline-flex p-3 rounded-2xl bg-blue-50 text-[#2563EB] mb-3">
-                <User className="w-6 h-6" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#172554]">What should we call you?</h2>
-              <p className="text-sm text-[#64748B] mt-1">
-                MovePilot tailors your daily movement journey around your personal baseline.
-              </p>
+        {/* Special interactive area for Finger Tap (Step 3) */}
+        {currentStep.id === 3 && isStepActive && (
+          <div className="space-y-2">
+            <div className="text-xs text-center font-semibold text-[#2563EB]">
+              Taps logged: {tapCount}
             </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#172554] mb-2 uppercase tracking-wider">
-                Your Preferred Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Sarah Miller"
-                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-base font-medium text-[#172554] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleTap("A")}
+                className={`min-h-[56px] py-3 rounded-2xl border-2 font-bold text-base transition-all cursor-pointer ${
+                  lastTapTarget === "A"
+                    ? "bg-[#2563EB] text-white border-[#2563EB]"
+                    : "bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE] hover:bg-blue-100"
+                }`}
+              >
+                Target A
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTap("B")}
+                className={`min-h-[56px] py-3 rounded-2xl border-2 font-bold text-base transition-all cursor-pointer ${
+                  lastTapTarget === "B"
+                    ? "bg-[#6366F1] text-white border-[#6366F1]"
+                    : "bg-[#EFF6FF] text-[#6366F1] border-[#BFDBFE] hover:bg-indigo-100"
+                }`}
+              >
+                Target B
+              </button>
             </div>
+          </div>
+        )}
 
+        {/* Step Instructions */}
+        <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border-[0.5px] border-[#E2E8F0] space-y-1.5">
+          <span className="text-[11px] font-semibold text-[#172554] block">
+            Instructions:
+          </span>
+          <ul className="text-xs text-[#64748B] space-y-1 pl-4 list-disc font-normal">
+            {currentStep.instructions.map((ins, i) => (
+              <li key={i}>{ins}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Action Controls */}
+        <div className="space-y-2.5 pt-1">
+          {!isStepActive && !stepCompleted && (
+            <PrimaryButton fullWidth onClick={handleStartStep}>
+              <Play className="w-4 h-4 mr-1.5 fill-white" />
+              <span>Start {currentStep.title} ({currentStep.duration}s)</span>
+            </PrimaryButton>
+          )}
+
+          {isStepActive && (
             <Button
-              variant="primary"
+              variant="outline"
               fullWidth
-              size="lg"
-              className="bg-brand-gradient"
-              onClick={() => setStep(2)}
-              disabled={!name.trim()}
+              onClick={() => {
+                setTimeLeft(1);
+              }}
+              className="border-blue-200 text-[#2563EB]"
             >
-              <span>Continue</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <span>Finish Early</span>
             </Button>
-          </div>
-        )}
+          )}
 
-        {/* STEP 2: Symptoms to Track */}
-        {step === 2 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="text-left">
-              <div className="inline-flex p-3 rounded-2xl bg-indigo-50 text-[#6366F1] mb-3">
-                <CheckSquare className="w-6 h-6" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#172554]">What do you want to track?</h2>
-              <p className="text-sm text-[#64748B] mt-1">
-                Select the symptoms that impact your daily mobility most.
-              </p>
-            </div>
-
-            <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
-              {TRACKING_OPTIONS.map((opt) => {
-                const isSelected = trackedSymptoms.includes(opt.id);
-                return (
-                  <div
-                    key={opt.id}
-                    onClick={() => toggleSymptom(opt.id)}
-                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
-                      isSelected
-                        ? "bg-blue-50/70 border-[#2563EB] shadow-xs"
-                        : "bg-slate-50/50 border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-lg border flex items-center justify-center mt-0.5 shrink-0 ${
-                        isSelected
-                          ? "bg-[#2563EB] border-[#2563EB] text-white"
-                          : "border-slate-300 bg-white"
-                      }`}
-                    >
-                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-[#172554]">{opt.label}</div>
-                      <div className="text-xs text-[#64748B]">{opt.desc}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setStep(1)}
-                className="w-1/3"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                <span>Back</span>
-              </Button>
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-2/3 bg-brand-gradient"
-                onClick={() => setStep(3)}
-                disabled={trackedSymptoms.length === 0}
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Medication Times */}
-        {step === 3 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="text-left">
-              <div className="inline-flex p-3 rounded-2xl bg-cyan-50 text-[#06B6D4] mb-3">
-                <Clock className="w-6 h-6" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#172554]">Usual Medication Times</h2>
-              <p className="text-sm text-[#64748B] mt-1">
-                MovePilot predicts your ON/OFF mobility windows based on when you take your doses.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#172554] mb-2 uppercase tracking-wider">
-                Select your usual dose times:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {MEDICATION_TIMES.map((time) => {
-                  const isSelected = medicationTimes.includes(time);
-                  return (
-                    <button
-                      key={time}
-                      type="button"
-                      onClick={() => toggleMedTime(time)}
-                      className={`px-3 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
-                        isSelected
-                          ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm"
-                          : "bg-slate-50 text-[#172554] border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3 text-emerald-800 text-xs">
-              <Sparkles className="w-5 h-5 shrink-0 text-emerald-600" />
+          {stepCompleted && (
+            <PrimaryButton fullWidth onClick={handleNextStep}>
               <span>
-                MovePilot will dynamically highlight your expected optimal mobility windows each day!
+                {currentStepIndex < STEPS.length - 1
+                  ? `Continue to Step ${currentStepIndex + 2}`
+                  : "Complete & Build Baseline"}
               </span>
-            </div>
+              <ArrowRight className="w-4 h-4 ml-1.5" />
+            </PrimaryButton>
+          )}
 
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setStep(2)}
-                className="w-1/3"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                <span>Back</span>
-              </Button>
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-2/3 bg-brand-gradient"
-                onClick={handleComplete}
-              >
-                <span>Save Profile</span>
-                <Check className="w-4 h-4 ml-1 stroke-[3]" />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+          {/* "Skip this step" option (accessible, ≥ 44px) */}
+          <button
+            type="button"
+            onClick={handleSkipStep}
+            className="w-full min-h-[44px] py-2 text-xs font-medium text-[#64748B] hover:text-[#172554] hover:bg-slate-100 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <SkipForward className="w-3.5 h-3.5" />
+            <span>Skip this step</span>
+          </button>
+        </div>
+      </Card>
+
+      {/* Footer Disclaimer (Exact required wording) */}
+      <footer className="p-3 bg-white/80 rounded-2xl border-[0.5px] border-[#E2E8F0] text-center">
+        <p className="text-[11px] text-[#64748B] leading-normal font-normal">
+          This builds your personal baseline. It&apos;s not a diagnosis or clinical score.
+        </p>
+      </footer>
     </div>
   );
 }

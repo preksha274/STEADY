@@ -1,0 +1,26 @@
+{
+  "dan_a0f1d461582c": {
+    "id": "dan_a0f1d461582c",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T03:31:38.246327+00:00",
+    "updated_at": "2026-09-25T03:31:38.258149+00:00",
+    "room_name": "Kitchen",
+    "spot_name": "Island Turn",
+    "risk_level": "medium",
+    "hazard_trigger": "Quick pivot",
+    "freeze_count": 1,
+    "recommended_cue": "Audio Beat (88 BPM)"
+  },
+  "dan_f14a41c8b1de": {
+    "id": "dan_f14a41c8b1de",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-25T03:31:57.020614+00:00",
+    "updated_at": "2026-09-25T03:31:57.025543+00:00",
+    "room_name": "Kitchen",
+    "spot_name": "Island Turn",
+    "risk_level": "medium",
+    "hazard_trigger": "Quick pivot",
+    "freeze_count": 1,
+    "recommended_cue": "Audio Beat (88 BPM)"
+  }
+}
