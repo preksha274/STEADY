@@ -13,7 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.v1 import api_v1_router
 from steady_ai import extract_motion_features, extract_eeg_features
-from fastapi import File, UploadFile, Form, HTTPException, status
+from fastapi import File, UploadFile, Form, HTTPException, status, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, HTMLResponse
+import json
 from typing import Optional
 
 app = FastAPI(
@@ -25,12 +27,7 @@ app = FastAPI(
 # Enable CORS for frontend clients
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,6 +35,46 @@ app.add_middleware(
 
 # Mount API v1 router
 app.include_router(api_v1_router)
+
+SENSOR_INDEX_HTML = os.path.join(os.path.dirname(__file__), "sensor_gateway", "index.html")
+
+
+@app.get("/sensor")
+@app.get("/gateway")
+async def get_sensor_page():
+    if os.path.exists(SENSOR_INDEX_HTML):
+        return FileResponse(SENSOR_INDEX_HTML, media_type="text/html")
+    return HTMLResponse("<h3>sensor_gateway/index.html not found</h3>", status_code=404)
+
+
+@app.websocket("/sensor")
+@app.websocket("/ws/sensor")
+async def websocket_sensor_stream(websocket: WebSocket):
+    await websocket.accept()
+    client_ip = websocket.client.host if websocket.client else "unknown"
+    print(f"\n[PHONE CONNECTED] Sensor stream active from {client_ip}")
+
+    count = 0
+    try:
+        while True:
+            msg = await websocket.receive_text()
+            count += 1
+            if count % 30 == 0:
+                try:
+                    payload = json.loads(msg)
+                    acc = payload.get("accelerometer", {})
+                    mag = payload.get("net_magnitude", 0)
+                    print(
+                        f"[LIVE KINEMATICS] #{count:05d} | "
+                        f"Net Accel: {mag:5.2f} m/s2 | "
+                        f"ax={acc.get('x',0):+5.2f}, ay={acc.get('y',0):+5.2f}, az={acc.get('z',0):+5.2f}"
+                    )
+                except Exception:
+                    pass
+    except WebSocketDisconnect:
+        print(f"\n[PHONE DISCONNECTED] Mobile device {client_ip} disconnected (Total samples: {count})")
+    except Exception as e:
+        print(f"\n[STREAM ERROR] {client_ip}: {e}")
 
 
 @app.get("/health")

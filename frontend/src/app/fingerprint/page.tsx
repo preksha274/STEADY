@@ -113,22 +113,32 @@ function FingerprintContent() {
       </header>
 
       {/* MIRRORMOTION SUMMARY ROW */}
-      <div className="p-3.5 bg-white rounded-[18px] border-[0.5px] border-[#E2E8F0] shadow-xs flex items-center justify-between gap-3">
+      <Link
+        href="/analyze/video"
+        className="p-3.5 bg-white rounded-[18px] border-[0.5px] border-[#E2E8F0] shadow-xs flex items-center justify-between gap-3 hover:border-blue-300 hover:shadow-sm transition-all block cursor-pointer"
+      >
         <div className="flex items-center gap-2.5">
           <div className="p-2 bg-[#ECFDF5] text-[#10B981] rounded-xl shrink-0">
             <Video className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs font-semibold text-[#172554]">
-              MirrorMotion Pose Analysis
+            <div className="text-xs font-semibold text-[#172554] flex items-center gap-1.5">
+              <span>MirrorMotion Pose Analysis</span>
+              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded font-medium">
+                {contextGait?.confidence === "low" ? "Moderate Vis" : "Verified"}
+              </span>
             </div>
             <div className="text-[11px] text-[#64748B]">
-              Walk analyzed 2 hrs ago • Symmetrical step length (94%)
+              {contextGait
+                ? `Walk analyzed recently • Symmetrical step length (${contextGait.metrics.symmetry_pct}%) • ${contextGait.metrics.cadence_steps_per_min} steps/min`
+                : historicalSession?.gait
+                ? `Walk analyzed • Symmetrical step length (${historicalSession.gait.symmetry}%) • ${historicalSession.gait.cadence} steps/min`
+                : "Walk analyzed 2 hrs ago • Symmetrical step length (94%)"}
             </div>
           </div>
         </div>
-        <StatusDot status="success" label="Active" size="sm" />
-      </div>
+        <StatusDot status={contextGait?.confidence === "low" ? "warning" : "success"} label={contextGait ? "Live" : "Active"} size="sm" />
+      </Link>
 
       {/* COMBINED SIGNAL CHART WITH EXACT SPEC COLOR MAPPING */}
       {/* Tremor = #6366F1, Gyroscope = #06B6D4, Gait = #10B981, ECG = #EF4444, Baseline = #8B5CF6, Warning = #F59E0B */}

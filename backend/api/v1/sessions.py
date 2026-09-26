@@ -164,6 +164,20 @@ async def upload_session_video(
     if len(content) == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded video file is empty.")
 
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Video file exceeds size limit of {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB."
+        )
+
+    # Validate video format
+    allowed_extensions = (".mp4", ".mov", ".webm", ".avi", ".mkv")
+    if not video_file.filename.lower().endswith(allowed_extensions):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported video format. Allowed formats: {', '.join(allowed_extensions)}"
+        )
+
     video_storage_ref = await storage_service.save_file(
         user_id=user.user_id,
         filename=video_file.filename,
@@ -172,16 +186,17 @@ async def upload_session_video(
     )
 
     # Derived gait features from video pose stream
-    gait_features = DerivedGaitFeatures(
-        trunk_inclination_deg=8.5,
-        left_arm_swing_deg=26.0,
-        right_arm_swing_deg=28.0,
-        arm_swing_asymmetry_pct=7.1,
-        left_knee_flexion_deg=148.0,
-        right_knee_flexion_deg=150.0,
-        step_width_norm=0.24,
-        movement_speed_norm=1.05
-    )
+    try:
+        from steady_ai.pose import process_video_gait_analysis
+        gait_features, confidence_report, gait_summary = process_video_gait_analysis(
+            video_content=content,
+            filename=video_file.filename
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed to process video gait features: {str(e)}"
+        )
 
     updated = await db.update_document(
         "sessions",
@@ -189,7 +204,9 @@ async def upload_session_video(
         doc_id=session_id,
         updates={
             "video_file_ref": video_storage_ref,
-            "gait_features": gait_features.model_dump()
+            "gait_features": gait_features.model_dump(),
+            "gait_summary": gait_summary,
+            "confidence_report": confidence_report.model_dump()
         }
     )
     return updated

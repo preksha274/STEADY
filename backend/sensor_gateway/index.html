@@ -1,0 +1,2979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Motion Sensor Test</title>
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --line: #E2E8F0;
+    --text: #172554;
+    --dim: #64748B;
+    --good: #10B981;
+    --bad: #EF4444;
+    --warn: #F59E0B;
+    --accent: #2563EB;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: linear-gradient(
+      135deg,
+      #EFF6FF 0%,
+      #F5F3FF 50%,
+      #ECFEFF 100%
+    );
+    color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  main {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 14px 40px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+    margin: 4px 0 2px;
+  }
+
+  .subtitle {
+    color: var(--dim);
+    font-size: .85rem;
+    margin: 0 0 16px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.06);
+  }
+
+  h2 {
+    font-size: .95rem;
+    margin: 0 0 10px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  h2 .unit {
+    color: var(--dim);
+    font-weight: 400;
+    font-size: .75rem;
+  }
+
+  .banner {
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: .85rem;
+    border: 1px solid;
+  }
+
+  .banner.bad {
+    background: #FEF2F2;
+    border-color: var(--bad);
+    color: #B91C1C;
+  }
+
+  .banner.warn {
+    background: #FFFBEB;
+    border-color: var(--warn);
+    color: #B45309;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .status-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .status-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: .88rem;
+  }
+
+  .status-list li:last-child {
+    border-bottom: 0;
+  }
+
+  .status-list span {
+    color: var(--dim);
+  }
+
+  .status-list b {
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .good { color: var(--good); }
+  .bad { color: var(--bad); }
+  .warn { color: var(--warn); }
+  .neutral { color: var(--dim); }
+
+  .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 13px 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #FFFFFF;
+    color: var(--text);
+    border: 1px solid var(--line);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-row .btn {
+    margin-bottom: 0;
+  }
+
+  .msg {
+    font-size: .82rem;
+    margin: 10px 0 0;
+    min-height: 1.1em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 430px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .axis {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+
+  .axis span {
+    color: var(--dim);
+    font-size: .8rem;
+    font-weight: 700;
+  }
+
+  .axis b {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hint {
+    font-size: .72rem;
+    color: var(--dim);
+    margin: 8px 0 0;
+  }
+
+  .stream,
+  .movement {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .95rem;
+    padding: 6px 0;
+  }
+
+  .stream.off {
+    color: var(--dim);
+  }
+
+  .stream.on {
+    color: var(--good);
+  }
+
+  .stream.stale {
+    color: var(--warn);
+  }
+
+  .movement.none {
+    color: var(--dim);
+  }
+
+  .movement.hit {
+    color: var(--good);
+    font-weight: 700;
+  }
+
+  #log {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .72rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--dim);
+    max-height: 190px;
+    overflow-y: auto;
+  }
+
+  #log div {
+    padding: 2px 0;
+  }
+
+  .log-error {
+    color: var(--bad);
+  }
+
+  .log-warn {
+    color: var(--warn);
+  }
+
+  .log-ok {
+    color: var(--good);
+  }
+</style>
+</head>
+
+<body>
+<main>
+  <h1>Motion Sensor Test</h1>
+  <p class="subtitle">Phone &rarr; webpage &rarr; raw accelerometer + gyroscope</p>
+
+  <div id="securityBanner" class="banner bad hidden">
+    <b>Insecure page.</b> Browsers block motion sensors over plain <code>http://</code>
+    on a phone. Open the <b>https://</b> URL printed by the server instead.
+  </div>
+
+  <section class="card">
+    <h2>Connection status</h2>
+    <ul class="status-list">
+      <li>
+        <span>Sensor support</span>
+        <b id="statusSupport" class="neutral">checking&hellip;</b>
+      </li>
+      <li>
+        <span>Permission</span>
+        <b id="statusPermission" class="neutral">unknown</b>
+      </li>
+      <li>
+        <span>Connection</span>
+        <b id="statusConnection" class="neutral">idle</b>
+      </li>
+      <li>
+        <span>API source</span>
+        <b id="statusSource" class="neutral">none</b>
+      </li>
+      <li>
+        <span>Secure context</span>
+        <b id="statusSecure" class="neutral">checking&hellip;</b>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Controls</h2>
+
+    <button id="enableBtn" class="btn btn-primary">
+      Enable Motion Sensors
+    </button>
+
+    <div class="btn-row">
+      <button id="startBtn" class="btn">Start Sensors</button>
+      <button id="stopBtn" class="btn" disabled>Stop Sensors</button>
+    </div>
+
+    <p id="permissionMsg" class="msg neutral"></p>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>
+        Accelerometer
+        <span class="unit">m/s&sup2;</span>
+      </h2>
+
+      <div class="axis">
+        <span>X</span>
+        <b id="ax">&mdash;</b>
+      </div>
+
+      <div class="axis">
+        <span>Y</span>
+        <b id="ay">&mdash;</b>
+      </div>
+
+      <div class="axis">
+        <span>Z</span>
+        <b id="az">&mdash;</b>
+      </div>
+
+      <p id="accelHint" class="hint">source: not started</p>
+    </div>
+
+    <div class="card">
+      <h2>
+        Gyroscope
+        <span class="unit">deg/s</span>
+      </h2>
+
+      <div class="axis">
+        <span>X</span>
+        <b id="gx">&mdash;</b>
+      </div>
+
+      <div class="axis">
+        <span>Y</span>
+        <b id="gy">&mdash;</b>
+      </div>
+
+      <div class="axis">
+        <span>Z</span>
+        <b id="gz">&mdash;</b>
+      </div>
+
+      <p id="gyroHint" class="hint">source: not started</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <div id="streamIndicator" class="stream off">
+      Waiting for sensor data...
+    </div>
+
+    <div id="movementIndicator" class="movement none">
+      Phone movement: &mdash;
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Log</h2>
+    <div id="log"></div>
+  </section>
+</main>
+
+<script>
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+const els = {
+  banner: $('securityBanner'),
+  support: $('statusSupport'),
+  permission: $('statusPermission'),
+  connection: $('statusConnection'),
+  source: $('statusSource'),
+  secure: $('statusSecure'),
+
+  enable: $('enableBtn'),
+  start: $('startBtn'),
+  stop: $('stopBtn'),
+
+  permissionMsg: $('permissionMsg'),
+
+  ax: $('ax'),
+  ay: $('ay'),
+  az: $('az'),
+
+  gx: $('gx'),
+  gy: $('gy'),
+  gz: $('gz'),
+
+  accelHint: $('accelHint'),
+  gyroHint: $('gyroHint'),
+
+  stream: $('streamIndicator'),
+  movement: $('movementIndicator'),
+
+  log: $('log')
+};
+
+const hasGeneric =
+  typeof window.Accelerometer === 'function' &&
+  typeof window.Gyroscope === 'function';
+
+const hasMotion = 'DeviceMotionEvent' in window;
+const hasOrient = 'DeviceOrientationEvent' in window;
+
+const needsIosPermission =
+  (hasMotion &&
+    typeof DeviceMotionEvent.requestPermission === 'function') ||
+  (hasOrient &&
+    typeof DeviceOrientationEvent.requestPermission === 'function');
+
+const MOVE_THRESHOLD = 0.7;
+const MOVE_HOLD_MS = 1200;
+const EVENT_TIMEOUT_MS = 1200;
+const GENERIC_GRACE_MS = 2500;
+
+const state = {
+  running: false,
+  source: null,
+  sensors: [],
+  listeners: [],
+  startedAt: 0,
+  lastEventAt: 0,
+  warnedNoData: false,
+  lastRenderAt: 0,
+  baseline: null,
+  baselineAt: 0,
+  moveUntil: 0,
+  sawRotationRate: false,
+  accelFrom: '',
+  gyroFrom: '',
+  graceTimer: null
+};
+
+function log(msg, level) {
+  level = level || 'info';
+
+  const line = document.createElement('div');
+
+  line.className = 'log-' + level;
+
+  line.textContent =
+    '[' +
+    new Date().toTimeString().slice(0, 8) +
+    '] ' +
+    msg;
+
+  els.log.prepend(line);
+
+  while (els.log.childElementCount > 12) {
+    els.log.removeChild(els.log.lastChild);
+  }
+}
+
+function setStatus(el, text, cls) {
+  el.textContent = text;
+  el.className = cls || 'neutral';
+}
+
+function setPermission(text, cls) {
+  setStatus(els.permission, text, cls);
+}
+
+function setPermissionMsg(text, cls) {
+  els.permissionMsg.textContent = text;
+  els.permissionMsg.className = 'msg ' + (cls || 'neutral');
+}
+
+function fmt(v) {
+  return (
+    v === null ||
+    v === undefined ||
+    typeof v !== 'number' ||
+    isNaN(v)
+  )
+    ? '—'
+    : v.toFixed(2);
+}
+
+function addListener(target, type, fn) {
+  target.addEventListener(type, fn, { passive: true });
+  state.listeners.push([target, type, fn]);
+}
+
+function clearListeners() {
+  state.listeners.forEach(([t, ty, fn]) =>
+    t.removeEventListener(ty, fn)
+  );
+
+  state.listeners = [];
+}
+
+function markEvent() {
+  state.lastEventAt = performance.now();
+}
+
+function errorText(err) {
+  const name =
+    err && err.name
+      ? err.name
+      : String(err || 'unknown');
+
+  const map = {
+    NotAllowedError:
+      'Permission denied by the user or the browser.',
+    NotReadableError:
+      'Sensor hardware is unavailable or already in use.',
+    SecurityError:
+      'Blocked by security policy (HTTPS / secure context required).',
+    InvalidStateError:
+      'Sensor could not be started.',
+    NotFoundError:
+      'No sensor of this type found on the device.'
+  };
+
+  return (
+    name +
+    (map[name] ? ' — ' + map[name] : '')
+  );
+}
+
+/* ---------------- status on load ---------------- */
+
+function detectSupport() {
+  const found = [];
+
+  if (hasGeneric) found.push('Generic Sensor API');
+  if (hasMotion) found.push('DeviceMotion');
+  if (hasOrient) found.push('DeviceOrientation');
+
+  if (found.length === 0) {
+    setStatus(
+      els.support,
+      'Not detected',
+      'bad'
+    );
+
+    log(
+      'No motion sensor API in this browser.',
+      'error'
+    );
+
+    setPermissionMsg(
+      'This browser exposes no motion sensor API. Try Chrome (Android) or Safari (iOS).',
+      'warn'
+    );
+  } else {
+    setStatus(
+      els.support,
+      'Detected',
+      'good'
+    );
+
+    log(
+      'Sensor APIs: ' + found.join(', '),
+      'ok'
+    );
+  }
+
+  if (window.isSecureContext) {
+    setStatus(
+      els.secure,
+      'Yes',
+      'good'
+    );
+  } else {
+    setStatus(
+      els.secure,
+      'No — sensors blocked',
+      'bad'
+    );
+
+    els.banner.classList.remove('hidden');
+
+    log(
+      'Insecure context: sensors only work on https:// or localhost.',
+      'error'
+    );
+  }
+
+  if (!hasGeneric && !hasMotion) {
+    setStatus(
+      els.connection,
+      'unsupported',
+      'bad'
+    );
+  }
+}
+
+async function refreshPermission() {
+  if (needsIosPermission) {
+    setPermission(
+      'not requested yet',
+      'warn'
+    );
+
+    return;
+  }
+
+  const names = [];
+
+  for (const n of [
+    'accelerometer',
+    'gyroscope'
+  ]) {
+    try {
+      if (
+        navigator.permissions &&
+        navigator.permissions.query
+      ) {
+        await navigator.permissions.query({
+          name: n
+        });
+
+        names.push(n);
+      }
+    } catch (e) {
+      /* name not supported */
+    }
+  }
+
+  if (names.length === 0) {
+    setPermission(
+      'not required by browser',
+      'neutral'
+    );
+
+    return;
+  }
+
+  try {
+    const results = await Promise.all(
+      names.map((n) =>
+        navigator.permissions.query({
+          name: n
+        })
+      )
+    );
+
+    if (
+      results.some(
+        (r) => r.state === 'denied'
+      )
+    ) {
+      setPermission(
+        'Denied',
+        'bad'
+      );
+
+      setPermissionMsg(
+        'Permission denied. Allow motion/sensors for this site in your browser settings, then reload.',
+        'warn'
+      );
+    } else if (
+      results.every(
+        (r) => r.state === 'granted'
+      )
+    ) {
+      setPermission(
+        'Granted',
+        'good'
+      );
+
+      setPermissionMsg(
+        'Permission granted.',
+        'good'
+      );
+    } else {
+      setPermission(
+        'will ask on start',
+        'warn'
+      );
+
+      setPermissionMsg(
+        'Your browser asks for permission on Start Sensors.',
+        'neutral'
+      );
+    }
+  } catch (e) {
+    setPermission(
+      'unknown',
+      'neutral'
+    );
+  }
+}
+
+/* ---------------- permission button ---------------- */
+
+els.enable.addEventListener(
+  'click',
+  () => {
+    setPermission(
+      'requesting…',
+      'warn'
+    );
+
+    setPermissionMsg(
+      'Checking permission…',
+      'neutral'
+    );
+
+    const requests = [];
+
+    const safeRequest = (what, api) => {
+      if (
+        api &&
+        typeof api.requestPermission === 'function'
+      ) {
+        try {
+          requests.push([
+            what,
+            Promise.resolve(
+              api.requestPermission()
+            )
+          ]);
+        } catch (e) {
+          log(
+            what +
+              ' permission request threw: ' +
+              e.message,
+            'error'
+          );
+        }
+      }
+    };
+
+    safeRequest(
+      'DeviceMotion',
+      window.DeviceMotionEvent
+    );
+
+    safeRequest(
+      'DeviceOrientation',
+      window.DeviceOrientationEvent
+    );
+
+    if (requests.length === 0) {
+      log(
+        'No explicit permission prompt required by this browser.'
+      );
+
+      setPermission(
+        'not required by browser',
+        'neutral'
+      );
+
+      setPermissionMsg(
+        'This browser does not ask for motion permission up front; press Start Sensors.',
+        'neutral'
+      );
+
+      refreshPermission();
+
+      return;
+    }
+
+    Promise.all(
+      requests.map(
+        ([, p]) =>
+          p.then(
+            (r) => ({
+              ok: true,
+              r
+            }),
+            (e) => ({
+              ok: false,
+              e
+            })
+          )
+      )
+    ).then((results) => {
+      const denied = results.some(
+        (x) =>
+          !x.ok ||
+          x.r === 'denied'
+      );
+
+      if (denied) {
+        setPermission(
+          'Denied',
+          'bad'
+        );
+
+        setPermissionMsg(
+          'Permission DENIED. Open your browser\'s site settings for this page, allow motion/sensors, then reload. (iPhone: clear this site\'s data under Safari Settings → Advanced → Website Data.)',
+          'warn'
+        );
+
+        log(
+          'Motion permission denied by the user.',
+          'error'
+        );
+      } else {
+        setPermission(
+          'Granted',
+          'good'
+        );
+
+        setPermissionMsg(
+          'Permission granted. Press Start Sensors.',
+          'good'
+        );
+
+        log(
+          'Motion permission granted.',
+          'ok'
+        );
+      }
+    });
+  }
+);
+
+/* ---------------- sensor data ---------------- */
+
+function onAccel(
+  x,
+  y,
+  z,
+  source
+) {
+  markEvent();
+
+  if (
+    state.accelFrom !== source
+  ) {
+    state.accelFrom = source;
+
+    els.accelHint.textContent =
+      'source: ' + source;
+  }
+
+  const now = performance.now();
+
+  if (
+    state.baseline &&
+    now - state.baselineAt >= 150
+  ) {
+    const d = Math.sqrt(
+      Math.pow(
+        x - state.baseline.x,
+        2
+      ) +
+        Math.pow(
+          y - state.baseline.y,
+          2
+        ) +
+        Math.pow(
+          z - state.baseline.z,
+          2
+        )
+    );
+
+    if (
+      d >= MOVE_THRESHOLD
+    ) {
+      state.moveUntil =
+        now + MOVE_HOLD_MS;
+    }
+
+    state.baseline = {
+      x,
+      y,
+      z
+    };
+
+    state.baselineAt = now;
+  } else if (!state.baseline) {
+    state.baseline = {
+      x,
+      y,
+      z
+    };
+
+    state.baselineAt = now;
+  }
+
+  if (
+    now - state.lastRenderAt >
+    60
+  ) {
+    els.ax.textContent = fmt(x);
+    els.ay.textContent = fmt(y);
+    els.az.textContent = fmt(z);
+
+    state.lastRenderAt = now;
+  }
+}
+
+function onGyro(
+  x,
+  y,
+  z,
+  source
+) {
+  markEvent();
+
+  if (
+    state.gyroFrom !== source
+  ) {
+    state.gyroFrom = source;
+
+    els.gyroHint.textContent =
+      'source: ' + source;
+  }
+
+  els.gx.textContent = fmt(x);
+  els.gy.textContent = fmt(y);
+  els.gz.textContent = fmt(z);
+}
+
+/* ---------------- source 1: Generic Sensor API ---------------- */
+
+function stopGeneric() {
+  state.sensors.forEach(
+    (s) => {
+      try {
+        s.stop();
+      } catch (e) {}
+    }
+  );
+
+  state.sensors = [];
+}
+
+function startGeneric() {
+  if (
+    !hasGeneric ||
+    !window.isSecureContext
+  ) {
+    return false;
+  }
+
+  try {
+    const acc =
+      new Accelerometer({
+        frequency: 60
+      });
+
+    const gyro =
+      new Gyroscope({
+        frequency: 60
+      });
+
+    acc.addEventListener(
+      'reading',
+      () =>
+        onAccel(
+          acc.x,
+          acc.y,
+          acc.z,
+          'Generic Accelerometer'
+        )
+    );
+
+    gyro.addEventListener(
+      'reading',
+      () => {
+        const d =
+          180 / Math.PI;
+
+        onGyro(
+          gyro.x * d,
+          gyro.y * d,
+          gyro.z * d,
+          'Generic Gyroscope (rad/s → deg/s)'
+        );
+      }
+    );
+
+    const onErr =
+      (label) =>
+      (e) => {
+        const err =
+          e && e.error
+            ? e.error
+            : e;
+
+        log(
+          label +
+            ': ' +
+            errorText(err),
+          'error'
+        );
+
+        if (
+          err &&
+          err.name ===
+            'NotAllowedError'
+        ) {
+          setPermission(
+            'Denied',
+            'bad'
+          );
+
+          setPermissionMsg(
+            'Permission denied. Allow motion/sensors for this site in your browser settings, then reload.',
+            'warn'
+          );
+        }
+
+        if (
+          err &&
+          err.name ===
+            'SecurityError'
+        ) {
+          els.banner.classList.remove(
+            'hidden'
+          );
+        }
+
+        fallbackToEvents();
+      };
+
+    acc.addEventListener(
+      'error',
+      onErr('Accelerometer')
+    );
+
+    gyro.addEventListener(
+      'error',
+      onErr('Gyroscope')
+    );
+
+    acc.start();
+    gyro.start();
+
+    state.sensors = [
+      acc,
+      gyro
+    ];
+
+    state.source = 'generic';
+
+    setStatus(
+      els.source,
+      'Generic Sensor API',
+      'good'
+    );
+
+    log(
+      'Started Generic Sensor API.',
+      'ok'
+    );
+
+    return true;
+  } catch (e) {
+    log(
+      'Generic Sensor API failed: ' +
+        e.message,
+      'error'
+    );
+
+    return false;
+  }
+}
+
+/* ---------------- source 2: devicemotion / deviceorientation ---------------- */
+
+function startEvents() {
+  if (
+    state.source ===
+    'events'
+  ) {
+    return;
+  }
+
+  if (
+    !hasMotion &&
+    !hasOrient
+  ) {
+    log(
+      'No event-based motion API available in this browser.',
+      'error'
+    );
+
+    setStatus(
+      els.connection,
+      'unsupported',
+      'bad'
+    );
+
+    return;
+  }
+
+  const onMotion = (e) => {
+    const incl =
+      e.accelerationIncludingGravity;
+
+    const dyn =
+      e.acceleration;
+
+    const a =
+      incl &&
+      incl.x !== null &&
+      incl.x !== undefined
+        ? incl
+        : dyn &&
+          dyn.x !== null &&
+          dyn.x !== undefined
+        ? dyn
+        : null;
+
+    if (a) {
+      onAccel(
+        a.x,
+        a.y,
+        a.z,
+        incl
+          ? 'devicemotion accelerationIncludingGravity'
+          : 'devicemotion acceleration'
+      );
+    }
+
+    const r =
+      e.rotationRate;
+
+    if (
+      r &&
+      r.beta !== null &&
+      r.beta !== undefined
+    ) {
+      state.sawRotationRate =
+        true;
+
+      onGyro(
+        r.beta,
+        r.gamma,
+        r.alpha,
+        'devicemotion rotationRate'
+      );
+    }
+  };
+
+  const onOrient = (e) => {
+    if (
+      e.alpha === null ||
+      e.alpha === undefined
+    ) {
+      return;
+    }
+
+    if (
+      state.sawRotationRate
+    ) {
+      return;
+    }
+
+    onGyro(
+      e.beta,
+      e.gamma,
+      e.alpha,
+      'deviceorientation (orientation in deg, rotationRate missing)'
+    );
+  };
+
+  if (hasMotion) {
+    addListener(
+      window,
+      'devicemotion',
+      onMotion
+    );
+  }
+
+  if (hasOrient) {
+    addListener(
+      window,
+      'deviceorientation',
+      onOrient
+    );
+  }
+
+  state.source =
+    'events';
+
+  setStatus(
+    els.source,
+    hasMotion
+      ? 'devicemotion / deviceorientation'
+      : 'deviceorientation',
+    'good'
+  );
+
+  log(
+    'Listening to devicemotion / deviceorientation events.',
+    'ok'
+  );
+}
+
+function fallbackToEvents() {
+  if (
+    state.source ===
+      'events' ||
+    !state.running
+  ) {
+    return;
+  }
+
+  stopGeneric();
+
+  state.source = null;
+
+  setStatus(
+    els.source,
+    'none',
+    'neutral'
+  );
+
+  log(
+    'Falling back to event-based sensors…',
+    'warn'
+  );
+
+  startEvents();
+}
+
+/* ---------------- start / stop ---------------- */
+
+function updateButtons() {
+  els.start.disabled =
+    state.running;
+
+  els.stop.disabled =
+    !state.running;
+
+  els.enable.disabled =
+    false;
+}
+
+els.start.addEventListener(
+  'click',
+  () => {
+    if (
+      state.running
+    ) {
+      return;
+    }
+
+    state.running = true;
+
+    state.startedAt =
+      performance.now();
+
+    state.lastEventAt = 0;
+    state.warnedNoData = false;
+    state.baseline = null;
+    state.moveUntil = 0;
+    state.sawRotationRate = false;
+    state.accelFrom = '';
+    state.gyroFrom = '';
+
+    els.accelHint.textContent =
+      'source: waiting…';
+
+    els.gyroHint.textContent =
+      'source: waiting…';
+
+    setStatus(
+      els.connection,
+      'waiting',
+      'warn'
+    );
+
+    if (
+      !window.isSecureContext
+    ) {
+      log(
+        'WARNING: insecure context — expect no data on a phone.',
+        'warn'
+      );
+    }
+
+    if (
+      !hasGeneric &&
+      !hasMotion
+    ) {
+      log(
+        'ERROR: this browser has no motion sensor API.',
+        'error'
+      );
+
+      setStatus(
+        els.connection,
+        'unsupported',
+        'bad'
+      );
+
+      state.running =
+        false;
+
+      updateButtons();
+
+      return;
+    }
+
+    log(
+      'Starting sensors…'
+    );
+
+    const ok =
+      startGeneric();
+
+    if (!ok) {
+      startEvents();
+    }
+
+    if (
+      state.source ===
+      'generic'
+    ) {
+      state.graceTimer =
+        setTimeout(() => {
+          if (
+            state.running &&
+            state.source ===
+              'generic' &&
+            !state.lastEventAt
+          ) {
+            log(
+              'No readings from Generic Sensor API within ' +
+                GENERIC_GRACE_MS /
+                  1000 +
+                's — trying event-based sensors instead.',
+              'warn'
+            );
+
+            fallbackToEvents();
+          }
+        }, GENERIC_GRACE_MS);
+    }
+
+    updateButtons();
+  }
+);
+
+els.stop.addEventListener(
+  'click',
+  () => {
+    if (
+      !state.running
+    ) {
+      return;
+    }
+
+    state.running =
+      false;
+
+    if (
+      state.graceTimer
+    ) {
+      clearTimeout(
+        state.graceTimer
+      );
+    }
+
+    stopGeneric();
+
+    clearListeners();
+
+    state.source =
+      null;
+
+    state.baseline =
+      null;
+
+    setStatus(
+      els.source,
+      'none',
+      'neutral'
+    );
+
+    setStatus(
+      els.connection,
+      'stopped',
+      'neutral'
+    );
+
+    els.ax.textContent =
+      els.ay.textContent =
+      els.az.textContent =
+        '—';
+
+    els.gx.textContent =
+      els.gy.textContent =
+      els.gz.textContent =
+        '—';
+
+    els.accelHint.textContent =
+      'source: stopped';
+
+    els.gyroHint.textContent =
+      'source: stopped';
+
+    log(
+      'Sensors stopped. Event listeners removed.'
+    );
+
+    updateButtons();
+  }
+);
+
+/* ---------------- indicators ---------------- */
+
+setInterval(() => {
+  const now =
+    performance.now();
+
+  if (
+    !state.running
+  ) {
+    els.stream.textContent =
+      'Sensors stopped';
+
+    els.stream.className =
+      'stream off';
+
+    els.movement.textContent =
+      'Phone movement: —';
+
+    els.movement.className =
+      'movement none';
+
+    return;
+  }
+
+  const age =
+    state.lastEventAt
+      ? now -
+        state.lastEventAt
+      : Infinity;
+
+  if (
+    age <
+    EVENT_TIMEOUT_MS
+  ) {
+    els.stream.textContent =
+      '● Receiving sensor data';
+
+    els.stream.className =
+      'stream on';
+
+    setStatus(
+      els.connection,
+      'Connected',
+      'good'
+    );
+  } else {
+    els.stream.textContent =
+      'Waiting for sensor data...';
+
+    els.stream.className =
+      age === Infinity &&
+      now -
+        state.startedAt >
+        3000
+        ? 'stream stale'
+        : 'stream off';
+
+    setStatus(
+      els.connection,
+      'Waiting',
+      'warn'
+    );
+
+    if (
+      !state.lastEventAt &&
+      !state.warnedNoData &&
+      now -
+        state.startedAt >
+        6000
+    ) {
+      state.warnedNoData =
+        true;
+
+      log(
+        'No sensor events after 6s. Check: HTTPS, permission, and that this browser supports motion sensors.',
+        'warn'
+      );
+    }
+  }
+
+  if (
+    now <
+    state.moveUntil
+  ) {
+    els.movement.textContent =
+      'Phone movement: DETECTED';
+
+    els.movement.className =
+      'movement hit';
+  } else {
+    els.movement.textContent =
+      'Phone movement: NONE (stable)';
+
+    els.movement.className =
+      'movement none';
+  }
+}, 400);
+
+/* ============ Movement Activity Test (temporary experiment) ============ *
+ * Reuses the existing sensor connection: it only listens to the readings
+ * already flowing through onAccel() / onGyro(). No new sensor is created.  */
+
+window.MovementTest =
+  (function () {
+    const el = (id) =>
+      document.getElementById(id);
+
+    const ui = {
+      accelStatus:
+        el('mtAccelStatus'),
+      gyroStatus:
+        el('mtGyroStatus'),
+      level:
+        el('mtLevel'),
+      intensity:
+        el('mtIntensity'),
+      raw:
+        el('mtRaw'),
+      timer:
+        el('mtTimer'),
+      msg:
+        el('mtMsg'),
+      start:
+        el('mtStart'),
+      stop:
+        el('mtStop'),
+      reset:
+        el('mtReset'),
+      sens:
+        el('mtSens'),
+      graph:
+        el('mtGraph'),
+      tbody:
+        el('mtEvents'),
+      empty:
+        el('mtEmpty'),
+      count:
+        el('mtEventCount'),
+      summary:
+        el('mtSummary')
+    };
+
+    const CFG = {
+      accelScale: 4.0,
+      gyroScale: 90,
+      accelWeight: 0.6,
+      gyroWeight: 0.6,
+      sensitivity: {
+        conservative: 0.75,
+        standard: 0.60,
+        sensitive: 0.45
+      },
+      startDebounceMs: 150,
+      endGraceMs: 800,
+      minEventMs: 400,
+      baselineUpAlpha: 0.004,
+      baselineDownAlpha: 0.06,
+      analysisMinGapMs: 15,
+      sensorStaleMs: 2000,
+      maxSamples: 20000
+    };
+
+    const S = {
+      running: false,
+      startedAtWall: 0,
+      endedAtWall: 0,
+      lastAnalyzeAt: 0,
+      accel: null,
+      accelAt: 0,
+      gyro: null,
+      gyroAt: 0,
+      gyroRateOk: false,
+      baseline: null,
+      accelMag: 0,
+      gyroMag: 0,
+      intensity: 0,
+      peakOverall: 0,
+      crossAt: 0,
+      belowSince: 0,
+      active: null,
+      samples: [],
+      events: []
+    };
+
+    const MONO =
+      'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+
+    function thresholds() {
+      const high =
+        CFG.sensitivity[
+          ui.sens.value
+        ] ||
+        CFG.sensitivity.standard;
+
+      return {
+        medium:
+          high * 0.5,
+        high: high
+      };
+    }
+
+    function levelName(v) {
+      const th =
+        thresholds();
+
+      if (
+        v >= th.high
+      ) {
+        return 'HIGH';
+      }
+
+      if (
+        v >= th.medium
+      ) {
+        return 'MEDIUM';
+      }
+
+      return 'LOW';
+    }
+
+    function fmtTime(ts) {
+      return new Date(
+        ts
+      ).toLocaleTimeString(
+        'en-US',
+        {
+          hour: 'numeric',
+          minute: '2-digit',
+          second: '2-digit'
+        }
+      );
+    }
+
+    function fmtShortTime(ts) {
+      return new Date(
+        ts
+      ).toLocaleTimeString(
+        'en-US',
+        {
+          hour: 'numeric',
+          minute: '2-digit'
+        }
+      );
+    }
+
+    function fmtDur(ms) {
+      const s =
+        ms / 1000;
+
+      return (
+        s < 10
+          ? s.toFixed(1)
+          : Math.round(s)
+      ) + ' sec';
+    }
+
+    function fmtTimer(ms) {
+      const total =
+        Math.max(
+          0,
+          Math.floor(
+            ms / 1000
+          )
+        );
+
+      const m =
+        Math.floor(
+          total / 60
+        );
+
+      const s =
+        total % 60;
+
+      return (
+        String(m).padStart(
+          2,
+          '0'
+        ) +
+        ':' +
+        String(s).padStart(
+          2,
+          '0'
+        )
+      );
+    }
+
+    function msg(
+      text,
+      cls
+    ) {
+      ui.msg.textContent =
+        text;
+
+      ui.msg.className =
+        'msg ' +
+        (cls || 'neutral');
+    }
+
+    function updateButtons() {
+      ui.start.disabled =
+        S.running;
+
+      ui.stop.disabled =
+        !S.running;
+    }
+
+    function updateStatus() {
+      const now =
+        Date.now();
+
+      const accelFresh =
+        S.accelAt &&
+        now -
+          S.accelAt <
+          CFG.sensorStaleMs;
+
+      ui.accelStatus.textContent =
+        accelFresh
+          ? '● Connected'
+          : '● No data';
+
+      ui.accelStatus.className =
+        accelFresh
+          ? 'good'
+          : 'neutral';
+
+      const gyroFresh =
+        S.gyroAt &&
+        now -
+          S.gyroAt <
+          CFG.sensorStaleMs;
+
+      if (!gyroFresh) {
+        ui.gyroStatus.textContent =
+          '● No data';
+
+        ui.gyroStatus.className =
+          'neutral';
+      } else if (
+        !S.gyroRateOk
+      ) {
+        ui.gyroStatus.textContent =
+          '● Orientation only (no rate)';
+
+        ui.gyroStatus.className =
+          'warn';
+      } else {
+        ui.gyroStatus.textContent =
+          '● Connected';
+
+        ui.gyroStatus.className =
+          'good';
+      }
+    }
+
+    /* ---------------- analysis ---------------- */
+
+    function analyze() {
+      const mono =
+        performance.now();
+
+      if (
+        mono -
+          S.lastAnalyzeAt <
+        CFG.analysisMinGapMs
+      ) {
+        return;
+      }
+
+      S.lastAnalyzeAt =
+        mono;
+
+      const wall =
+        Date.now();
+
+      let aNorm = 0;
+      let gNorm = 0;
+
+      if (S.accel) {
+        const a =
+          S.accel;
+
+        S.accelMag =
+          Math.sqrt(
+            a.x * a.x +
+              a.y * a.y +
+              a.z * a.z
+          );
+
+        if (
+          S.baseline ===
+          null
+        ) {
+          S.baseline =
+            S.accelMag;
+        }
+
+        const dev =
+          Math.abs(
+            S.accelMag -
+              S.baseline
+          );
+
+        S.baseline +=
+          (S.accelMag -
+            S.baseline) *
+          (S.accelMag >
+          S.baseline
+            ? CFG.baselineUpAlpha
+            : CFG.baselineDownAlpha);
+
+        aNorm =
+          Math.min(
+            dev /
+              CFG.accelScale,
+            1
+          );
+      }
+
+      if (
+        S.gyro &&
+        S.gyroRateOk &&
+        wall -
+          S.gyroAt <
+          CFG.sensorStaleMs
+      ) {
+        const g =
+          S.gyro;
+
+        S.gyroMag =
+          Math.sqrt(
+            g.x * g.x +
+              g.y * g.y +
+              g.z * g.z
+          );
+
+        gNorm =
+          Math.min(
+            S.gyroMag /
+              CFG.gyroScale,
+            1
+          );
+      } else {
+        S.gyroMag =
+          0;
+      }
+
+      S.intensity =
+        Math.min(
+          CFG.accelWeight *
+              aNorm +
+            CFG.gyroWeight *
+              gNorm,
+          1
+        );
+
+      if (
+        S.intensity >
+        S.peakOverall
+      ) {
+        S.peakOverall =
+          S.intensity;
+      }
+
+      S.samples.push({
+        t: wall,
+
+        ax: S.accel
+          ? S.accel.x
+          : 0,
+
+        ay: S.accel
+          ? S.accel.y
+          : 0,
+
+        az: S.accel
+          ? S.accel.z
+          : 0,
+
+        gx: S.gyro
+          ? S.gyro.x
+          : 0,
+
+        gy: S.gyro
+          ? S.gyro.y
+          : 0,
+
+        gz: S.gyro
+          ? S.gyro.z
+          : 0,
+
+        am:
+          S.accelMag,
+
+        gm:
+          S.gyroMag,
+
+        i:
+          S.intensity
+      });
+
+      if (
+        S.samples.length >
+        CFG.maxSamples
+      ) {
+        S.samples.splice(
+          0,
+          S.samples.length -
+            CFG.maxSamples
+        );
+      }
+
+      detect(
+        wall,
+        mono
+      );
+    }
+
+    function detect(
+      wall,
+      mono
+    ) {
+      const th =
+        thresholds();
+
+      if (
+        S.intensity >=
+        th.high
+      ) {
+        S.belowSince =
+          0;
+
+        if (S.active) {
+          S.active.sum +=
+            S.intensity;
+
+          S.active.n +=
+            1;
+
+          if (
+            S.intensity >
+            S.active
+              .peakIntensity
+          ) {
+            S.active.peakIntensity =
+              S.intensity;
+          }
+
+          S.active.endTimestamp =
+            wall;
+        } else {
+          if (
+            !S.crossAt
+          ) {
+            S.crossAt =
+              mono;
+          } else if (
+            mono -
+              S.crossAt >=
+            CFG.startDebounceMs
+          ) {
+            startEvent(
+              wall,
+              S.intensity
+            );
+          }
+        }
+
+        return;
+      }
+
+      S.crossAt =
+        0;
+
+      if (S.active) {
+        S.active.sum +=
+          S.intensity;
+
+        S.active.n +=
+          1;
+
+        if (
+          !S.belowSince
+        ) {
+          S.belowSince =
+            mono;
+        } else if (
+          mono -
+            S.belowSince >=
+          CFG.endGraceMs
+        ) {
+          closeEvent();
+        }
+      }
+    }
+
+    function startEvent(
+      wall,
+      intensity
+    ) {
+      S.active = {
+        startTimestamp:
+          wall,
+
+        endTimestamp:
+          wall,
+
+        duration: 0,
+
+        peakIntensity:
+          intensity,
+
+        averageIntensity:
+          0,
+
+        sum:
+          intensity,
+
+        n: 1
+      };
+
+      S.crossAt =
+        0;
+
+      S.belowSince =
+        0;
+    }
+
+    function closeEvent() {
+      const e =
+        S.active;
+
+      S.active =
+        null;
+
+      S.crossAt =
+        0;
+
+      S.belowSince =
+        0;
+
+      if (!e) {
+        return;
+      }
+
+      e.duration =
+        Math.max(
+          0,
+          e.endTimestamp -
+            e.startTimestamp
+        );
+
+      e.averageIntensity =
+        e.n
+          ? e.sum /
+            e.n
+          : 0;
+
+      delete e.sum;
+      delete e.n;
+
+      if (
+        e.duration <
+        CFG.minEventMs
+      ) {
+        return;
+      }
+
+      S.events.push(e);
+
+      renderTable();
+    }
+
+    /* ---------------- rendering ---------------- */
+
+    function renderMetrics() {
+      if (
+        !S.samples.length
+      ) {
+        ui.level.textContent =
+          '—';
+
+        ui.level.className =
+          'v';
+
+        ui.intensity.textContent =
+          '—';
+
+        ui.raw.textContent =
+          'acc mag — · gyro mag —';
+
+        return;
+      }
+
+      const lv =
+        levelName(
+          S.intensity
+        );
+
+      ui.level.textContent =
+        lv;
+
+      ui.level.className =
+        'v ' +
+        lv.toLowerCase();
+
+      ui.intensity.textContent =
+        S.intensity.toFixed(
+          2
+        );
+
+      ui.raw.textContent =
+        'acc mag ' +
+        S.accelMag.toFixed(
+          2
+        ) +
+        ' m/s² · gyro mag ' +
+        S.gyroMag.toFixed(
+          1
+        ) +
+        ' deg/s';
+    }
+
+    function renderTable() {
+      ui.tbody.innerHTML =
+        S.events
+          .map(
+            (e, i) =>
+              '<tr><td>' +
+              (i + 1) +
+              '</td>' +
+              '<td>' +
+              fmtTime(
+                e.startTimestamp
+              ) +
+              '</td>' +
+              '<td>' +
+              fmtTime(
+                e.endTimestamp
+              ) +
+              '</td>' +
+              '<td>' +
+              fmtDur(
+                e.duration
+              ) +
+              '</td>' +
+              '<td title="peak ' +
+              e.peakIntensity.toFixed(
+                2
+              ) +
+              ' · avg ' +
+              e.averageIntensity.toFixed(
+                2
+              ) +
+              '">' +
+              levelName(
+                e.peakIntensity
+              ) +
+              ' ' +
+              e.peakIntensity.toFixed(
+                2
+              ) +
+              '</td></tr>'
+          )
+          .join('');
+
+      ui.count.textContent =
+        String(
+          S.events.length
+        );
+
+      ui.empty.classList.toggle(
+        'hidden',
+        S.events.length >
+          0
+      );
+    }
+
+    function renderSummary() {
+      const durSec =
+        Math.max(
+          0,
+          Math.round(
+            (S.endedAtWall -
+              S.startedAtWall) /
+              1000
+          )
+        );
+
+      const evs =
+        S.events;
+
+      const lines = [
+        'TEST SUMMARY',
+        'Recording duration: ' +
+          durSec +
+          ' sec',
+        'High-movement events: ' +
+          evs.length
+      ];
+
+      if (evs.length) {
+        const longest =
+          evs.reduce(
+            (m, e) =>
+              Math.max(
+                m,
+                e.duration
+              ),
+            0
+          );
+
+        lines.push(
+          'Longest event: ' +
+            Math.round(
+              longest / 1000
+            ) +
+            ' sec'
+        );
+
+        lines.push(
+          'Highest intensity: ' +
+            S.peakOverall.toFixed(
+              2
+            ) +
+            ' (' +
+            levelName(
+              S.peakOverall
+            ) +
+            ')'
+        );
+
+        lines.push(
+          'First detected: ' +
+            fmtTime(
+              evs[0]
+                .startTimestamp
+            )
+        );
+
+        lines.push(
+          'Last detected: ' +
+            fmtTime(
+              evs[
+                evs.length - 1
+              ]
+                .startTimestamp
+            )
+        );
+      } else {
+        lines.push(
+          'Highest intensity: ' +
+            S.peakOverall.toFixed(
+              2
+            ) +
+            ' (' +
+            levelName(
+              S.peakOverall
+            ) +
+            ')'
+        );
+
+        lines.push(
+          'No high-movement events recorded.'
+        );
+      }
+
+      ui.summary.textContent =
+        lines.join(
+          '\n'
+        );
+
+      ui.summary.classList.remove(
+        'hidden'
+      );
+    }
+
+    function drawGraph() {
+      const c =
+        ui.graph;
+
+      if (
+        !c ||
+        !c.getContext
+      ) {
+        return;
+      }
+
+      const cssW =
+        Math.max(
+          120,
+          c.clientWidth ||
+            (c.parentNode &&
+              c.parentNode
+                .clientWidth) ||
+            300
+        );
+
+      const cssH =
+        150;
+
+      const dpr =
+        window.devicePixelRatio ||
+        1;
+
+      const bmpW =
+        Math.round(
+          cssW * dpr
+        );
+
+      const bmpH =
+        Math.round(
+          cssH * dpr
+        );
+
+      if (
+        c.width !== bmpW ||
+        c.height !== bmpH
+      ) {
+        c.width =
+          bmpW;
+
+        c.height =
+          bmpH;
+      }
+
+      const ctx =
+        c.getContext(
+          '2d'
+        );
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      ctx.clearRect(
+        0,
+        0,
+        cssW,
+        cssH
+      );
+
+      const padL =
+        54;
+
+      const padR =
+        10;
+
+      const padT =
+        10;
+
+      const padB =
+        20;
+
+      const gw =
+        Math.max(
+          20,
+          cssW -
+            padL -
+            padR
+        );
+
+      const gh =
+        Math.max(
+          20,
+          cssH -
+            padT -
+            padB
+        );
+
+      const th =
+        thresholds();
+
+      const yOf =
+        (v) =>
+          padT +
+          (1 -
+            Math.max(
+              0,
+              Math.min(
+                1,
+                v
+              )
+            )) *
+            gh;
+
+      const now =
+        Date.now();
+
+      const start =
+        S.startedAtWall ||
+        (now - 30000);
+
+      let t0 =
+        start;
+
+      const t1 =
+        Math.max(
+          now,
+          start + 1000
+        );
+
+      if (
+        t1 - t0 >
+        60000
+      ) {
+        t0 =
+          t1 - 60000;
+      }
+
+      const span =
+        Math.max(
+          1,
+          t1 - t0
+        );
+
+      const xOf =
+        (t) =>
+          padL +
+          ((t - t0) /
+            span) *
+            gw;
+
+      ctx.lineWidth =
+        1;
+
+      ctx.font =
+        '10px ' +
+        MONO;
+
+      [
+        [
+          0,
+          'LOW',
+          '#10B981'
+        ],
+        [
+          th.medium,
+          'MED',
+          '#F59E0B'
+        ],
+        [
+          th.high,
+          'HIGH',
+          '#EF4444'
+        ]
+      ].forEach(
+        (line) => {
+          const y =
+            yOf(
+              line[0]
+            );
+
+          ctx.strokeStyle =
+            line[2];
+
+          ctx.setLineDash(
+            [4, 4]
+          );
+
+          ctx.beginPath();
+
+          ctx.moveTo(
+            padL,
+            y
+          );
+
+          ctx.lineTo(
+            padL + gw,
+            y
+          );
+
+          ctx.stroke();
+
+          ctx.setLineDash(
+            []
+          );
+
+          ctx.fillStyle =
+            line[2];
+
+          ctx.textAlign =
+            'right';
+
+          ctx.textBaseline =
+            'middle';
+
+          ctx.fillText(
+            line[1],
+            padL - 6,
+            y
+          );
+        }
+      );
+
+      const bands =
+        S.events.slice();
+
+      if (
+        S.active
+      ) {
+        bands.push({
+          startTimestamp:
+            S.active
+              .startTimestamp,
+
+          endTimestamp:
+            now
+        });
+      }
+
+      ctx.fillStyle =
+        'rgba(239, 68, 68, 0.12)';
+
+      bands.forEach(
+        (e) => {
+          const a =
+            Math.max(
+              t0,
+              e.startTimestamp
+            );
+
+          const b =
+            Math.min(
+              t1,
+              e.endTimestamp ||
+                now
+            );
+
+          if (
+            b > a
+          ) {
+            ctx.fillRect(
+              xOf(a),
+              padT,
+              Math.max(
+                1,
+                xOf(b) -
+                  xOf(a)
+              ),
+              gh
+            );
+          }
+        }
+      );
+
+      let drewLine =
+        false;
+
+      if (
+        S.samples.length
+      ) {
+        ctx.strokeStyle =
+          '#6366F1';
+
+        ctx.lineWidth =
+          1.5;
+
+        ctx.lineJoin =
+          'round';
+
+        ctx.beginPath();
+
+        for (
+          let i = 0;
+          i <
+          S.samples.length;
+          i++
+        ) {
+          const s =
+            S.samples[i];
+
+          if (
+            s.t < t0
+          ) {
+            continue;
+          }
+
+          const px =
+            xOf(s.t);
+
+          const py =
+            yOf(s.i);
+
+          if (
+            !drewLine
+          ) {
+            ctx.moveTo(
+              px,
+              py
+            );
+
+            drewLine =
+              true;
+          } else {
+            ctx.lineTo(
+              px,
+              py
+            );
+          }
+        }
+
+        if (
+          drewLine
+        ) {
+          ctx.stroke();
+        }
+      }
+
+      if (
+        !drewLine
+      ) {
+        ctx.fillStyle =
+          '#64748B';
+
+        ctx.textAlign =
+          'center';
+
+        ctx.textBaseline =
+          'middle';
+
+        ctx.fillText(
+          'no data yet — press Start Test',
+          padL +
+            gw / 2,
+          padT +
+            gh / 2
+        );
+      }
+
+      ctx.fillStyle =
+        '#64748B';
+
+      ctx.textAlign =
+        'center';
+
+      ctx.textBaseline =
+        'top';
+
+      [
+        t0,
+        t0 + span / 2,
+        t1
+      ].forEach(
+        (t) => {
+          const x =
+            Math.max(
+              padL + 20,
+              Math.min(
+                padL +
+                  gw -
+                  20,
+                xOf(t)
+              )
+            );
+
+          ctx.fillText(
+            fmtShortTime(
+              t
+            ),
+            x,
+            cssH -
+              padB +
+              6
+          );
+        }
+      );
+    }
+
+    /* ---------------- controls ---------------- */
+
+    function clearData() {
+      S.samples =
+        [];
+
+      S.events =
+        [];
+
+      S.active =
+        null;
+
+      S.crossAt =
+        0;
+
+      S.belowSince =
+        0;
+
+      S.baseline =
+        null;
+
+      S.lastAnalyzeAt =
+        0;
+
+      S.intensity =
+        0;
+
+      S.accelMag =
+        0;
+
+      S.gyroMag =
+        0;
+
+      S.peakOverall =
+        0;
+
+      ui.summary.classList.add(
+        'hidden'
+      );
+
+      ui.summary.textContent =
+        '';
+
+      ui.timer.textContent =
+        '00:00';
+
+      renderTable();
+    }
+
+    function startTest() {
+      if (
+        S.running
+      ) {
+        return;
+      }
+
+      if (
+        !state.running
+      ) {
+        msg(
+          'Press "Start Sensors" first — this test reuses that connection.',
+          'warn'
+        );
+
+        return;
+      }
+
+      clearData();
+
+      S.running =
+        true;
+
+      S.startedAtWall =
+        Date.now();
+
+      S.endedAtWall =
+        0;
+
+      msg(
+        'Recording — hold still, then try small / strong / repeated / rotating movements.',
+        'good'
+      );
+
+      updateButtons();
+      renderMetrics();
+      drawGraph();
+    }
+
+    function stopTest() {
+      if (
+        !S.running
+      ) {
+        return;
+      }
+
+      S.running =
+        false;
+
+      if (
+        S.active
+      ) {
+        closeEvent();
+      }
+
+      S.endedAtWall =
+        Date.now();
+
+      renderSummary();
+
+      msg(
+        'Test stopped — ' +
+          S.events.length +
+          ' high-movement event(s) recorded.',
+        'good'
+      );
+
+      updateButtons();
+      renderMetrics();
+      drawGraph();
+    }
+
+    function resetTest() {
+      S.running =
+        false;
+
+      S.startedAtWall =
+        0;
+
+      S.endedAtWall =
+        0;
+
+      clearData();
+
+      msg('');
+
+      updateButtons();
+      renderMetrics();
+      updateStatus();
+      drawGraph();
+    }
+
+    ui.start.addEventListener(
+      'click',
+      startTest
+    );
+
+    ui.stop.addEventListener(
+      'click',
+      stopTest
+    );
+
+    ui.reset.addEventListener(
+      'click',
+      resetTest
+    );
+
+    setInterval(
+      function () {
+        const now =
+          Date.now();
+
+        updateStatus();
+
+        if (
+          S.running
+        ) {
+          ui.timer.textContent =
+            fmtTimer(
+              now -
+                S.startedAtWall
+            );
+
+          const fresh =
+            Math.max(
+              S.accelAt,
+              S.gyroAt
+            );
+
+          if (
+            S.active &&
+            fresh &&
+            now -
+              fresh >
+              CFG.sensorStaleMs
+          ) {
+            closeEvent();
+          }
+        }
+
+        renderMetrics();
+        drawGraph();
+      },
+      250
+    );
+
+    updateButtons();
+    renderTable();
+    drawGraph();
+
+    return {
+      onAccel:
+        function (
+          x,
+          y,
+          z,
+          source
+        ) {
+          S.accel = {
+            x: x,
+            y: y,
+            z: z
+          };
+
+          S.accelAt =
+            Date.now();
+
+          if (
+            S.running
+          ) {
+            analyze();
+          }
+        },
+
+      onGyro:
+        function (
+          x,
+          y,
+          z,
+          source
+        ) {
+          S.gyro = {
+            x: x,
+            y: y,
+            z: z
+          };
+
+          S.gyroAt =
+            Date.now();
+
+          S.gyroRateOk =
+            !/^deviceorientation/.test(
+              source
+            );
+
+          if (
+            S.running
+          ) {
+            analyze();
+          }
+        },
+
+      onSensorsStopped:
+        function () {
+          if (
+            !S.running
+          ) {
+            return;
+          }
+
+          stopTest();
+
+          msg(
+            'Sensors stopped — test ended.',
+            'warn'
+          );
+        }
+    };
+  })();
+
+/* ---------------- init ---------------- */
+
+detectSupport();
+refreshPermission();
+updateButtons();
+
+log(
+  'Page loaded. Press Enable Motion Sensors, then Start Sensors.'
+);
+</script>
+</body>
+</html>

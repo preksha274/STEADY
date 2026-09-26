@@ -76,5 +76,31 @@
     "trigger_type": "manual_button",
     "resolved_safely": true,
     "notes": null
+  },
+  "fre_7f4d8b732b67": {
+    "id": "fre_7f4d8b732b67",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-26T05:03:43.172930+00:00",
+    "updated_at": "2026-09-26T05:03:43.172930+00:00",
+    "danger_zone_id": "dan_0f93c0f0f009",
+    "location_label": "Kitchen island turn",
+    "duration_s": 12.0,
+    "effective_unfreeze_strategy": "Auditory Metronome 88 BPM",
+    "trigger_type": "manual_button",
+    "resolved_safely": true,
+    "notes": null
+  },
+  "fre_e56ee1eb622a": {
+    "id": "fre_e56ee1eb622a",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-26T08:13:48.704652+00:00",
+    "updated_at": "2026-09-26T08:13:48.704652+00:00",
+    "danger_zone_id": "dan_7b4f3601ffa3",
+    "location_label": "Kitchen island turn",
+    "duration_s": 12.0,
+    "effective_unfreeze_strategy": "Auditory Metronome 88 BPM",
+    "trigger_type": "manual_button",
+    "resolved_safely": true,
+    "notes": null
   }
 }

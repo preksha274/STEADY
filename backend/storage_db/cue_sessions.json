@@ -294,5 +294,95 @@
         "numeric_score": 0.867
       }
     }
+  },
+  "cue_002cba5a594f": {
+    "id": "cue_002cba5a594f",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-26T05:03:43.128395+00:00",
+    "updated_at": "2026-09-26T05:03:43.140897+00:00",
+    "cue_type": "audio_beat",
+    "current_tempo_bpm": 90,
+    "initial_tempo_bpm": 88,
+    "adaptation_history": [
+      {
+        "current_cue_type": "audio_beat",
+        "current_tempo_bpm": 88,
+        "suggested_tempo_bpm": 90,
+        "synchronization_pct": 86.0,
+        "stride_smoothness": 0.88,
+        "cue_fatigue_detected": false,
+        "recommended_rotation": null,
+        "adaptation_reason": "Adjusted tempo by +2 BPM towards target cadence 92 SPM.",
+        "confidence": {
+          "tier": "high",
+          "primary_issue": "clean_signal",
+          "reason": "Beat sync at 86.0% with smoothness score 0.88",
+          "numeric_score": 0.867
+        }
+      }
+    ],
+    "is_active": true,
+    "winning_tempo_bpm": 90,
+    "latest_step": {
+      "current_cue_type": "audio_beat",
+      "current_tempo_bpm": 88,
+      "suggested_tempo_bpm": 90,
+      "synchronization_pct": 86.0,
+      "stride_smoothness": 0.88,
+      "cue_fatigue_detected": false,
+      "recommended_rotation": null,
+      "adaptation_reason": "Adjusted tempo by +2 BPM towards target cadence 92 SPM.",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Beat sync at 86.0% with smoothness score 0.88",
+        "numeric_score": 0.867
+      }
+    }
+  },
+  "cue_987554445a29": {
+    "id": "cue_987554445a29",
+    "user_id": "user_sarah_test",
+    "created_at": "2026-09-26T08:13:48.604279+00:00",
+    "updated_at": "2026-09-26T08:13:48.616615+00:00",
+    "cue_type": "audio_beat",
+    "current_tempo_bpm": 90,
+    "initial_tempo_bpm": 88,
+    "adaptation_history": [
+      {
+        "current_cue_type": "audio_beat",
+        "current_tempo_bpm": 88,
+        "suggested_tempo_bpm": 90,
+        "synchronization_pct": 86.0,
+        "stride_smoothness": 0.88,
+        "cue_fatigue_detected": false,
+        "recommended_rotation": null,
+        "adaptation_reason": "Adjusted tempo by +2 BPM towards target cadence 92 SPM.",
+        "confidence": {
+          "tier": "high",
+          "primary_issue": "clean_signal",
+          "reason": "Beat sync at 86.0% with smoothness score 0.88",
+          "numeric_score": 0.867
+        }
+      }
+    ],
+    "is_active": true,
+    "winning_tempo_bpm": 90,
+    "latest_step": {
+      "current_cue_type": "audio_beat",
+      "current_tempo_bpm": 88,
+      "suggested_tempo_bpm": 90,
+      "synchronization_pct": 86.0,
+      "stride_smoothness": 0.88,
+      "cue_fatigue_detected": false,
+      "recommended_rotation": null,
+      "adaptation_reason": "Adjusted tempo by +2 BPM towards target cadence 92 SPM.",
+      "confidence": {
+        "tier": "high",
+        "primary_issue": "clean_signal",
+        "reason": "Beat sync at 86.0% with smoothness score 0.88",
+        "numeric_score": 0.867
+      }
+    }
   }
 }
