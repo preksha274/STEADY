@@ -5,6 +5,7 @@ import { useAnalysis } from "@/context/AnalysisContext";
 import { useCueEngine, CueType } from "@/lib/cueEngine";
 import { getActiveCue, CueResult } from "@/lib/cues";
 import { VisualPulse } from "@/components/VisualPulse";
+import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import {
   ShieldAlert,
   Footprints,
@@ -110,8 +111,10 @@ export const FreezeAssistModal: React.FC<FreezeAssistModalProps> = ({
               <h1 id="freeze-assist-title" className="text-xl font-bold text-white tracking-tight">
                 Freeze Assist Active
               </h1>
-              <p className="text-xs text-slate-400">
-                Pacing cue: <span className="text-blue-300 font-medium capitalize">{currentType} ({currentBpm} BPM)</span>
+              <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                <CueLabIcon size={16} isPlaying={isPlaying} />
+                <span>Using your saved cue:</span>
+                <span className="text-blue-300 font-medium capitalize">{currentType} ({currentBpm} BPM)</span>
               </p>
             </div>
           </div>

@@ -127,6 +127,20 @@ export class CueEngine {
     }
   }
 
+  private volumeScale: number = 1.0;
+  private duckTimerId: number | null = null;
+
+  public duck(durationMs: number = 1800): void {
+    this.volumeScale = 0.25;
+    if (this.duckTimerId !== null) {
+      clearTimeout(this.duckTimerId);
+    }
+    this.duckTimerId = window.setTimeout(() => {
+      this.volumeScale = 1.0;
+      this.duckTimerId = null;
+    }, durationMs);
+  }
+
   /**
    * Schedule a beat sound and dispatch UI/vibration callbacks
    */
@@ -142,9 +156,10 @@ export class CueEngine {
         // First beat of 4 is higher pitch (1175 Hz vs 880 Hz)
         osc.frequency.setValueAtTime(isFirstBeat ? 1175 : 880, time);
 
-        // Envelope: 50ms beep with quick exponential gain decay
-        gain.gain.setValueAtTime(0.5, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+        // Envelope: 50ms beep with quick exponential gain decay (scaled by volumeScale for ducking)
+        const peakGain = 0.5 * this.volumeScale;
+        gain.gain.setValueAtTime(peakGain, time);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, 0.001 * this.volumeScale), time + 0.05);
 
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
@@ -251,6 +266,12 @@ export function useCueEngine() {
     }
   }, []);
 
+  const duck = useCallback((durationMs: number = 1800) => {
+    if (engineRef.current) {
+      engineRef.current.duck(durationMs);
+    }
+  }, []);
+
   return {
     isPlaying,
     bpm,
@@ -261,5 +282,6 @@ export function useCueEngine() {
     start,
     stop,
     setBpm,
+    duck,
   };
 }

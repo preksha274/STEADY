@@ -6,6 +6,7 @@ import { BottomNav } from "./BottomNav";
 import { FreezeAssistModal } from "./FreezeAssistModal";
 import { MedicationDoseLogModal } from "./MedicationDoseLogModal";
 import { VoiceAssistantModal } from "./VoiceAssistantModal";
+import { MoreSheet } from "./MoreSheet";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <FreezeAssistModal />
       <MedicationDoseLogModal />
       <VoiceAssistantModal />
+      <MoreSheet />
     </div>
   );
 };

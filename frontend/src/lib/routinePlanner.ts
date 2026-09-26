@@ -12,7 +12,7 @@
 import { CueType } from "./cueEngine";
 import { getActiveCue } from "./cues";
 import { getDiaryEntries } from "./diary";
-import { getSeverity } from "./severity";
+import { getSeverity, fetchSeverityAsync } from "./severity";
 
 export type PostureMode = "standing" | "seated" | "mixed";
 
@@ -49,7 +49,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Bradykinesia & Micro-movement reduction",
     description: "Extend both arms as high and wide as possible on the metronome beat.",
     posture: "standing",
-    targetReps: 15,
+    targetReps: 6,
     prompts: [
       "Bigger reach! Stretch fingertips to the ceiling.",
       "Open your chest wide!",
@@ -64,7 +64,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Freezing of Gait (FOG) prevention",
     description: "March in place lifting each knee toward hip level to ensure foot clearance.",
     posture: "standing",
-    targetReps: 20,
+    targetReps: 6,
     prompts: [
       "Lift knees high — clear the floor cleanly!",
       "Step right on the metronome beat.",
@@ -79,7 +79,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Reduces core rigidity & helps turning",
     description: "Seated or standing, rotate your shoulders and head smoothly side-to-side.",
     posture: "seated",
-    targetReps: 16,
+    targetReps: 6,
     prompts: [
       "Rotate smoothly through your ribcage.",
       "Follow the turn with your eyes.",
@@ -94,7 +94,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Safe chair transfers & leg power",
     description: "Push through heels to rise to full standing posture, then lower with control.",
     posture: "mixed",
-    targetReps: 10,
+    targetReps: 6,
     prompts: [
       "Nose over toes — power through your heels!",
       "Stand fully tall at the top.",
@@ -109,7 +109,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Ankle flexibility & center-of-mass control",
     description: "Rock smoothly from heels to toes in sync with the sensory cue pulse.",
     posture: "standing",
-    targetReps: 18,
+    targetReps: 6,
     prompts: [
       "Shift weight smoothly from heels to balls of feet.",
       "Feel the floor beneath your toes.",
@@ -124,7 +124,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Corrects forward stoop (camptocormia)",
     description: "Draw shoulder blades back and down while aligning chin over breastbone.",
     posture: "seated",
-    targetReps: 12,
+    targetReps: 6,
     prompts: [
       "Pinch shoulder blades together gently.",
       "Lift collarbones and tuck chin slightly.",
@@ -139,7 +139,7 @@ export const EXERCISE_CATALOG: Record<string, PlannedExercise> = {
     targetBenefit: "Multi-directional stepping & fall protection",
     description: "Step out wide to 3 o'clock and 9 o'clock positions and return to center.",
     posture: "standing",
-    targetReps: 14,
+    targetReps: 6,
     prompts: [
       "Take a wide, confident side step!",
       "Push back firmly to your solid center.",
@@ -182,7 +182,7 @@ export function getTodaySessionPlan(isDemoMode: boolean = false): TodaySessionPl
         EXERCISE_CATALOG["posture_reset"],
         EXERCISE_CATALOG["sit_to_stand"],
       ],
-      targetRepsPerExercise: 8,
+      targetRepsPerExercise: 6,
       targetRounds: 1,
       pacingTempoBpm: Math.max(60, winningBpm - 4),
       pacingCueType: winningType,
@@ -204,7 +204,7 @@ export function getTodaySessionPlan(isDemoMode: boolean = false): TodaySessionPl
         EXERCISE_CATALOG["lateral_step"],
         EXERCISE_CATALOG["sit_to_stand"],
       ],
-      targetRepsPerExercise: 18,
+      targetRepsPerExercise: 6,
       targetRounds: 2,
       pacingTempoBpm: winningBpm,
       pacingCueType: winningType,
@@ -226,7 +226,7 @@ export function getTodaySessionPlan(isDemoMode: boolean = false): TodaySessionPl
         EXERCISE_CATALOG["sit_to_stand"],
         EXERCISE_CATALOG["torso_twist"],
       ],
-      targetRepsPerExercise: 12,
+      targetRepsPerExercise: 6,
       targetRounds: 1,
       pacingTempoBpm: winningBpm,
       pacingCueType: winningType,
@@ -247,7 +247,7 @@ export function getTodaySessionPlan(isDemoMode: boolean = false): TodaySessionPl
       EXERCISE_CATALOG["sit_to_stand"],
       EXERCISE_CATALOG["posture_reset"],
     ],
-    targetRepsPerExercise: 12,
+    targetRepsPerExercise: 6,
     targetRounds: 1,
     pacingTempoBpm: winningBpm,
     pacingCueType: winningType,

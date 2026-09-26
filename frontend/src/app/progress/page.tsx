@@ -16,8 +16,9 @@ import {
   getDiaryEntries,
   getDoseLogs,
 } from "@/lib/diary";
-import { getSeverity, SeverityResult } from "@/lib/severity";
-import { getClinicalScores, ClinicalScore } from "@/lib/clinicalScores";
+import { getSeverity, fetchSeverityAsync, SeverityResult } from "@/lib/severity";
+import { getCueHistory, CueResult } from "@/lib/cues";
+import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -58,9 +59,18 @@ export default function ProgressTimelinePage() {
   const [mounted, setMounted] = useState(false);
   const [range, setRange] = useState<TimeRange>("30d");
 
+  const [severity, setSeverity] = useState<SeverityResult>(() => getSeverity(isDemoMode));
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    let active = true;
+    async function loadSeverity() {
+      const s = await fetchSeverityAsync(isDemoMode);
+      if (active) setSeverity(s);
+    }
+    loadSeverity();
+    return () => { active = false; };
+  }, [isDemoMode]);
 
   const allSessions = useMemo(() => {
     if (!mounted) return [];
@@ -70,21 +80,6 @@ export default function ProgressTimelinePage() {
   const baseline = useMemo(() => {
     if (!mounted) return null;
     return getBaseline(undefined, isDemoMode);
-  }, [isDemoMode, mounted]);
-
-  const severity: SeverityResult = useMemo(() => {
-    if (!mounted) {
-      return {
-        tremor: { level: "mild", label: "Mild", description: "Compared to your usual", source: "seed" },
-        slowness: { level: "mild", label: "Mild", description: "Compared to your usual", source: "seed" },
-        freezing: { level: "mild", label: "Mild", description: "Compared to your usual", source: "seed" },
-        confidence: "high",
-        confidenceReason: "Personal baseline comparison",
-        hasSeededData: false,
-        isLiveSession: true,
-      };
-    }
-    return getSeverity(isDemoMode);
   }, [isDemoMode, mounted]);
 
   const maxAgeMs = useMemo(() => {
@@ -99,6 +94,11 @@ export default function ProgressTimelinePage() {
       (s) => now - new Date(s.timestamp).getTime() <= maxAgeMs
     );
   }, [allSessions, maxAgeMs, mounted]);
+
+  const cueHistory = useMemo(() => {
+    if (!mounted) return [];
+    return getCueHistory(isDemoMode);
+  }, [isDemoMode, mounted]);
 
   const chartData = useMemo(() => {
     return filteredSessions.map((s) => {
@@ -185,8 +185,13 @@ export default function ProgressTimelinePage() {
           <div className="flex items-center gap-2">
             <Gauge className="w-4 h-4 text-[#2563EB]" />
             <div>
-              <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider">
-                Severity Meter
+              <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider flex items-center gap-1.5">
+                <span>Severity Meter</span>
+                {severity.isOfflineFallback && (
+                  <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-semibold normal-case">
+                    Offline estimate
+                  </span>
+                )}
               </h2>
               <p className="text-[11px] text-[#64748B] italic font-normal">
                 Compared to your usual
@@ -300,65 +305,6 @@ export default function ProgressTimelinePage() {
         </div>
       </Card>
 
-      {/* DOCTOR-REPORTED CLINICAL SCORES SECTION (DISTINCT NON-AI STYLING) */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between pl-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-slate-800 text-white rounded text-[10px] font-extrabold tracking-wide">
-              Dr
-            </span>
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Doctor-Reported Clinical Scores (MDS-UPDRS)
-            </h2>
-          </div>
-          <Link
-            href="/clinical-scores"
-            className="text-[11px] text-[#2563EB] font-bold hover:underline"
-          >
-            + Log Score
-          </Link>
-        </div>
-
-        <div className="space-y-2.5">
-          {getClinicalScores().slice(0, 2).map((score) => (
-            <div
-              key={score.id}
-              className="p-3.5 bg-white rounded-[18px] border-2 border-slate-300 shadow-xs space-y-2 text-left"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">
-                    Part {score.part} Assessment
-                  </span>
-                  <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
-                    Doctor-reported
-                  </span>
-                </div>
-                <span className="text-xs text-slate-500 font-mono">
-                  {score.date_recorded}
-                </span>
-              </div>
-
-              <div className="flex items-baseline justify-between">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl font-black text-slate-900">
-                    {score.score}
-                  </span>
-                  <span className="text-xs text-slate-500 font-semibold">
-                    / {score.max_score} points
-                  </span>
-                </div>
-                {score.clinician_name && (
-                  <span className="text-[11px] text-slate-600 italic">
-                    {score.clinician_name}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* SESSION LIST WITH COLORED DOT + "CHANGE FROM BASELINE" INDICATOR PER ROW */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between pl-1">
@@ -387,6 +333,7 @@ export default function ProgressTimelinePage() {
             const tremorChange = comparison?.tremorAmplitude;
             const isBetter = tremorChange?.direction === "better";
             const isWorse = tremorChange?.direction === "worse";
+            const isSimulatedSession = session.source === "seed" || session.source === "demo" || (session as any).source === "simulated" || (session as any).simulated || isDemoMode;
 
             return (
               <div
@@ -395,11 +342,16 @@ export default function ProgressTimelinePage() {
                 className="p-3.5 bg-white rounded-[18px] border-[0.5px] border-[#E2E8F0] hover:border-[#2563EB] hover:shadow-xs transition-all cursor-pointer space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Calendar className="w-4 h-4 text-[#2563EB]" />
                     <span className="text-xs font-semibold text-[#172554]">
                       {dateFormatted} at {timeFormatted}
                     </span>
+                    {isSimulatedSession && (
+                      <span className="text-[10px] bg-indigo-50 text-[#6366F1] font-semibold px-2 py-0.5 rounded-full border border-indigo-200">
+                        Simulated
+                      </span>
+                    )}
                   </div>
                   <ConfidenceBadge level={session.tremor.confidence} showText={false} />
                 </div>
@@ -442,6 +394,47 @@ export default function ProgressTimelinePage() {
           })}
         </div>
       </div>
+
+      {/* ADAPTIVE CUE CALIBRATIONS TIMELINE */}
+      <Card className="space-y-3 border-[0.5px] border-[#E2E8F0]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CueLabIcon size={18} className="text-[#6366F1]" />
+            <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider">
+              Adaptive Cue Calibrations
+            </h2>
+          </div>
+          <span className="text-[11px] text-[#64748B]">{cueHistory.length} trials</span>
+        </div>
+
+        <div className="space-y-2">
+          {cueHistory.slice(-4).reverse().map((cue) => {
+            const cDate = new Date(cue.timestamp).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+            return (
+              <div
+                key={cue.id}
+                className="p-3 bg-[#F8FAFC] rounded-2xl border border-slate-200 flex items-center justify-between text-xs"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-[#172554] capitalize">{cue.type} Beat ({cue.bpm} BPM)</span>
+                  {(cue.simulated !== false) && (
+                    <span className="text-[10px] bg-indigo-50 text-[#6366F1] font-semibold px-2 py-0.5 rounded-full border border-indigo-200">
+                      Simulated
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[#64748B]">{cDate}</span>
+                  <span className="font-semibold text-[#2563EB]">{cue.responseScore}% Sync</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
     </div>
   );
 }

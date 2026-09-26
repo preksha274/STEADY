@@ -1,26 +1,35 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle2, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, AlertTriangle, AlertCircle, Info, Sparkles } from "lucide-react";
 
-export type ConfidenceLevel = "high" | "medium" | "low";
+export type ConfidenceLevel = "high" | "medium" | "low" | "simulated";
 
 interface ConfidenceBadgeProps {
-  level: ConfidenceLevel;
+  level?: ConfidenceLevel;
   reason?: string;
   className?: string;
   showText?: boolean;
+  isSimulated?: boolean;
 }
 
 export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
-  level,
+  level = "high",
   reason,
   className = "",
   showText = true,
+  isSimulated = false,
 }) => {
   const [showPopover, setShowPopover] = useState(false);
 
   const config = {
+    simulated: {
+      bg: "bg-indigo-50 text-[#6366F1] border-indigo-200 hover:bg-indigo-100",
+      dot: "bg-[#6366F1]",
+      icon: Sparkles,
+      label: "Confidence: Demo / simulated response",
+      defaultReason: "Simulated movement response mode for desktop/demo evaluation",
+    },
     high: {
       bg: "bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0] hover:bg-[#D1FAE5]",
       dot: "bg-[#10B981]",
@@ -44,7 +53,8 @@ export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
     },
   };
 
-  const current = config[level] || config.high;
+  const effectiveLevel = isSimulated ? "simulated" : level;
+  const current = config[effectiveLevel] || config.high;
   const Icon = current.icon;
   const displayReason = reason || current.defaultReason;
 

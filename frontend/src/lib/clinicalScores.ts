@@ -112,10 +112,55 @@ export function getClinicalScores(patientId: string = "default_user"): ClinicalS
   }
 }
 
+export async function fetchClinicalScores(patientId: string = "default_user"): Promise<ClinicalScore[]> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/clinical-scores?patient_id=${encodeURIComponent(patientId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        return data;
+      }
+    }
+  } catch (e) {
+    console.warn("Backend GET /api/v1/clinical-scores failed, falling back to local storage:", e);
+  }
+
+  return getClinicalScores(patientId);
+}
+
 export async function addClinicalScore(
   scoreData: Omit<ClinicalScore, "id" | "created_at">
 ): Promise<ClinicalScore> {
-  const newScore: ClinicalScore = {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/clinical-scores`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(scoreData),
+    });
+
+    if (res.ok) {
+      const createdScore: ClinicalScore = await res.json();
+      if (typeof window !== "undefined") {
+        try {
+          const existing = getClinicalScores(scoreData.patient_id);
+          const updated = [createdScore, ...existing.filter((s) => s.id !== createdScore.id)];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.error("Failed to sync to localStorage:", e);
+        }
+      }
+      return createdScore;
+    }
+  } catch (e) {
+    console.error("Backend POST failed, using client storage fallback:", e);
+  }
+
+  const fallbackScore: ClinicalScore = {
     ...scoreData,
     id: `cs_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     created_at: new Date().toISOString(),
@@ -124,23 +169,13 @@ export async function addClinicalScore(
   if (typeof window !== "undefined") {
     try {
       const existing = getClinicalScores(scoreData.patient_id);
-      const updated = [newScore, ...existing];
+      const updated = [fallbackScore, ...existing];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {
       console.error("Failed to save clinical score to localStorage:", e);
     }
   }
 
-  // Also attempt to persist to backend API
-  try {
-    await fetch("http://localhost:8000/api/v1/clinical-scores", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newScore),
-    });
-  } catch (e) {
-    // Offline or backend unavailable, local storage already persisted
-  }
-
-  return newScore;
+  return fallbackScore;
 }
+
