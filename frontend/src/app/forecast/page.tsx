@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAnalysis } from "@/context/AnalysisContext";
 import {
   buildForecast,
+  fetchForecastAsync,
   DayForecastResult,
   HourlyForecastItem,
   MergedForecastWindow,
@@ -48,25 +49,18 @@ export default function DayForecastNeuroDiaryPage() {
   const [mounted, setMounted] = useState(false);
   const [showPreVisitSummary, setShowPreVisitSummary] = useState(false);
 
+  const [forecast, setForecast] = useState<DayForecastResult>(() => buildForecast(isDemoMode));
+
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  // Compute Day Forecast
-  const forecast: DayForecastResult = useMemo(() => {
-    if (!mounted) {
-      return {
-        hourly: [],
-        windows: [],
-        bestWindow: null,
-        confidenceScore: 0,
-        confidenceLevel: "low",
-        coverageLevel: "none",
-        reasons: [],
-      };
+    let active = true;
+    async function loadForecast() {
+      const f = await fetchForecastAsync(isDemoMode);
+      if (active) setForecast(f);
     }
-    return buildForecast(isDemoMode);
-  }, [isDemoMode, mounted]);
+    loadForecast();
+    return () => { active = false; };
+  }, [isDemoMode]);
 
   const diaryEntries = useMemo(() => {
     if (!mounted) return [];
@@ -124,8 +118,13 @@ export default function DayForecastNeuroDiaryPage() {
               <Sun className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-semibold text-[#172554] uppercase tracking-wider block">
-                ✨ Best Mobility Window
+              <span className="text-xs font-semibold text-[#172554] uppercase tracking-wider flex items-center gap-1.5">
+                <span>✨ Best Mobility Window</span>
+                {forecast.isOfflineFallback && (
+                  <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-semibold normal-case">
+                    Offline estimate
+                  </span>
+                )}
               </span>
               <div className="text-xl font-bold text-[#172554] mt-0.5">
                 {forecast.bestWindow ? forecast.bestWindow.timeSpanLabel : "10:00 AM – 12:30 PM"}

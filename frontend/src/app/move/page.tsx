@@ -38,6 +38,7 @@ import {
   Info,
   Video,
   VideoOff,
+  Music,
 } from "lucide-react";
 
 export default function MoveCoachPage() {
@@ -59,7 +60,7 @@ export default function MoveCoachPage() {
   const [syncScore, setSyncScore] = useState(88);
   const [movementStatus, setMovementStatus] = useState<"idle" | "moving" | "waiting">("idle");
   const [activeInputSource, setActiveInputSource] = useState<"Camera" | "Motion Sensor" | "Sensor Ready">("Sensor Ready");
-  const [targetReps, setTargetReps] = useState(15);
+  const [targetReps, setTargetReps] = useState(6);
   const [activeCue, setActiveCueState] = useState<CueResult | null>(null);
 
   // Voice Assistant & Hands-free state
@@ -71,9 +72,22 @@ export default function MoveCoachPage() {
   const [stopMessage, setStopMessage] = useState("");
   const [showBonusConfirm, setShowBonusConfirm] = useState(false);
 
-  // Live coaching prompt rotation
+  // Live coaching prompt rotation & Real Form state
   const [coachPrompt, setCoachPrompt] = useState("Bigger reach! Keep your arms high.");
   const [amplitudeHistory, setAmplitudeHistory] = useState<number[]>([1.0, 1.0, 0.95]);
+  const [lastRepForm, setLastRepForm] = useState<"good" | "partial" | "idle">("idle");
+  const [formFeedbackMsg, setFormFeedbackMsg] = useState<string>("");
+  const [coachingAudioEnabled, setCoachingAudioEnabled] = useState(true);
+
+  // Form-driven spoken cue tracking refs (strictly event/kinematics driven, no timers)
+  const consecutivePartialRepsRef = useRef<number>(0);
+  const goodRepCountRef = useRef<number>(0);
+  const lastSpokenTimeRef = useRef<number>(0);
+
+  // Real Optical Region Tracking & Moving Average Smoothing Refs
+  const movingAvgBufferRef = useRef<Array<{ upper: number; mid: number; lower: number; total: number }>>([]);
+  const lastRegionMotionRef = useRef<{ upper: number; mid: number; lower: number; total: number }>({ upper: 0, mid: 0, lower: 0, total: 0 });
+  const [debugLogMsg, setDebugLogMsg] = useState<string>("");
 
   // Dynamic Joint Animation Phase Timer (locked to pacing tempo)
   const [animTime, setAnimTime] = useState(0);
@@ -96,10 +110,13 @@ export default function MoveCoachPage() {
     beatInBar,
     start: startCue,
     stop: stopCue,
+    duck: duckBeat,
   } = useCueEngine();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+
+  const [isFromCueLab, setIsFromCueLab] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -111,14 +128,93 @@ export default function MoveCoachPage() {
     setTodayPlan(plan);
     if (plan.selectedExercises.length > 0) {
       setSelectedExercise(plan.selectedExercises[0]);
-      setTargetReps(plan.targetRepsPerExercise);
+      setTargetReps(plan.targetRepsPerExercise || 6);
     }
-  }, []);
 
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isFromCue = searchParams.get("fromCueLab") === "true";
+      setIsFromCueLab(isFromCue);
+      if (isFromCue) {
+        const type = cue?.type || plan.pacingCueType || "audio";
+        const bpmVal = cue?.bpm || plan.pacingTempoBpm || 88;
+        startCue(type, bpmVal);
+      }
+    }
+  }, [startCue]);
+
+  // Exercise Movement Pacing (Decoupled from fast walking/tapping cue BPM):
+  // 40 BPM pacing = 1.5s per beat step / 3.0 seconds per complete exercise rep cycle (20 reps/min)
+  const EXERCISE_PACING_BPM = 40;
   const currentType: CueType = todayPlan?.pacingCueType || activeCue?.type || "audio";
-  const currentBpm = todayPlan?.pacingTempoBpm || activeCue?.bpm || 88;
+  const currentBpm = EXERCISE_PACING_BPM;
 
-  // Handler for genuine detected movement peak (from DeviceMotion or Camera Frame Energy)
+  // Helper to trigger short spoken form cue with metronome beat ducking
+  const speakCoachingCue = (text: string, durationMs: number = 1800) => {
+    if (!coachingAudioEnabled || typeof window === "undefined") return;
+    duckBeat(durationMs);
+    voiceGuide.speak(text);
+  };
+
+  // Real Spatial Region Optical Form Evaluator (upper/mid/lower body kinematic region displacement)
+  const evaluateExerciseForm = (
+    exId: string,
+    peakMag: number,
+    regions: { upper: number; mid: number; lower: number; total: number }
+  ) => {
+    let targetEnergy = 0;
+    let fullThreshold = 10.0;
+    let feedbackTip = "";
+
+    if (exId === "big_reach") {
+      targetEnergy = regions.upper;
+      fullThreshold = 11.0;
+      feedbackTip = "Reach a little higher";
+    } else if (exId === "high_knees") {
+      targetEnergy = regions.lower;
+      fullThreshold = 10.0;
+      feedbackTip = "Lift your knees higher";
+    } else if (exId === "torso_twist") {
+      targetEnergy = regions.mid;
+      fullThreshold = 9.5;
+      feedbackTip = "Rotate shoulders further";
+    } else if (exId === "sit_to_stand") {
+      targetEnergy = regions.total;
+      fullThreshold = 11.0;
+      feedbackTip = "Stand up taller";
+    } else if (exId === "heel_toe_rock") {
+      targetEnergy = regions.lower;
+      fullThreshold = 8.5;
+      feedbackTip = "Rock further onto toes";
+    } else if (exId === "posture_reset") {
+      targetEnergy = regions.upper;
+      fullThreshold = 9.0;
+      feedbackTip = "Squeeze shoulders back";
+    } else {
+      targetEnergy = regions.total;
+      fullThreshold = 9.5;
+      feedbackTip = "Step a bit wider";
+    }
+
+    const ratio = Math.min(1.2, Math.max(0, targetEnergy / fullThreshold));
+
+    let formQuality: "good" | "partial" | "invalid" = "invalid";
+    if (ratio >= 0.60) {
+      formQuality = "good";
+    } else if (ratio >= 0.25) {
+      formQuality = "partial";
+    } else {
+      formQuality = "invalid";
+    }
+
+    const logStr = `Ex: ${exId} | TargetEnergy: ${targetEnergy.toFixed(1)} (Thresh: ${fullThreshold}) | Quality: ${formQuality.toUpperCase()}`;
+    console.log(`[MoveFormTracker] ${logStr}`);
+    setDebugLogMsg(logStr);
+
+    return { formQuality, formScore: ratio, feedbackTip };
+  };
+
+  // Handler for genuine detected movement peak with Real-Form Verification & Form-Driven Speech
   const registerMovementPeak = (peakMagnitude: number, timestamp: number) => {
     if (!isSessionActive || isPaused || isHardStopped) return;
 
@@ -147,31 +243,87 @@ export default function MoveCoachPage() {
     );
     setSyncScore(avgSync);
 
-    // Increment rep count strictly on genuine peak
+    const now = Date.now();
+
+    // 1. RHYTHM DRIFT AUDIO PROMPT: If cadence drifts off metronome beat (<50% sync)
+    if (instantaneousSync < 50 && now - lastSpokenTimeRef.current > 3200) {
+      speakCoachingCue("Try to match the beat", 1800);
+      lastSpokenTimeRef.current = now;
+    }
+
+    // Evaluate Real Exercise Form using smoothed spatial region tracking data
+    const formResult = evaluateExerciseForm(
+      selectedExercise?.id || "big_reach",
+      peakMagnitude,
+      lastRegionMotionRef.current
+    );
+
+    if (formResult.formQuality === "invalid") {
+      return;
+    }
+
+    if (formResult.formQuality === "partial") {
+      setLastRepForm("partial");
+      setFormFeedbackMsg(`Partial Rep — ${formResult.feedbackTip}`);
+      setCoachPrompt(`Partial Rep: ${formResult.feedbackTip}`);
+
+      consecutivePartialRepsRef.current += 1;
+
+      // 2. PARTIAL FORM AUDIO PROMPT: Triggered after 2+ consecutive partial reps
+      if (consecutivePartialRepsRef.current >= 2 && now - lastSpokenTimeRef.current > 3000) {
+        speakCoachingCue(formResult.feedbackTip, 1800);
+        lastSpokenTimeRef.current = now;
+      }
+
+      // Track amplitude trend even on partial reps for fatigue shrink check
+      setAmplitudeHistory((prev) => {
+        const updated = [...prev, formResult.formScore].slice(-4);
+        if (updated.length >= 3) {
+          const drop = (updated[0] - updated[updated.length - 1]) / updated[0];
+          if (drop > 0.25 && repCount >= 3) {
+            triggerHardStop("fatigue_shrink");
+          }
+        }
+        return updated;
+      });
+      return; // Do NOT increment rep count on Partial form
+    }
+
+    // Good Form Rep:
+    setLastRepForm("good");
+    setFormFeedbackMsg(`Good Form! ${formResult.feedbackTip}`);
+    setCoachPrompt(`Good Form! ${formResult.feedbackTip}`);
+
+    consecutivePartialRepsRef.current = 0;
+    goodRepCountRef.current += 1;
+
     setRepCount((prev) => {
       const nextRep = prev + 1;
 
-      // Announce milestone reps via voice
-      if (voiceAssistantEnabled && nextRep % 5 === 0 && nextRep < targetReps) {
-        voiceGuide.speak(`${nextRep} reps. Keep it steady.`);
+      // 3. TARGET REVENUE / COMPLETION AUDIO PROMPT: 6/6 good reps
+      if (nextRep >= targetReps) {
+        speakCoachingCue("Session complete, nice work!", 2200);
+        lastSpokenTimeRef.current = now;
+        triggerHardStop("target_reached");
+      } else if (goodRepCountRef.current % 2 === 0 && now - lastSpokenTimeRef.current > 2500) {
+        // 4. PERIODIC POSITIVE REINFORCEMENT: Every 2nd good rep
+        const positiveCues = ["Nice extension!", "Great pace!", "Steady rhythm!", "Strong movement!"];
+        const chosenCue = positiveCues[(goodRepCountRef.current / 2) % positiveCues.length];
+        speakCoachingCue(chosenCue, 1600);
+        lastSpokenTimeRef.current = now;
       }
 
-      // HARD STOP 1: Target reached
-      if (nextRep >= targetReps) {
-        triggerHardStop("target_reached");
-      }
       return nextRep;
     });
 
-    // Amplitude tracking for real fatigue shrink check
+    // Amplitude tracking for real joint-based fatigue shrink check
     setAmplitudeHistory((prev) => {
-      const normalizedAmp = Math.min(1.2, Math.max(0.4, peakMagnitude / 2.5));
-      const updated = [...prev, normalizedAmp].slice(-4);
+      const updated = [...prev, formResult.formScore].slice(-4);
 
-      // HARD STOP 2: Fatigue shrink > 25% drop over consecutive reps
+      // HARD STOP 2: Fatigue shrink > 25% drop over consecutive reps from joint tracking
       if (updated.length >= 3) {
         const drop = (updated[0] - updated[updated.length - 1]) / updated[0];
-        if (drop > 0.25 && repCount >= 6) {
+        if (drop > 0.25 && repCount >= 3) {
           triggerHardStop("fatigue_shrink");
         }
       }
@@ -234,8 +386,8 @@ export default function MoveCoachPage() {
       const netMag = Math.abs(rawMag - 9.8);
       const now = Date.now();
 
-      // Minimum peak interval based on pacing tempo (prevents multi-triggers per single rep)
-      const minIntervalMs = Math.max(400, (60 / currentBpm) * 650);
+      // Minimum peak interval based on 3s/rep pacing (prevents multi-triggers per single rep)
+      const minIntervalMs = 2100;
       const isPeak =
         now - lastPeakTimeRef.current >= minIntervalMs &&
         netMag > 1.25 &&
@@ -279,27 +431,66 @@ export default function MoveCoachPage() {
         const data = frame.data;
 
         if (prevFrameDataRef.current) {
-          let diffSum = 0;
+          let upperDiff = 0, midDiff = 0, lowerDiff = 0;
+          let upperCount = 0, midCount = 0, lowerCount = 0;
           const prev = prevFrameDataRef.current;
-          for (let i = 0; i < data.length; i += 4) {
-            const curLuma = (data[i] + data[i + 1] + data[i + 2]) / 3;
-            const prevLuma = (prev[i] + prev[i + 1] + prev[i + 2]) / 3;
-            diffSum += Math.abs(curLuma - prevLuma);
+
+          for (let y = 0; y < 32; y++) {
+            for (let x = 0; x < 32; x++) {
+              const i = (y * 32 + x) * 4;
+              const curLuma = (data[i] + data[i + 1] + data[i + 2]) / 3;
+              const prevLuma = (prev[i] + prev[i + 1] + prev[i + 2]) / 3;
+              const diff = Math.abs(curLuma - prevLuma);
+
+              if (y < 11) {
+                upperDiff += diff;
+                upperCount++;
+              } else if (y < 22) {
+                midDiff += diff;
+                midCount++;
+              } else {
+                lowerDiff += diff;
+                lowerCount++;
+              }
+            }
           }
 
-          const motionEnergy = diffSum / (32 * 32);
+          const upperEnergy = upperDiff / upperCount;
+          const midEnergy = midDiff / midCount;
+          const lowerEnergy = lowerDiff / lowerCount;
+          const totalEnergy = (upperDiff + midDiff + lowerDiff) / (32 * 32);
+
+          // 4-frame moving average smoothing buffer
+          movingAvgBufferRef.current.push({ upper: upperEnergy, mid: midEnergy, lower: lowerEnergy, total: totalEnergy });
+          if (movingAvgBufferRef.current.length > 4) {
+            movingAvgBufferRef.current.shift();
+          }
+
+          const len = movingAvgBufferRef.current.length;
+          const smoothed = movingAvgBufferRef.current.reduce(
+            (acc, item) => ({
+              upper: acc.upper + item.upper / len,
+              mid: acc.mid + item.mid / len,
+              lower: acc.lower + item.lower / len,
+              total: acc.total + item.total / len,
+            }),
+            { upper: 0, mid: 0, lower: 0, total: 0 }
+          );
+
+          lastRegionMotionRef.current = smoothed;
+
           const now = Date.now();
-          const minIntervalMs = Math.max(450, (60 / currentBpm) * 700);
+          const minIntervalMs = 2100;
 
           if (
-            motionEnergy > 8.0 &&
-            prevFrameEnergyRef.current <= 8.0 &&
+            smoothed.total > 5.0 &&
+            prevFrameEnergyRef.current <= 5.0 &&
             now - lastCameraPeakTimeRef.current >= minIntervalMs
           ) {
             lastCameraPeakTimeRef.current = now;
-            registerMovementPeak(motionEnergy / 6, now);
+            registerMovementPeak(smoothed.total / 5, now);
           }
-          prevFrameEnergyRef.current = motionEnergy;
+          prevFrameEnergyRef.current = smoothed.total;
         }
 
         prevFrameDataRef.current = new Uint8ClampedArray(data);
@@ -448,10 +639,10 @@ export default function MoveCoachPage() {
     return () => clearInterval(timer);
   }, [isSessionActive, isPaused, isHardStopped, selectedExercise, voiceAssistantEnabled]);
 
-  // Dynamic Joint Coordinate Generator (Synchronized to exact pacing cadence)
+  // Dynamic Joint Coordinate Generator (Synchronized to 3.0s per complete rep cycle)
   const jointCoords = useMemo(() => {
-    // Exact cycle frequency from Live Cue Designer winning tempo (e.g. 88 BPM)
-    const freq = (currentBpm / 60) * 2 * Math.PI;
+    // 1 full movement cycle every 3.0 seconds (20 reps/min pace)
+    const freq = (20 / 60) * 2 * Math.PI;
     const p = isSessionActive ? Math.sin(animTime * freq) : 0; // -1 to +1
     const u = (p + 1) / 2; // 0 to 1 smooth progress
 
@@ -616,8 +807,27 @@ export default function MoveCoachPage() {
           </div>
         </div>
 
-        {/* Voice Assistant Toggle */}
-        <div className="flex items-center gap-2">
+        {/* Audio Coaching & Mic Toggles */}
+        <div className="flex items-center gap-1.5">
+          {/* Spoken Form Coaching Mute Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              const nextState = !coachingAudioEnabled;
+              setCoachingAudioEnabled(nextState);
+              if (!nextState) voiceGuide.stopSpeaking();
+            }}
+            className={`p-2 rounded-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer ${
+              coachingAudioEnabled
+                ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/40"
+                : "bg-slate-800 text-slate-500"
+            }`}
+            title={coachingAudioEnabled ? "Spoken Form Coaching Active (Click to mute)" : "Spoken Form Coaching Muted (Click to enable)"}
+          >
+            {coachingAudioEnabled ? <Volume2 className="w-5 h-5 text-emerald-400" /> : <VolumeX className="w-5 h-5 text-slate-500" />}
+          </button>
+
+          {/* Voice Command Mic Listener Toggle */}
           <button
             type="button"
             onClick={() => setVoiceAssistantEnabled(!voiceAssistantEnabled)}
@@ -626,12 +836,12 @@ export default function MoveCoachPage() {
                 ? "bg-blue-600/30 text-blue-400 border border-blue-500/40"
                 : "bg-slate-800 text-slate-500"
             }`}
-            title={voiceAssistantEnabled ? "Voice Assistant Active" : "Voice Assistant Muted"}
+            title={voiceAssistantEnabled ? "Voice Mic Listener Active" : "Voice Mic Listener Muted"}
           >
             {voiceAssistantEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
           </button>
 
-          <div className="text-right">
+          <div className="text-right pl-1">
             <span className="text-[10px] font-semibold text-slate-400 block uppercase">Time</span>
             <span className="text-lg font-black text-blue-400 font-mono">
               {formatTime(sessionSeconds)}
@@ -640,8 +850,194 @@ export default function MoveCoachPage() {
         </div>
       </header>
 
-      {/* TODAY'S CUSTOMIZED SESSION PLAN CARD (With Clinician-Reviewable Rationale) */}
+      {/* HIGHLIGHTED TODAY'S EXERCISE PRE-CAMERA PREVIEW CARD */}
       {!isSessionActive && !isHardStopped && (
+        <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950/90 via-slate-900 to-slate-950 border-2 border-indigo-500/50 shadow-2xl space-y-4">
+          <div className="flex items-center justify-between border-b border-indigo-900/60 pb-2.5">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <span className="text-xs font-bold text-indigo-200 uppercase tracking-wider">
+                Today&apos;s Exercise • Pre-Camera Preview
+              </span>
+            </div>
+            <span className="text-[10px] bg-indigo-500/20 text-indigo-300 font-semibold px-2.5 py-0.5 rounded-full border border-indigo-500/30 flex items-center gap-1">
+              <Music className="w-3 h-3 text-blue-400" />
+              <span>{currentBpm} BPM</span>
+            </span>
+          </div>
+
+          {/* Exercise Title & BPM Display */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-extrabold text-white">
+                {selectedExercise?.name || "High Knees Marching"}
+              </h2>
+              <div className="text-xs text-indigo-300 font-medium flex items-center gap-1.5 mt-0.5">
+                <Music className="w-3.5 h-3.5 text-blue-400" />
+                <span>Synced to {currentBpm} BPM {currentType.toUpperCase()} cue</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isPlaying) {
+                  stopCue();
+                } else {
+                  startCue("audio", currentBpm);
+                }
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                isPlaying
+                  ? "bg-rose-500/20 text-rose-300 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.35)] animate-pulse"
+                  : "bg-blue-600/30 text-blue-300 border-blue-400/40 hover:bg-blue-600/50"
+              }`}
+              title={isPlaying ? "Click to stop preview audio" : `Click to preview ${currentBpm} BPM audio beat`}
+            >
+              {isPlaying ? (
+                <>
+                  <VolumeX className="w-3.5 h-3.5 text-rose-300" />
+                  <span>Stop Preview</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 text-blue-300" />
+                  <span>Preview Audio</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Rhythm-Synced Stick Figure Animation (No camera required) */}
+          <div className="py-3 px-4 bg-slate-950/90 rounded-2xl border border-indigo-900/40 flex flex-col items-center justify-center space-y-2">
+            <div className="relative w-36 h-36 flex items-center justify-center">
+              <svg viewBox="0 0 100 120" className="w-32 h-32">
+                {/* Ground */}
+                <line x1="10" y1="110" x2="90" y2="110" stroke="#334155" strokeWidth="2.5" strokeLinecap="round" />
+
+                {/* Head Dot */}
+                <circle
+                  cx="50"
+                  cy={beatCount % 2 === 1 ? 26 : 30}
+                  r="9"
+                  fill="#60A5FA"
+                  className="transition-all duration-150 ease-out"
+                />
+
+                {/* Torso Line */}
+                <line
+                  x1="50"
+                  y1={beatCount % 2 === 1 ? 35 : 39}
+                  x2="50"
+                  y2={beatCount % 2 === 1 ? 75 : 79}
+                  stroke="#60A5FA"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  className="transition-all duration-150 ease-out"
+                />
+
+                {/* Left Arm / Dot */}
+                <line
+                  x1="50"
+                  y1={beatCount % 2 === 1 ? 46 : 50}
+                  x2={beatCount % 2 === 1 ? 30 : 38}
+                  y2={beatCount % 2 === 1 ? 52 : 62}
+                  stroke="#38BDF8"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className="transition-all duration-150 ease-out"
+                />
+                <circle
+                  cx={beatCount % 2 === 1 ? 30 : 38}
+                  cy={beatCount % 2 === 1 ? 52 : 62}
+                  r="4.5"
+                  fill="#38BDF8"
+                  className="transition-all duration-150 ease-out"
+                />
+
+                {/* Right Arm / Dot */}
+                <line
+                  x1="50"
+                  y1={beatCount % 2 === 1 ? 46 : 50}
+                  x2={beatCount % 2 === 1 ? 68 : 60}
+                  y2={beatCount % 2 === 1 ? 62 : 52}
+                  stroke="#38BDF8"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className="transition-all duration-150 ease-out"
+                />
+                <circle
+                  cx={beatCount % 2 === 1 ? 68 : 60}
+                  cy={beatCount % 2 === 1 ? 62 : 52}
+                  r="4.5"
+                  fill="#38BDF8"
+                  className="transition-all duration-150 ease-out"
+                />
+
+                {/* Left Leg / Foot Dot */}
+                <line
+                  x1="50"
+                  y1={beatCount % 2 === 1 ? 75 : 79}
+                  x2={beatCount % 2 === 1 ? 32 : 40}
+                  y2={beatCount % 2 === 1 ? 95 : 108}
+                  stroke="#3B82F6"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  className="transition-all duration-150 ease-out"
+                />
+                <circle
+                  cx={beatCount % 2 === 1 ? 32 : 40}
+                  cy={beatCount % 2 === 1 ? 95 : 108}
+                  r="5"
+                  fill="#60A5FA"
+                  className="transition-all duration-150 ease-out"
+                />
+
+                {/* Right Leg / Foot Dot */}
+                <line
+                  x1="50"
+                  y1={beatCount % 2 === 1 ? 75 : 79}
+                  x2={beatCount % 2 === 1 ? 60 : 68}
+                  y2={beatCount % 2 === 1 ? 108 : 95}
+                  stroke="#3B82F6"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  className="transition-all duration-150 ease-out"
+                />
+                <circle
+                  cx={beatCount % 2 === 1 ? 60 : 68}
+                  cy={beatCount % 2 === 1 ? 108 : 95}
+                  r="5"
+                  fill="#60A5FA"
+                  className="transition-all duration-150 ease-out"
+                />
+              </svg>
+            </div>
+
+            <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <span>Rhythm-synced posture animation • No camera required</span>
+            </div>
+          </div>
+
+          {/* Start full session with camera button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isPlaying) stopCue();
+              setIsSessionActive(true);
+              enableCamera();
+            }}
+            className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+          >
+            <Video className="w-4 h-4 text-white" />
+            <span>Start full session with camera</span>
+          </button>
+        </div>
+      )}
+
+      {/* TODAY'S CUSTOMIZED SESSION PLAN CARD (With Clinician-Reviewable Rationale) */}
+      {!isSessionActive && !isHardStopped && todayPlan && (
         <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-blue-500/30 shadow-lg space-y-3">
           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
             <div className="flex items-center gap-2">
@@ -698,6 +1094,7 @@ export default function MoveCoachPage() {
                   onClick={() => {
                     setSelectedExercise(ex);
                     setCurrentExerciseIndex(idx);
+                    setTargetReps(ex.targetReps || 6);
                   }}
                   className={`flex-shrink-0 w-40 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
@@ -873,17 +1270,24 @@ export default function MoveCoachPage() {
         )}
 
         {/* Explicit Mode Badge: Camera Active vs Demo Guide Animation */}
-        <div className="absolute top-3 left-3 px-3 py-1 bg-slate-900/80 rounded-full border border-slate-700 text-xs text-blue-300 font-semibold backdrop-blur-md flex items-center gap-1.5">
-          {cameraActive ? (
-            <>
-              <Video className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Camera Tracking • {currentBpm} BPM</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-              <span>Visual Form Guide • {currentBpm} BPM</span>
-            </>
+        <div className="absolute top-3 left-3 px-3 py-1 bg-slate-900/80 rounded-2xl border border-slate-700 text-xs text-blue-300 font-semibold backdrop-blur-md flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            {cameraActive ? (
+              <>
+                <Video className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Camera Tracking • 3s/rep</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+                <span>Visual Form Guide • 3s/rep</span>
+              </>
+            )}
+          </div>
+          {cameraActive && debugLogMsg && (
+            <div className="text-[9px] font-mono text-emerald-400 truncate max-w-[220px]">
+              {debugLogMsg}
+            </div>
           )}
         </div>
       </div>
@@ -1000,9 +1404,21 @@ export default function MoveCoachPage() {
             />
           </div>
           {isSessionActive && (
-            <span className="text-[9px] text-slate-400 block pt-0.5 truncate">
-              {movementStatus === "moving" ? "Movement detected" : "Waiting for movement..."}
-            </span>
+            <div className="pt-0.5">
+              {lastRepForm === "good" ? (
+                <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30 inline-block truncate">
+                  ✓ Good Form Rep (+1)
+                </span>
+              ) : lastRepForm === "partial" ? (
+                <span className="text-[9px] font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 inline-block truncate">
+                  ⚠ Partial Rep (No Count)
+                </span>
+              ) : (
+                <span className="text-[9px] text-slate-400 block truncate">
+                  {movementStatus === "moving" ? "Movement detected" : "Waiting for movement..."}
+                </span>
+              )}
+            </div>
           )}
         </div>
 

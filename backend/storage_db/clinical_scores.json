@@ -30,5 +30,21 @@
     "clinician_name": "Dr. Thorne",
     "date_recorded": "2026-09-25",
     "notes": "Follow-up clinic visit. Good response to morning dose."
+  },
+  "cli_bdec23b4e5d6": {
+    "id": "cli_bdec23b4e5d6",
+    "user_id": "default_user",
+    "created_at": "2026-09-26T08:33:47.674904+00:00",
+    "updated_at": "2026-09-26T08:33:47.674904+00:00",
+    "patient_id": "default_user",
+    "author_user_id": "default_user",
+    "author_role": "patient",
+    "scale": "MDS-UPDRS",
+    "part": "III",
+    "score": 22.0,
+    "max_score": 132.0,
+    "clinician_name": "Dr. Test",
+    "date_recorded": "2026-09-26",
+    "notes": "Test log entry"
   }
 }

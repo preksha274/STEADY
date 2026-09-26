@@ -319,37 +319,7 @@ export default function SettingsPage() {
         </Button>
       </Card>
 
-      {/* SECTION 4: CLINICAL SCORES (DOCTOR-REPORTED) */}
-      <Card className="space-y-3 border-2 border-slate-300 bg-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 text-slate-900">
-            <div className="p-2 rounded-xl bg-slate-800 text-white font-bold text-xs flex items-center justify-center w-9 h-9">
-              Dr
-            </div>
-            <div>
-              <h2 className="text-sm font-bold">Clinical Scores</h2>
-              <div className="text-[10px] text-slate-500">Doctor-Reported MDS-UPDRS Assessments</div>
-            </div>
-          </div>
-          <span className="text-[10px] bg-slate-100 border border-slate-300 text-slate-700 font-semibold px-2 py-0.5 rounded-full">
-            Non-AI
-          </span>
-        </div>
-
-        <p className="text-xs text-slate-600 leading-relaxed font-normal">
-          Log or view MDS-UPDRS scores your neurologist has assessed during appointments. STEADY does not score or administer this instrument itself.
-        </p>
-
-        <Link
-          href="/clinical-scores"
-          className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>Log or View Clinical Scores</span>
-          <ArrowLeft className="w-4 h-4 rotate-180" />
-        </Link>
-      </Card>
-
-      {/* SECTION 5: ABOUT STEADY */}
+      {/* SECTION 4: ABOUT STEADY */}
       <Card className="space-y-3 bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0]">
         <div className="flex items-center gap-2.5 text-[#172554]">
           <div className="p-2 rounded-xl bg-slate-200 text-slate-700">

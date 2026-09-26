@@ -16,6 +16,7 @@ export interface SeverityResult {
   confidenceReason: string;
   hasSeededData: boolean;
   isLiveSession: boolean;
+  isOfflineFallback?: boolean;
 }
 
 /**
@@ -157,5 +158,67 @@ export function getSeverity(isDemoMode: boolean = true): SeverityResult {
     confidenceReason,
     hasSeededData,
     isLiveSession: latestSession?.source === "live",
+    isOfflineFallback: true,
   };
+}
+
+/**
+ * Fetch severity readings from backend API if available, with explicit client offline fallback.
+ */
+export async function fetchSeverityAsync(isDemoMode: boolean = true): Promise<SeverityResult> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/severity`, {
+      headers: {
+        "X-User-ID": "user_sarah_default",
+      },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.readings)) {
+        const tremorReading = data.readings.find((r: any) => r.symptom_name === "Resting Tremor");
+        const slownessReading = data.readings.find((r: any) => r.symptom_name === "Movement Slowness");
+        const freezingReading = data.readings.find((r: any) => r.symptom_name === "Gait Hesitation");
+
+        const mapTier = (tierStr: string): "mild" | "moderate" | "high" => {
+          const lower = (tierStr || "").toLowerCase();
+          if (lower.includes("mild")) return "mild";
+          if (lower.includes("high") || lower.includes("severe")) return "high";
+          return "moderate";
+        };
+
+        return {
+          tremor: {
+            level: mapTier(tremorReading?.computed_tier || "moderate"),
+            label: tremorReading?.tier_label || "Moderate",
+            description: "Compared to your usual",
+            source: "user",
+          },
+          slowness: {
+            level: mapTier(slownessReading?.computed_tier || "moderate"),
+            label: slownessReading?.tier_label || "Moderate",
+            description: "Compared to your usual",
+            source: "user",
+          },
+          freezing: {
+            level: mapTier(freezingReading?.computed_tier || "mild"),
+            label: freezingReading?.tier_label || "Mild",
+            description: "Compared to your usual",
+            source: "user",
+          },
+          confidence: tremorReading?.confidence?.tier === "high" ? "high" : "medium",
+          confidenceReason: tremorReading?.confidence?.reason || "Derived from backend personal baseline comparison",
+          hasSeededData: false,
+          isLiveSession: true,
+          isOfflineFallback: false,
+        };
+      }
+    }
+  } catch (err) {
+    // API unreachable -> fallback to client estimate
+  }
+
+  const fallback = getSeverity(isDemoMode);
+  return { ...fallback, isOfflineFallback: true };
 }
