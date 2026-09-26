@@ -112,11 +112,13 @@ interface AnalysisContextType {
   isSimpleMode: boolean;
   isFreezeModalOpen: boolean;
   isDoseLogModalOpen: boolean;
+  isMoreSheetOpen: boolean;
   isLoaded: boolean;
   setIsDemoMode: (enabled: boolean) => void;
   setIsSimpleMode: (enabled: boolean) => void;
   setIsFreezeModalOpen: (open: boolean) => void;
   setIsDoseLogModalOpen: (open: boolean) => void;
+  setIsMoreSheetOpen: (open: boolean) => void;
   setIMUResult: (result: IMUAnalysisResult | null) => void;
   setEEGResult: (result: EEGAnalysisResult | null) => void;
   setGaitResult: (result: GaitAnalysisResult | null) => void;
@@ -135,6 +137,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isSimpleMode, setIsSimpleModeState] = useState<boolean>(false);
   const [isFreezeModalOpen, setIsFreezeModalOpen] = useState<boolean>(false);
   const [isDoseLogModalOpen, setIsDoseLogModalOpen] = useState<boolean>(false);
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
@@ -258,11 +261,13 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isSimpleMode,
         isFreezeModalOpen,
         isDoseLogModalOpen,
+        isMoreSheetOpen,
         isLoaded,
         setIsDemoMode,
         setIsSimpleMode,
         setIsFreezeModalOpen,
         setIsDoseLogModalOpen,
+        setIsMoreSheetOpen,
         setIMUResult,
         setEEGResult,
         setGaitResult,

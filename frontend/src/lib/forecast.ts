@@ -28,6 +28,7 @@ export interface DayForecastResult {
   confidenceLevel: "high" | "medium" | "low";
   coverageLevel: "none" | "low" | "ok";
   reasons: string[];
+  isOfflineFallback?: boolean;
 }
 
 /**
@@ -255,5 +256,87 @@ export function buildForecast(isDemoMode: boolean = true): DayForecastResult {
     confidenceLevel,
     coverageLevel: curve.coverageLevel,
     reasons,
+    isOfflineFallback: true,
   };
+}
+
+/**
+ * Fetch Day Forecast from backend API primary source, falling back to client offline calculator.
+ */
+export async function fetchForecastAsync(isDemoMode: boolean = true): Promise<DayForecastResult> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/forecast/today`, {
+      headers: {
+        "X-User-ID": "user_sarah_default",
+      },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.timeline) && data.timeline.length > 0) {
+        const nowHour = new Date().getHours();
+
+        const hourly: HourlyForecastItem[] = data.timeline.map((pt: any) => {
+          const h = pt.hour;
+          const displayHour = h % 12 === 0 ? 12 : h % 12;
+          const ampm = h >= 12 ? "PM" : "AM";
+          const hourLabel = `${displayHour}:00 ${ampm}`;
+
+          // Convert backend mobility score (1.0 = best, 0.0 = low) to frontend difficulty score (0.0 = best, 1.0 = difficult)
+          const rawMobility = typeof pt.mobility_score === "number" ? pt.mobility_score : 0.6;
+          const difficultyScore = Math.max(0.05, Math.min(0.95, Math.round((1.0 - rawMobility) * 100) / 100));
+
+          let status: "good" | "variable" | "difficult" = "variable";
+          if (difficultyScore <= 0.35) status = "good";
+          else if (difficultyScore >= 0.60) status = "difficult";
+
+          return {
+            hour: h,
+            hourLabel,
+            score: difficultyScore,
+            status,
+            bandMin: Math.max(0, difficultyScore - 0.1),
+            bandMax: Math.min(1, difficultyScore + 0.1),
+            isCurrentHour: h === nowHour,
+          };
+        });
+
+        let bestWindow: MergedForecastWindow | null = null;
+        if (data.best_window) {
+          const bw = data.best_window;
+          const sH = Math.floor(bw.start_hour || 10);
+          const eH = Math.floor(bw.end_hour || 12);
+          const sLabel = `${sH % 12 === 0 ? 12 : sH % 12}:00 ${sH >= 12 ? "PM" : "AM"}`;
+          const eLabel = `${eH % 12 === 0 ? 12 : eH % 12}:00 ${eH >= 12 ? "PM" : "AM"}`;
+          bestWindow = {
+            status: "good",
+            startLabel: sLabel,
+            endLabel: eLabel,
+            timeSpanLabel: `${sLabel} - ${eLabel}`,
+            title: bw.label || "Better movement window",
+          };
+        }
+
+        const confTier = data.confidence?.tier || "medium";
+        const confScore = Math.round((data.confidence?.numeric_score || 0.8) * 100);
+
+        return {
+          hourly,
+          windows: bestWindow ? [bestWindow] : [],
+          bestWindow,
+          confidenceScore: confScore,
+          confidenceLevel: confTier === "high" ? "high" : confTier === "low" ? "low" : "medium",
+          coverageLevel: "ok",
+          reasons: ["Backend AI engine", "Medication schedule", "Circadian prior"],
+          isOfflineFallback: false,
+        };
+      }
+    }
+  } catch (err) {
+    // API unreachable -> fallback to client estimate
+  }
+
+  const fallback = buildForecast(isDemoMode);
+  return { ...fallback, isOfflineFallback: true };
 }

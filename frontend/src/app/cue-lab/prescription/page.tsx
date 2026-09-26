@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getActiveCue, getCueHistory, CueResult } from "@/lib/cues";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
+import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import {
   Printer,
   ArrowLeft,
@@ -136,8 +137,8 @@ export default function CuePrescriptionPage() {
         <div className="border-b border-slate-200 pb-6 mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-lg">
-                M
+              <div className="w-8 h-8 rounded-lg bg-[#6366F1] text-white flex items-center justify-center shadow-xs">
+                <CueLabIcon size={20} className="text-white" />
               </div>
               <h1 className="text-2xl font-black text-[#172554] tracking-tight">
                 MovePilot Cue Prescription
@@ -169,8 +170,9 @@ export default function CuePrescriptionPage() {
             <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Data Reliability</span>
             <div className="mt-0.5">
               <ConfidenceBadge
-                level={winningCue.simulated ? "low" : "high"}
-                reason={winningCue.simulated ? "Simulated test data" : "Based on real sensor motion capture"}
+                isSimulated={winningCue.simulated}
+                level="high"
+                reason={winningCue.simulated ? "Simulated movement response mode for desktop/demo evaluation" : "Based on real sensor motion capture"}
               />
             </div>
           </div>
@@ -195,7 +197,12 @@ export default function CuePrescriptionPage() {
               <div className="text-xs text-slate-500 uppercase tracking-wider">Cue Modality</div>
               <div className="text-xl font-black text-slate-900 capitalize flex items-center gap-2 mt-1">
                 {cueIcon(winningCue.type)}
-                {winningCue.type} Beat
+                <span>{winningCue.type} Beat</span>
+                {winningCue.simulated && (
+                  <span className="text-[10px] bg-indigo-50 text-[#6366F1] font-semibold px-2 py-0.5 rounded-full border border-indigo-200 normal-case">
+                    Simulated
+                  </span>
+                )}
               </div>
             </div>
 
@@ -240,9 +247,14 @@ export default function CuePrescriptionPage() {
                       key={item.id || i}
                       className={item.id === winningCue.id ? "bg-blue-50/70 font-semibold" : "hover:bg-slate-50"}
                     >
-                      <td className="p-3 capitalize flex items-center gap-1.5">
+                      <td className="p-3 capitalize flex items-center gap-1.5 flex-wrap">
                         {cueIcon(item.type)}
-                        {item.type}
+                        <span>{item.type}</span>
+                        {(item.simulated !== false) && (
+                          <span className="text-[10px] bg-indigo-50 text-[#6366F1] font-semibold px-1.5 py-0.5 rounded-full border border-indigo-200 normal-case">
+                            Simulated
+                          </span>
+                        )}
                       </td>
                       <td className="p-3 font-bold text-slate-900">{item.bpm} BPM</td>
                       <td className="p-3">{item.meanCadence} SPM</td>
