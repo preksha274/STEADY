@@ -206,10 +206,25 @@ export default function MoveCoachPage() {
   // Start webcam if supported, fallback to motion sensors
   const enableCamera = async () => {
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false,
+        });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = async () => {
+            try {
+              if (videoRef.current) await videoRef.current.play();
+            } catch (playErr) {
+              console.warn("Autoplay interrupted", playErr);
+            }
+          };
+          try {
+            await videoRef.current.play();
+          } catch (e) {
+            // Handled via onloadedmetadata
+          }
           setCameraActive(true);
           setActiveInputSource("Camera");
         }
@@ -229,17 +244,19 @@ export default function MoveCoachPage() {
       const accel = event.acceleration || event.accelerationIncludingGravity;
       if (!accel || accel.x === null || accel.y === null || accel.z === null) return;
 
-      setActiveInputSource("Motion Sensor");
+      if (!cameraActive) {
+        setActiveInputSource("Motion Sensor");
+      }
       const rawMag = Math.sqrt(accel.x * accel.x + accel.y * accel.y + accel.z * accel.z);
       const netMag = Math.abs(rawMag - 9.8);
       const now = Date.now();
 
       // Minimum peak interval based on pacing tempo (prevents multi-triggers per single rep)
-      const minIntervalMs = Math.max(400, (60 / currentBpm) * 650);
+      const minIntervalMs = Math.max(380, (60 / currentBpm) * 600);
       const isPeak =
         now - lastPeakTimeRef.current >= minIntervalMs &&
-        netMag > 1.25 &&
-        prevAccelMagRef.current <= 1.25;
+        netMag > 1.15 &&
+        prevAccelMagRef.current <= 1.15;
 
       prevAccelMagRef.current = netMag;
 
@@ -258,9 +275,9 @@ export default function MoveCoachPage() {
         window.removeEventListener("devicemotion", handleMotionEvent);
       }
     };
-  }, [isSessionActive, isPaused, isHardStopped, currentBpm]);
+  }, [isSessionActive, isPaused, isHardStopped, currentBpm, cameraActive]);
 
-  // Camera Optical Frame Difference Peak Detector (when webcam is active)
+  // Camera Optical Frame Difference Peak Detector (Highly responsive vision tracking)
   useEffect(() => {
     if (!isSessionActive || !cameraActive || isPaused || isHardStopped) return;
 
@@ -271,10 +288,11 @@ export default function MoveCoachPage() {
     if (!ctx) return;
 
     const frameInterval = setInterval(() => {
-      if (!videoRef.current || videoRef.current.readyState < 2) return;
+      const video = videoRef.current;
+      if (!video || video.paused || video.ended || video.readyState < 2) return;
 
       try {
-        ctx.drawImage(videoRef.current, 0, 0, 32, 32);
+        ctx.drawImage(video, 0, 0, 32, 32);
         const frame = ctx.getImageData(0, 0, 32, 32);
         const data = frame.data;
 
@@ -282,31 +300,38 @@ export default function MoveCoachPage() {
           let diffSum = 0;
           const prev = prevFrameDataRef.current;
           for (let i = 0; i < data.length; i += 4) {
-            const curLuma = (data[i] + data[i + 1] + data[i + 2]) / 3;
-            const prevLuma = (prev[i] + prev[i + 1] + prev[i + 2]) / 3;
+            const curLuma = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+            const prevLuma = (prev[i] * 0.299 + prev[i + 1] * 0.587 + prev[i + 2] * 0.114);
             diffSum += Math.abs(curLuma - prevLuma);
           }
 
           const motionEnergy = diffSum / (32 * 32);
           const now = Date.now();
-          const minIntervalMs = Math.max(450, (60 / currentBpm) * 700);
+          const minIntervalMs = Math.max(380, (60 / currentBpm) * 600);
 
-          if (
-            motionEnergy > 8.0 &&
-            prevFrameEnergyRef.current <= 8.0 &&
-            now - lastCameraPeakTimeRef.current >= minIntervalMs
-          ) {
+          // Real-time movement presence indicator (energy > 2.0 = active physical motion)
+          if (motionEnergy > 2.0) {
+            lastMovementTimeRef.current = now;
+            setMovementStatus("moving");
+          }
+
+          // Peak condition: energy threshold crossed with local peak turnaround
+          const isMovementPeak =
+            (motionEnergy > 2.8 && prevFrameEnergyRef.current <= 2.8) ||
+            (motionEnergy > 3.2 && motionEnergy < prevFrameEnergyRef.current && prevFrameEnergyRef.current > 3.2);
+
+          if (isMovementPeak && now - lastCameraPeakTimeRef.current >= minIntervalMs) {
             lastCameraPeakTimeRef.current = now;
-            registerMovementPeak(motionEnergy / 6, now);
+            registerMovementPeak(motionEnergy, now);
           }
           prevFrameEnergyRef.current = motionEnergy;
         }
 
         prevFrameDataRef.current = new Uint8ClampedArray(data);
       } catch (err) {
-        // Fallback gracefully on video capture exception
+        // Fallback gracefully on frame capture exception
       }
-    }, 80);
+    }, 60);
 
     return () => clearInterval(frameInterval);
   }, [isSessionActive, cameraActive, isPaused, isHardStopped, currentBpm]);
@@ -872,19 +897,26 @@ export default function MoveCoachPage() {
           </div>
         )}
 
-        {/* Explicit Mode Badge: Camera Active vs Demo Guide Animation */}
-        <div className="absolute top-3 left-3 px-3 py-1 bg-slate-900/80 rounded-full border border-slate-700 text-xs text-blue-300 font-semibold backdrop-blur-md flex items-center gap-1.5">
-          {cameraActive ? (
-            <>
-              <Video className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Camera Tracking • {currentBpm} BPM</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-              <span>Visual Form Guide • {currentBpm} BPM</span>
-            </>
-          )}
+        {/* Explicit Mode Badge & Camera Toggle Button */}
+        <div className="absolute top-3 left-3 flex items-center gap-2">
+          <button
+            onClick={enableCamera}
+            type="button"
+            className="px-3 py-1 bg-slate-900/80 hover:bg-slate-800 rounded-full border border-slate-700 text-xs text-blue-300 font-semibold backdrop-blur-md flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+            title={cameraActive ? "Camera is active - click to re-initialize" : "Click to enable camera tracking"}
+          >
+            {cameraActive ? (
+              <>
+                <Video className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Camera Tracking • {currentBpm} BPM</span>
+              </>
+            ) : (
+              <>
+                <Camera className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-amber-300">Tap to Enable Camera</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
