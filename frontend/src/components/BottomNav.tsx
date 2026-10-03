@@ -25,7 +25,7 @@ export const BottomNav: React.FC = () => {
 
   const isMoreActive =
     isMoreSheetOpen ||
-    ["/games", "/games/session", "/games/progress", "/cue-lab", "/forecast", "/clinical-scores", "/settings"].some((p) =>
+    ["/games", "/games/session", "/games/progress", "/cue-lab", "/forecast", "/clinical-scores", "/settings", "/guardian", "/safety"].some((p) =>
       pathname.startsWith(p)
     );
 

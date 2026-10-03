@@ -1,0 +1,93 @@
+{
+  "gua_5e69b6fae49b": {
+    "id": "gua_5e69b6fae49b",
+    "user_id": "gtest_patient_loc_3ee67cd7",
+    "created_at": "2026-10-03T09:35:30.213400+00:00",
+    "updated_at": "2026-10-03T09:35:30.213400+00:00",
+    "patient_id": "gtest_patient_loc_3ee67cd7",
+    "guardian_id": "gtest_guardian_loc_3ee67cd7",
+    "guardian_email": "gtest_guardian_loc_3ee67cd7@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "VW3VGT"
+  },
+  "gua_39e650739355": {
+    "id": "gua_39e650739355",
+    "user_id": "gtest_patient_alert_3ee67cd7",
+    "created_at": "2026-10-03T09:35:30.642923+00:00",
+    "updated_at": "2026-10-03T09:35:30.642923+00:00",
+    "patient_id": "gtest_patient_alert_3ee67cd7",
+    "guardian_id": "gtest_guardian_alert_3ee67cd7",
+    "guardian_email": "gtest_guardian_alert_3ee67cd7@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "KADZ5S"
+  },
+  "gua_f771d6276088": {
+    "id": "gua_f771d6276088",
+    "user_id": "gtest_patient_loc_2b7653ff",
+    "created_at": "2026-10-03T09:35:52.979874+00:00",
+    "updated_at": "2026-10-03T09:35:52.979874+00:00",
+    "patient_id": "gtest_patient_loc_2b7653ff",
+    "guardian_id": "gtest_guardian_loc_2b7653ff",
+    "guardian_email": "gtest_guardian_loc_2b7653ff@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "GG8A9U"
+  },
+  "gua_6aa000daa89e": {
+    "id": "gua_6aa000daa89e",
+    "user_id": "gtest_patient_alert_2b7653ff",
+    "created_at": "2026-10-03T09:35:53.592539+00:00",
+    "updated_at": "2026-10-03T09:35:53.592539+00:00",
+    "patient_id": "gtest_patient_alert_2b7653ff",
+    "guardian_id": "gtest_guardian_alert_2b7653ff",
+    "guardian_email": "gtest_guardian_alert_2b7653ff@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "X4KPS9"
+  },
+  "gua_105793e32f3f": {
+    "id": "gua_105793e32f3f",
+    "user_id": "gtest_patient_loc_c65112a8",
+    "created_at": "2026-10-03T09:37:31.846615+00:00",
+    "updated_at": "2026-10-03T09:37:31.846615+00:00",
+    "patient_id": "gtest_patient_loc_c65112a8",
+    "guardian_id": "gtest_guardian_loc_c65112a8",
+    "guardian_email": "gtest_guardian_loc_c65112a8@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "3X8BJS"
+  },
+  "gua_4e37b9ab7097": {
+    "id": "gua_4e37b9ab7097",
+    "user_id": "gtest_patient_alert_c65112a8",
+    "created_at": "2026-10-03T09:37:33.135154+00:00",
+    "updated_at": "2026-10-03T09:37:33.135154+00:00",
+    "patient_id": "gtest_patient_alert_c65112a8",
+    "guardian_id": "gtest_guardian_alert_c65112a8",
+    "guardian_email": "gtest_guardian_alert_c65112a8@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "CJXNT6"
+  },
+  "gua_770f20067ed1": {
+    "id": "gua_770f20067ed1",
+    "user_id": "gtest_patient_dash_a_c65112a8",
+    "created_at": "2026-10-03T09:37:34.555215+00:00",
+    "updated_at": "2026-10-03T09:37:34.555215+00:00",
+    "patient_id": "gtest_patient_dash_a_c65112a8",
+    "guardian_id": "gtest_guardian_dash_c65112a8",
+    "guardian_email": "gtest_guardian_dash_c65112a8@steady.app",
+    "guardian_label": null,
+    "patient_label": null,
+    "status": "active",
+    "code": "2P25Q5"
+  }
+}
