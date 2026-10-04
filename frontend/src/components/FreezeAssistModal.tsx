@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAnalysis } from "@/context/AnalysisContext";
 import { useCueEngine, CueType } from "@/lib/cueEngine";
 import { getActiveCue, CueResult } from "@/lib/cues";
+import { reportFreezeAssist } from "@/lib/guardian";
 import { VisualPulse } from "@/components/VisualPulse";
 import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import {
@@ -17,6 +18,7 @@ import {
   Smartphone,
   Eye,
   Sparkles,
+  BellRing,
 } from "lucide-react";
 
 interface FreezeAssistModalProps {
@@ -37,6 +39,24 @@ export const FreezeAssistModal: React.FC<FreezeAssistModalProps> = ({
   };
 
   const [activeCue, setActiveCueState] = useState<CueResult | null>(null);
+  const [notifyState, setNotifyState] = useState<
+    "idle" | "busy" | "sent" | "already" | "failed"
+  >("idle");
+
+  // Explicit, user-initiated guardian notification (never sent automatically -
+  // merely opening Freeze Assist must not raise an alert).
+  const handleNotifyGuardian = async () => {
+    if (notifyState === "busy" || notifyState === "sent" || notifyState === "already") return;
+    setNotifyState("busy");
+    const result = await reportFreezeAssist({
+      notes: "Patient explicitly requested guardian notification from Freeze Assist.",
+    });
+    if (!result) {
+      setNotifyState("failed");
+      return;
+    }
+    setNotifyState(result.created ? "sent" : "already");
+  };
 
   const {
     isPlaying,
@@ -55,6 +75,7 @@ export const FreezeAssistModal: React.FC<FreezeAssistModalProps> = ({
       startCue(cueType, cueBpm);
     } else {
       stopCue();
+      setNotifyState("idle");
     }
     return () => {
       stopCue();
@@ -169,7 +190,36 @@ export const FreezeAssistModal: React.FC<FreezeAssistModalProps> = ({
       </div>
 
       {/* Bottom Dismiss Button — Large White "I'm okay now" button */}
-      <div className="max-w-md mx-auto w-full pb-4 pt-2">
+      <div className="max-w-md mx-auto w-full pb-4 pt-2 space-y-3">
+        {/* Explicit, opt-in guardian notification (awareness only) */}
+        <button
+          type="button"
+          onClick={() => void handleNotifyGuardian()}
+          disabled={
+            notifyState === "busy" || notifyState === "sent" || notifyState === "already"
+          }
+          className={`w-full min-h-[52px] py-3.5 px-5 rounded-2xl font-semibold text-sm border transition-all duration-150 flex items-center justify-center gap-2 active:scale-[0.99] disabled:cursor-not-allowed ${
+            notifyState === "sent" || notifyState === "already"
+              ? "bg-emerald-950/60 border-emerald-700 text-emerald-300"
+              : notifyState === "failed"
+                ? "bg-red-950/60 border-red-700 text-red-300"
+                : "bg-transparent border-[#334155] text-slate-200 hover:bg-slate-900"
+          }`}
+        >
+          <BellRing className="w-5 h-5 shrink-0" />
+          <span>
+            {notifyState === "busy"
+              ? "Notifying your guardian…"
+              : notifyState === "sent"
+                ? "Guardian notified — stay with the cues"
+                : notifyState === "already"
+                  ? "A guardian alert is already open"
+                  : notifyState === "failed"
+                    ? "Could not notify — tap to retry"
+                    : "Notify my guardian"}
+          </span>
+        </button>
+
         <button
           onClick={handleClose}
           className="w-full min-h-[56px] py-4 px-6 bg-white hover:bg-slate-100 text-[#172554] font-semibold text-lg rounded-2xl shadow-xl active:scale-[0.99] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"

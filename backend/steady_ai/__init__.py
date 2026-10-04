@@ -70,6 +70,14 @@ from .routine_planner import (
     EXERCISE_LIBRARY
 )
 
+from .geofence import (
+    haversine_m,
+    is_point_in_circle,
+    evaluate_safe_zones,
+    determine_transition,
+    EARTH_RADIUS_M,
+)
+
 __all__ = [
     # Types
     "ConfidenceTier",
@@ -105,6 +113,11 @@ __all__ = [
     "PlannedExercise",
     "PostureMode",
     "EXERCISE_LIBRARY",
+    "haversine_m",
+    "is_point_in_circle",
+    "evaluate_safe_zones",
+    "determine_transition",
+    "EARTH_RADIUS_M",
     # Functions
     "extract_motion_features",
     "extract_eeg_features",

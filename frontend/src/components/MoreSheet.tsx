@@ -12,6 +12,8 @@ import {
   X,
   ChevronRight,
   Sparkles,
+  ShieldCheck,
+  MapPin,
 } from "lucide-react";
 
 export const MoreSheet: React.FC = () => {
@@ -53,6 +55,24 @@ export const MoreSheet: React.FC = () => {
       icon: FileText,
       isNew: false,
       color: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    },
+    {
+      label: "Guardian Safety",
+      description: "Caregiver dashboard, alerts & linked patients",
+      href: "/guardian",
+      icon: ShieldCheck,
+      isNew: true,
+      badge: "Guardian",
+      color: "bg-rose-100 text-rose-700 border-rose-200",
+    },
+    {
+      label: "Safety & Safe Zones",
+      description: "Pairing, SOS, location sharing & safe zones",
+      href: "/safety",
+      icon: MapPin,
+      isNew: true,
+      badge: "Safety",
+      color: "bg-sky-100 text-sky-700 border-sky-200",
     },
     {
       label: "Settings & Setup",

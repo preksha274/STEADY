@@ -1312,7 +1312,6 @@ export default function MoveCoachPage() {
             )}
           </button>
         </div>
-        </div>
       </div>
 
       {/* LIVE COACHING PROMPT */}
