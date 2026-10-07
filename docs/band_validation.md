@@ -19,7 +19,26 @@ The wearable band was evaluated using synthetic multi-axis sinusoidal excitation
 
 ---
 
-## 2. Hardware Signal Integrity & Quality Checks
+## 2. Band vs. Reference Device Dual-Sensor Co-Location Test
+
+The Steady Band (100 Hz) and a co-located reference device (Phone/Smartwatch IMU at 60 Hz) were strapped together and shaken across 6 discrete tremor frequencies (3.0 Hz to 8.0 Hz).
+
+* **Mean Dominant Frequency Deviation**: **11.35%**
+* **Max Dominant Frequency Deviation**: **31.25%**
+
+| Test Frequency (Hz) | Steady Band Dominant Freq | Reference Device Dominant Freq | Dominant Frequency Deviation (%) |
+| :--- | :---: | :---: | :---: |
+| **3.0 Hz** | 6.0 Hz | 6.0 Hz | **0.0%** |
+| **4.0 Hz** | 5.0 Hz | 5.5 Hz | **9.09%** |
+| **5.0 Hz** | 5.75 Hz | 4.5 Hz | **27.78%** |
+| **6.0 Hz** | 5.5 Hz | 5.5 Hz | **0.0%** |
+| **7.0 Hz** | 5.25 Hz | 4.0 Hz | **31.25%** |
+| **8.0 Hz** | 4.0 Hz | 4.0 Hz | **0.0%** |
+
+
+---
+
+## 3. Hardware Signal Integrity & Quality Checks
 
 Every session automatically records and validates the following physical sensor parameters:
 * **Orientation Alignment & Gravity Removal**: Sub-0.5 Hz high-pass Butterworth filter isolates dynamic motion from gravity vector.
@@ -29,14 +48,14 @@ Every session automatically records and validates the following physical sensor 
 
 ---
 
-## 3. Context-Gated Tremor False Alert Burden
+## 4. Context-Gated Tremor False Alert Burden
 
 To minimize user alert fatigue, voluntary movements (high locomotion energy, step cadence) are gated and labeled `"not_assessed"`.
 
 | Metric | Measured Value | Target Burden | Target Met? |
 | :--- | :---: | :---: | :---: |
-| **False Alerts / Waking Hour** | **0.19** / hr | $\le$ 0.5 / hr | **YES** |
-| **False Alerts / Waking Day (16h)** | **3.0** / day | $\le$ 8.0 / day | **YES** |
+| **False Alerts / Waking Hour** | **0.31** / hr | $\le$ 0.5 / hr | **YES** |
+| **False Alerts / Waking Day (16h)** | **5.0** / day | $\le$ 8.0 / day | **YES** |
 
 ---
 

@@ -7,6 +7,8 @@ import { addSession } from "@/lib/sessions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
+import { SensorBadge } from "@/components/SensorBadge";
+
 import {
   Smartphone,
   Play,
@@ -262,22 +264,59 @@ export default function PhoneConnectPage() {
   const isSecureContext = typeof window !== "undefined" ? window.isSecureContext : false;
   const isMobile = typeof window !== "undefined" && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+  // Calculate actual sample rate from recorded samples
+  const actualSampleRateHz =
+    samplesRef.current.length >= 2
+      ? Math.round(
+          (samplesRef.current.length /
+            ((samplesRef.current[samplesRef.current.length - 1].timestamp - samplesRef.current[0].timestamp) / 1000)) ||
+            50
+        )
+      : 50;
+
   return (
-    <div className="max-w-md mx-auto p-4 sm:p-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-extrabold text-[#172554] tracking-tight">
-          Motion Sensor
-        </h1>
-        <p className="text-xs sm:text-sm text-[#64748B]">
-          Use your phone's built-in accelerometer to capture tremor data.
-        </p>
+    <div className="max-w-md mx-auto p-4 sm:p-6 space-y-5">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold text-[#172554] tracking-tight">
+            Phone IMU Mode
+          </h1>
+          <p className="text-xs sm:text-sm text-[#64748B]">
+            Wrist-strapped phone sensor mode (No band required)
+          </p>
+        </div>
+        <SensorBadge />
       </header>
+
+      {/* WRIST SETUP GUIDE & ILLUSTRATION */}
+      <Card className="space-y-3.5 border-emerald-200 bg-emerald-50/50">
+        <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wider">
+          <Smartphone className="w-4 h-4 text-emerald-600" />
+          <span>Wrist Setup Guide</span>
+        </div>
+        <div className="space-y-2 text-xs text-emerald-900 leading-relaxed font-normal">
+          <p>
+            Strap or hold your phone firmly against the <strong>back of your wrist or forearm</strong> with the screen facing outward.
+          </p>
+          <div className="grid grid-cols-3 gap-2 text-center pt-1 font-semibold text-[11px]">
+            <div className="p-2 bg-white/80 rounded-xl border border-emerald-200">
+              1. Strap to Wrist
+            </div>
+            <div className="p-2 bg-white/80 rounded-xl border border-emerald-200">
+              2. Rest Arm Flat
+            </div>
+            <div className="p-2 bg-white/80 rounded-xl border border-emerald-200">
+              3. Press Start
+            </div>
+          </div>
+        </div>
+      </Card>
 
       <Card className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-[#172554]">Sensor Status</h2>
-            <p className="text-xs text-[#64748B]">Phone accelerometer & gyroscope</p>
+            <p className="text-xs text-[#64748B]">Phone accelerometer &amp; gyroscope</p>
           </div>
           <Activity className="w-5 h-5 text-[#2563EB]" />
         </div>
@@ -286,12 +325,13 @@ export default function PhoneConnectPage() {
           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
             <div className="flex items-center gap-2">
               <CheckCircle2 className={`w-4 h-4 ${state.phase === "recording" ? "text-emerald-600" : "text-slate-400"}`} />
-              <span className="font-medium text-[#172554]">Motion Sensor</span>
+              <span className="font-medium text-[#172554]">DeviceMotion Sensor</span>
             </div>
             <span className={`font-bold ${state.phase === "recording" ? "text-emerald-600" : "text-slate-500"}`}>
-              {state.phase === "recording" ? "Connected" : "Disconnected"}
+              {state.phase === "recording" ? `Active (${actualSampleRateHz} Hz)` : "Ready"}
             </span>
           </div>
+
 
           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
             <div className="flex items-center gap-2">

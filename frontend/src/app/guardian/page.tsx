@@ -256,36 +256,85 @@ export default function GuardianPatientPage() {
     showToast("Home Base set to current map position!");
   };
 
-  // SOS Action Trigger: (a) POSTs SOS to backend, (b) Opens prefilled WhatsApp/SMS link
+  // Verifiable SOS status progression: queued -> received by server -> seen by guardian -> acknowledged
+  const [verifiableSosStatus, setVerifiableSosStatus] = useState<
+    "idle" | "queued" | "received by server" | "seen by guardian" | "acknowledged" | "failed"
+  >("idle");
+  const [activeEventId, setActiveEventId] = useState<string | null>(null);
+
+  // Poll SOS status progression every 3 seconds after sending
+  useEffect(() => {
+    if (!shareToken || verifiableSosStatus === "idle" || verifiableSosStatus === "failed" || verifiableSosStatus === "acknowledged") {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/sos/${shareToken}`);
+        if (res.ok) {
+          const data = await res.json();
+          const events: any[] = data.events || [];
+          if (events.length > 0) {
+            const latest = events[0];
+            if (activeEventId && latest.id === activeEventId) {
+              setVerifiableSosStatus(latest.status);
+            } else if (!activeEventId) {
+              setVerifiableSosStatus(latest.status);
+            }
+          }
+        }
+      } catch (e) {
+        // Handled silently
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [shareToken, verifiableSosStatus, activeEventId]);
+
+  // SOS Action Trigger: (a) POSTs SOS to backend with lat/lng, (b) Opens prefilled WhatsApp/SMS link
   const executeSosAlert = async () => {
     setIsSosConfirmOpen(false);
-    setSosStatus("posting");
+    setVerifiableSosStatus("queued");
+
+    // Check GPS fix
+    if (geoError || !currentLat || !currentLng) {
+      setVerifiableSosStatus("failed");
+      showToast(`Could not send. Call ${guardianPhone}`);
+      return;
+    }
 
     const mapsUrl = `https://maps.google.com/?q=${currentLat},${currentLng}`;
     const message = `EMERGENCY SOS: Patient needs help! Current Location: ${mapsUrl}`;
 
-    let postSuccess = false;
     try {
-      const res = await fetch("http://localhost:8000/api/v1/alerts/sos", {
+      const res = await fetch("http://localhost:8000/api/v1/sos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: "p_demo_1",
+          token: shareToken,
+          latitude: currentLat,
+          longitude: currentLng,
+          accuracy_m: accuracyM || 10.0,
+          is_simulated: isDemoRouteActive,
+        }),
       });
+
       if (res.ok) {
-        postSuccess = true;
+        const data = await res.json();
+        setActiveEventId(data.id);
+        setVerifiableSosStatus("received by server");
+        showToast("SOS received by server! Polling guardian acknowledgement...");
+      } else {
+        setVerifiableSosStatus("failed");
+        showToast(`Could not send. Call ${guardianPhone}`);
       }
     } catch (e) {
-      postSuccess = false;
-    }
-
-    if (postSuccess) {
-      setSosStatus("sent");
-      showToast("Sent to guardian page");
-    } else {
-      setSosStatus("failed");
+      setVerifiableSosStatus("failed");
       showToast(`Could not send. Call ${guardianPhone}`);
     }
 
-    // Open WhatsApp / SMS prefilled link
+    // Backup channel: Open WhatsApp prefilled link
     const cleanPhone = guardianPhone.replace(/[^0-9+]/g, "");
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, "_blank");
@@ -293,10 +342,11 @@ export default function GuardianPatientPage() {
 
   const handleCopyShareLink = () => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const shareUrl = `${origin}/guardian/caregiver-view?token=${shareToken}`;
+    const shareUrl = `${origin}/guardian/${shareToken}`;
     navigator.clipboard.writeText(shareUrl);
     showToast("Shareable Caregiver Link copied to clipboard!");
   };
+
 
   if (!mounted) {
     return (
@@ -370,13 +420,21 @@ export default function GuardianPatientPage() {
               <p className="text-xs text-[#64748B]">Leaflet + OpenStreetMap safe-zone geofencing</p>
             </div>
           </div>
-          <button
-            onClick={() => router.push(`/guardian/caregiver-view?token=${shareToken}`)}
-            className="bg-indigo-50 hover:bg-indigo-100 text-[#6366F1] border border-indigo-200 text-xs font-bold py-1.5 px-3 rounded-full cursor-pointer flex items-center gap-1.5 min-h-[44px]"
-          >
-            <Eye className="w-4 h-4" />
-            Caregiver Page
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => router.push(`/guardian/${shareToken}`)}
+              className="bg-indigo-50 hover:bg-indigo-100 text-[#6366F1] border border-indigo-200 text-xs font-bold py-1.5 px-3 rounded-full cursor-pointer flex items-center gap-1.5 min-h-[44px]"
+            >
+              <Eye className="w-4 h-4" />
+              Caregiver View
+            </button>
+            <button
+              onClick={() => router.push("/guardian/sos-log")}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-full cursor-pointer min-h-[44px]"
+            >
+              SOS Log
+            </button>
+          </div>
         </div>
       </header>
 
@@ -391,20 +449,82 @@ export default function GuardianPatientPage() {
           <span className="tracking-wide uppercase">Trigger Guardian SOS Alert</span>
         </button>
 
-        {/* Honest UI Status Message */}
-        {sosStatus === "sent" && (
-          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Sent to guardian page! WhatsApp prefilled.</span>
-          </div>
-        )}
-        {sosStatus === "failed" && (
-          <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-950 text-xs font-bold flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>Could not send. Call guardian directly: <strong>{guardianPhone}</strong></span>
+        {/* Verifiable SOS Status Progression Pipeline */}
+        {verifiableSosStatus !== "idle" && (
+          <div className="p-3.5 rounded-2xl border bg-white shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <span className="text-[#172554] uppercase tracking-wider">Verifiable SOS Status</span>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                  verifiableSosStatus === "acknowledged"
+                    ? "bg-emerald-100 text-emerald-950 border-emerald-300"
+                    : verifiableSosStatus === "failed"
+                    ? "bg-rose-100 text-rose-950 border-rose-300"
+                    : "bg-blue-100 text-blue-950 border-blue-300 animate-pulse"
+                }`}
+              >
+                {verifiableSosStatus.toUpperCase()}
+              </span>
+            </div>
+
+            {/* Progression Pipeline Steps */}
+            <div className="grid grid-cols-4 gap-1 text-[10px] font-bold text-center">
+              <div
+                className={`p-1.5 rounded-lg border ${
+                  verifiableSosStatus !== "failed"
+                    ? "bg-blue-50 border-blue-300 text-blue-900"
+                    : "bg-slate-100 border-slate-200 text-slate-400"
+                }`}
+              >
+                1. Queued
+              </div>
+
+              <div
+                className={`p-1.5 rounded-lg border ${
+                  ["received by server", "seen by guardian", "acknowledged"].includes(verifiableSosStatus)
+                    ? "bg-blue-50 border-blue-300 text-blue-900"
+                    : "bg-slate-100 border-slate-200 text-slate-400"
+                }`}
+              >
+                2. Server
+              </div>
+              <div
+                className={`p-1.5 rounded-lg border ${
+                  ["seen by guardian", "acknowledged"].includes(verifiableSosStatus)
+                    ? "bg-indigo-50 border-indigo-300 text-indigo-900"
+                    : "bg-slate-100 border-slate-200 text-slate-400"
+                }`}
+              >
+                3. Guardian
+              </div>
+              <div
+                className={`p-1.5 rounded-lg border ${
+                  verifiableSosStatus === "acknowledged"
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-950 font-black"
+                    : "bg-slate-100 border-slate-200 text-slate-400"
+                }`}
+              >
+                4. Acked
+              </div>
+            </div>
+
+            {/* Verifiable Status Messages */}
+            {verifiableSosStatus === "acknowledged" && (
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Guardian acknowledged your SOS alert!</span>
+              </div>
+            )}
+            {verifiableSosStatus === "failed" && (
+              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-950 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>Could not send. Call guardian directly: <strong>{guardianPhone}</strong></span>
+              </div>
+            )}
           </div>
         )}
       </div>
+
 
       {/* GEOLOCATION PERMISSION / ERROR ALERT */}
       {geoError && (

@@ -10,6 +10,8 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { FunctionalGoalsCard } from "@/components/FunctionalGoalsCard";
+import { SensorBadge } from "@/components/SensorBadge";
+
 import {
   User,
   Clock,
@@ -204,10 +206,30 @@ export default function SettingsPage() {
           </h1>
           <p className="text-xs text-[#64748B]">Personal profile &amp; data controls</p>
         </div>
-        <div className="p-2.5 rounded-2xl bg-slate-100 text-[#172554]">
-          <Sliders className="w-6 h-6" />
-        </div>
+        <SensorBadge />
       </header>
+
+
+      {/* SECTION: GRANULAR CONSENT & PRIVACY */}
+      <Card className="space-y-3 border-[0.5px] border-indigo-200 bg-indigo-50/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 text-[#172554]">
+            <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#172554]">Granular Consent &amp; Caregiver Audit</h2>
+              <p className="text-[10px] text-slate-500">6 Revocable toggles, 1-tap pause, &amp; caregiver access log</p>
+            </div>
+          </div>
+          <Link
+            href="/settings/consent"
+            className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors"
+          >
+            Manage
+          </Link>
+        </div>
+      </Card>
 
       {/* SECTION 1: DISPLAY MODE PREFERENCES */}
       <Card className="space-y-3.5 border-[0.5px] border-[#E2E8F0]">
@@ -360,18 +382,41 @@ export default function SettingsPage() {
         </PrimaryButton>
       </Card>
 
-      {/* SECTION 3: MEDICATION */}
+      {/* SECTION 3: MEDICATION SCHEDULE */}
       <Card className="space-y-4 border-[0.5px] border-[#E2E8F0]">
         <div className="flex items-center gap-2.5 text-[#172554]">
           <div className="p-2 rounded-xl bg-cyan-50 text-[#06B6D4]">
             <Clock className="w-5 h-5" />
           </div>
-          <h2 className="text-sm font-semibold">Medication Schedule</h2>
+          <div>
+            <h2 className="text-sm font-bold">Medication Schedule Reminders</h2>
+            <p className="text-[10px] text-slate-500">User-entered times only — no automated suggestions</p>
+          </div>
         </div>
+
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 space-y-1">
+          <p className="font-semibold text-[#172554]">User-entered times only</p>
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Not a substitute for your prescribed schedule. STEADY only alerts you at times you explicitly enter.
+          </p>
+        </div>
+
+        {/* Browser Notification Permission Warning */}
+        {typeof window !== "undefined" && typeof Notification !== "undefined" && Notification.permission === "denied" && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold block">Notification Permissions Blocked</span>
+              <span className="text-[11px]">
+                Browser notifications are blocked. Lock-screen medication alerts will not sound until permitted in browser settings.
+              </span>
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-xs font-semibold text-[#64748B] mb-1.5 uppercase tracking-wider">
-            Primary Morning Dose Time
+            Primary Morning Dose Time (User-Entered)
           </label>
           <input
             type="time"
@@ -381,8 +426,42 @@ export default function SettingsPage() {
           />
         </div>
 
-        <Button variant="outline" fullWidth onClick={handleSaveMedication} className="border-cyan-200 text-[#06B6D4] hover:bg-cyan-50">
+        <Button variant="outline" fullWidth onClick={handleSaveMedication} className="border-cyan-200 text-[#06B6D4] hover:bg-cyan-50 font-bold">
           <span>Save Schedule Time</span>
+        </Button>
+      </Card>
+
+      {/* SECTION: DATA DELETION & PRIVACY ERASE */}
+      <Card className="space-y-3 border-rose-200 bg-rose-50/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 text-rose-950">
+            <div className="p-2 rounded-xl bg-rose-100 text-rose-700">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-rose-950">Delete My Data &amp; Reset</h2>
+              <p className="text-[10px] text-rose-700">Irreversibly erase all local sessions, logs &amp; guardian tokens</p>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          fullWidth
+          onClick={() => {
+            if (typeof window !== "undefined" && confirm("Are you sure you want to delete all stored data, diary logs, and guardian tokens? This action cannot be undone.")) {
+              localStorage.clear();
+              sessionStorage.clear();
+              resetDemoData();
+              showToast("All user data deleted from device");
+              setTimeout(() => {
+                router.push("/");
+              }, 1200);
+            }
+          }}
+          className="border-rose-300 text-rose-700 hover:bg-rose-100 font-bold justify-center"
+        >
+          <span>Delete My Data</span>
         </Button>
       </Card>
 

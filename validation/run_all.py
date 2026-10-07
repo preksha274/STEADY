@@ -1,8 +1,11 @@
-"""
+r"""
 STEADY Master Validation Suite Runner (run_all.py)
 ---------------------------------------------------
 Runs every signal validation script:
-- eval_freeze.py (Per-sensor site breakdown & context gating false alarm reduction)
+- eval_parkinson_at_home.py (Parkinson@Home 200Hz->100Hz wrist tremor LOSO, ON vs OFF, Timmermans 2025 comparison)
+- eval_fog_star.py (FoG-STAR 60Hz multi-placement freeze LOSO: Wrist [Experimental], Ankle, Back)
+- eval_pads.py (PADS Rest & Postural task-level tremor separation PD vs Controls)
+- eval_freeze.py (Daphnet per-sensor site breakdown & context gating false alarm reduction)
 - eval_gait.py (PhysioNet Gait LOSO CV)
 - eval_voice.py (UCI Voice LOSO CV, audio pre-checks & SNR noise augmentation)
 - eval_tremor.py (Sinusoid recovery bench test & Praat comparison)
@@ -16,6 +19,9 @@ import os
 import sys
 
 # Import validation modules
+from eval_parkinson_at_home import evaluate_parkinson_at_home_loso
+from eval_fog_star import evaluate_fog_star_loso
+from eval_pads import evaluate_pads_tasks
 from eval_freeze import evaluate_freeze_sites_and_gating
 from eval_gait import evaluate_gait_loso
 from eval_voice import evaluate_voice_defensibility, evaluate_voice_loso
@@ -26,28 +32,49 @@ from eval_scores_agreement import evaluate_scores_and_reliability
 REPORT_PATH = os.path.join(os.path.dirname(__file__), "REPORT.md")
 
 def run_all_validations():
-    print("[1/6] Running Freezing of Gait per-sensor site & context gating evaluation...")
+    print("[1/9] Running Parkinson@Home 200Hz->100Hz wrist tremor LOSO evaluation...")
+    p_home_res = evaluate_parkinson_at_home_loso()
+    
+    print("[2/9] Running FoG-STAR 60Hz multi-placement freeze LOSO evaluation...")
+    fog_star_res = evaluate_fog_star_loso()
+    
+    print("[3/9] Running PADS Rest & Postural task-level tremor evaluation...")
+    pads_res = evaluate_pads_tasks()
+    
+    print("[4/9] Running Daphnet Freezing of Gait per-sensor site & context gating evaluation...")
     fog_sites = evaluate_freeze_sites_and_gating()
     
-    print("[2/6] Running PhysioNet Gait LOSO evaluation...")
+    print("[5/9] Running PhysioNet Gait LOSO evaluation...")
     gait_res = evaluate_gait_loso()
     
-    print("[3/6] Running UCI Voice Telemonitoring & Noise Augmentation evaluation...")
+    print("[6/9] Running UCI Voice Telemonitoring & Noise Augmentation evaluation...")
     voice_def = evaluate_voice_defensibility()
     voice_loso = evaluate_voice_loso()
     
-    print("[4/6] Running Tremor & Voice bench tests...")
+    print("[7/9] Running Tremor & Voice bench tests...")
     tremor_sin = bench_test_sinusoid_recovery()
     voice_praat = bench_test_praat_comparison()
     
-    print("[5/6] Running Finger-Tap test harness...")
+    print("[8/9] Running Finger-Tap test harness...")
     tap_res = evaluate_finger_tap_harness()
     
-    print("[6/6] Running Score Agreement, Bland-Altman, Medication Context & ICC analysis...")
+    print("[9/9] Running Score Agreement, Bland-Altman, Medication Context & ICC analysis...")
     agree_res = evaluate_scores_and_reliability()
     
-    # Generate Markdown Report
-    report = f"""# 🔬 STEADY Reproducible Validation Suite & Benchmark Report
+    # Format Parkinson@Home ON / OFF
+    on_m = p_home_res["medication_on"]
+    off_m = p_home_res["medication_off"]
+    tim_m = p_home_res["timmermans_2025_benchmark"]
+    
+    # Format FoG-STAR Placements
+    fs_p = fog_star_res["placements"]
+    
+    # Format PADS
+    pads_rest = pads_res["rest_tremor_task"]
+    pads_posture = pads_res["postural_tremor_task"]
+
+    # Generate Master Markdown Report
+    report = f"""# 🔬 STEADY Reproducible Public Dataset Validation & Benchmark Report
 
 This document presents the complete empirical validation results of **STEADY digital biomarkers** across public clinical datasets, bench tests, score agreement analyses, and voice audio defensibility benchmarks.
 
@@ -55,11 +82,55 @@ All dataset evaluations use **Leave-One-Subject-Out (LOSO) Cross-Validation** wi
 
 ---
 
-## 1. Freezing of Gait (FoG) — Sensor Site Breakdown & Context Gating
+## 1. Parkinson@Home — Wrist Tremor Evaluation (200 Hz -> 100 Hz)
+
+* **Signal Processing**: 200 Hz raw wrist accelerometer/gyroscope low-pass filtered (20 Hz cutoff) and downsampled to 100 Hz to match Steady Band hardware specs.
+* **Evaluation Split**: Leave-One-Subject-Out (LOSO) cross-validation ($N = {p_home_res['n_subjects']}$ subjects).
+* **Ground Truth**: Continuous video expert tremor annotations for Medication ON vs OFF states.
+
+### Tremor Performance by Medication State vs. Open-Source Benchmark
+
+| Model / Medication State | Sensitivity (Recall) [95% CI] | Specificity [95% CI] | PPV (Precision) [95% CI] | False Alerts / Monitored Hour [95% CI] | Status / Reference |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **STEADY Tremor — Medication ON** | **`{on_m['sensitivity_mean']}`** [{on_m['sensitivity_ci'][0]}, {on_m['sensitivity_ci'][1]}] | `{on_m['specificity_mean']}` [{on_m['specificity_ci'][0]}, {on_m['specificity_ci'][1]}] | `{on_m['ppv_mean']}` [{on_m['ppv_ci'][0]}, {on_m['ppv_ci'][1]}] | **`{on_m['fa_per_hour_mean']}`/h** [{on_m['fa_per_hour_ci'][0]}, {on_m['fa_per_hour_ci'][1]}] | Milder tremor during ON state |
+| **STEADY Tremor — Medication OFF** | **`{off_m['sensitivity_mean']}`** [{off_m['sensitivity_ci'][0]}, {off_m['sensitivity_ci'][1]}] | `{off_m['specificity_mean']}` [{off_m['specificity_ci'][0]}, {off_m['specificity_ci'][1]}] | `{off_m['ppv_mean']}` [{off_m['ppv_ci'][0]}, {off_m['ppv_ci'][1]}] | **`{off_m['fa_per_hour_mean']}`/h** [{off_m['fa_per_hour_ci'][0]}, {off_m['fa_per_hour_ci'][1]}] | High amplitude tremor during OFF state |
+| **Timmermans 2025 Benchmark** | **`{tim_m['sensitivity']}`** | **`{tim_m['specificity']}`** | *N/R* | *N/R* | Timmermans et al. (2025) Open-Source Real-Life Tremor Benchmark |
+
+---
+
+## 2. FoG-STAR — Freezing of Gait Multi-Placement Evaluation (60 Hz)
+
+* **Dataset**: FoG-STAR Freezing of Gait Clinical Dataset.
+* **Evaluation Split**: Subject-level splits ($N = {fog_star_res['n_subjects']}$ subjects).
+* **Wrist Placement Note**: Features evaluated on wrist channel do not depend on leg motion; explicitly labeled *Experimental*.
+
+### Freeze Detection Performance by Sensor Placement
+
+| Sensor Placement Location | Sampling Rate | Sensitivity (Recall) [95% CI] | False Alarms / Monitored Hour [95% CI] | Detection Latency (s) [95% CI] | Classification Status |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Ankle IMU** | 60 Hz | **`{fs_p['ankle']['sensitivity_mean']}`** [{fs_p['ankle']['sensitivity_ci'][0]}, {fs_p['ankle']['sensitivity_ci'][1]}] | **`{fs_p['ankle']['fa_per_hour_mean']}`/h** [{fs_p['ankle']['fa_per_hour_ci'][0]}, {fs_p['ankle']['fa_per_hour_ci'][1]}] | **`{fs_p['ankle']['latency_mean']}`s** [{fs_p['ankle']['latency_ci'][0]}, {fs_p['ankle']['latency_ci'][1]}] | Lower-Limb Standard |
+| **Back/Trunk IMU** | 60 Hz | `{fs_p['back']['sensitivity_mean']}` [{fs_p['back']['sensitivity_ci'][0]}, {fs_p['back']['sensitivity_ci'][1]}] | `{fs_p['back']['fa_per_hour_mean']}`/h [{fs_p['back']['fa_per_hour_ci'][0]}, {fs_p['back']['fa_per_hour_ci'][1]}] | `{fs_p['back']['latency_mean']}`s [{fs_p['back']['latency_ci'][0]}, {fs_p['back']['latency_ci'][1]}] | Body-Center Standard |
+| **Wrist IMU** | 60 Hz | `{fs_p['wrist_experimental']['sensitivity_mean']}` [{fs_p['wrist_experimental']['sensitivity_ci'][0]}, {fs_p['wrist_experimental']['sensitivity_ci'][1]}] | `{fs_p['wrist_experimental']['fa_per_hour_mean']}`/h [{fs_p['wrist_experimental']['fa_per_hour_ci'][0]}, {fs_p['wrist_experimental']['fa_per_hour_ci'][1]}] | `{fs_p['wrist_experimental']['latency_mean']}`s [{fs_p['wrist_experimental']['latency_ci'][0]}, {fs_p['wrist_experimental']['latency_ci'][1]}] | ⚠️ **EXPERIMENTAL** |
+
+---
+
+## 3. PADS — Task-Level Tremor Discrimination (PD vs Controls)
+
+> **⚠️ Label Granularity Notice**:  
+> *Labels in the PADS dataset are task-level (PD patient vs Healthy Control subject executing the task), NOT continuous sub-second event annotations.*
+
+### Separation Between PD Patients ($N = {pads_res['n_pd_subjects']}$) and Controls ($N = {pads_res['n_control_subjects']}$)
+
+| Task Protocol | PD Tremor Amplitude (m/s²) [95% CI] | Control Tremor Amplitude (m/s²) [95% CI] | Task Discrimination AUROC | Protocol Notes |
+| :--- | :---: | :---: | :---: | :--- |
+| **Rest Tremor Task** | **`{pads_rest['pd_tremor_amp_mean']}`** [{pads_rest['pd_tremor_amp_ci'][0]}, {pads_rest['pd_tremor_amp_ci'][1]}] | `{pads_rest['control_tremor_amp_mean']}` [{pads_rest['control_tremor_amp_ci'][0]}, {pads_rest['control_tremor_amp_ci'][1]}] | **`{pads_rest['auroc_separation']}`** | Hands resting unsupported on lap |
+| **Postural Tremor Task** | **`{pads_posture['pd_tremor_amp_mean']}`** [{pads_posture['pd_tremor_amp_ci'][0]}, {pads_posture['pd_tremor_amp_ci'][1]}] | `{pads_posture['control_tremor_amp_mean']}` [{pads_posture['control_tremor_amp_ci'][0]}, {pads_posture['control_tremor_amp_ci'][1]}] | **`{pads_posture['auroc_separation']}`** | Arms held outstretched horizontally |
+
+---
+
+## 4. Daphnet Freezing of Gait — Sensor Site Breakdown & Context Gating
 
 ### Per-Sensor Site Performance (Daphnet Dataset)
-* **Sites Evaluated**: Ankle, Thigh, Trunk, and Wrist-like (Experimental).
-* **Wrist-like Analysis**: Uses features that do not depend on leg motion; explicitly labeled *Experimental*.
 
 | Sensor Site Location | Sensitivity (Recall) [95% CI] | Specificity [95% CI] | False Alarms / Hour [95% CI] | Detection Latency (s) [95% CI] | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -74,7 +145,7 @@ All dataset evaluations use **Leave-One-Subject-Out (LOSO) Cross-Validation** wi
 
 ---
 
-## 2. Score Agreement, Bland-Altman & Test-Retest Reliability (ICC)
+## 5. Score Agreement, Bland-Altman & Test-Retest Reliability (ICC)
 
 ### 0-4 UPDRS Score Agreement Metrics
 * **Evaluated Pairs**: $N = {agree_res['agreement']['n_paired_trials']}$ paired clinician-algorithm ratings.
@@ -90,34 +161,9 @@ All dataset evaluations use **Leave-One-Subject-Out (LOSO) Cross-Validation** wi
 * **Bradykinesia Tap Rate ICC**: **`{agree_res['test_retest_icc']['bradykinesia_tap_rate_icc']}`**
 * **Voice Jitter ICC**: **`{agree_res['test_retest_icc']['voice_jitter_icc']}`**
 
-### Medication-State ON vs OFF Context
-* Readings are categorized by dose timing (less than 3h post-dose for ON state vs more than 5h post-dose for OFF state).
-* **ON State Tremor Amp**: `{agree_res['medication_state_context']['tremor_amp_on_mean']} m/s²` vs **OFF State**: `{agree_res['medication_state_context']['tremor_amp_off_mean']} m/s²`.
-
 ---
 
-## 3. Voice Module Defensibility & Noise Augmentation
-
-### Audio Pre-Checks & Quality Rejection
-* **Pre-check Pipeline**: Automatically measures SNR, clipping ratio, and recording duration.
-* **Passed Pre-checks**: `{voice_def['prechecks']['passed_prechecks_pct']}%`
-* **Rejection Breakdowns**: `{voice_def['prechecks']['rejected_too_noisy_pct']}%` rejected as too noisy, `{voice_def['prechecks']['rejected_clipped_pct']}%` clipped, `{voice_def['prechecks']['rejected_too_short_pct']}%` too short.
-
-### Noise Augmentation Benchmarks (Accuracy vs SNR)
-| Acoustic Noise Environment | SNR Level | Accuracy | Engine Status |
-| :--- | :---: | :---: | :--- |
-| **Clean Quiet Room** | > 30 dB | **99.4%** | Passed |
-| **Moderate Noise (AC / Fan)** | 20 dB | **96.2%** | Passed |
-| **High Ambient Noise** | 10 dB | **87.5%** | Flagged Low Confidence |
-| **Severe Background Noise** | 5 dB | **64.1%** | Rejected ("Too noisy, try somewhere quieter") |
-
-### Cross-Dataset Generalization
-* **In-Dataset Accuracy**: `{voice_def['cross_dataset']['in_dataset_accuracy']}%`
-* **Cross-Dataset Test Accuracy**: `{voice_def['cross_dataset']['cross_dataset_accuracy']}%` (Performance drop: `{voice_def['cross_dataset']['performance_drop_pct']}%`).
-
----
-
-## 4. Gait Degradation — PhysioNet Dataset (93 Subjects)
+## 6. Gait Degradation — PhysioNet Dataset (93 Subjects)
 
 | Pipeline Model | Accuracy [95% CI] | F1 Score [95% CI] | AUROC [95% CI] | Brier Calibration Score |
 | :--- | :---: | :---: | :---: | :---: |
@@ -126,7 +172,7 @@ All dataset evaluations use **Leave-One-Subject-Out (LOSO) Cross-Validation** wi
 
 ---
 
-## 5. Bench Tests & Finger-Tap Test Harness
+## 7. Bench Tests & Finger-Tap Test Harness
 
 ### Bench Test (a): Tremor Frequency Recovery (3-8 Hz)
 * **Mean Recovery Error**: **`{tremor_sin['mean_recovery_error_hz']}` Hz** (Accuracy within 0.25 Hz: `{tremor_sin['accuracy_within_0_25hz_pct']}%`).
@@ -142,15 +188,14 @@ All dataset evaluations use **Leave-One-Subject-Out (LOSO) Cross-Validation** wi
 
 ---
 
-## ⚠️ Limitations & Responsiveness Notice
+## ⚠️ Methodological Limitations & Honesty Notice
 
-> **Clinical Responsiveness Notice**:  
-> *Our digital biomarker measures have not been shown to detect clinically meaningful change yet.*  
-> 
-> **Limitations Notice**:  
-> 1. Dataset evaluations were conducted on public, unpaired clinical datasets (Daphnet, PhysioNet, UCI).  
-> 2. No prospective patient testing has been performed yet in live prospective trials.  
-> 3. Voice acoustics are modeled strictly as **intra-person longitudinal trends**, not global cross-person diagnostic claims.
+> **Clinical Responsiveness & Validation Notice**:  
+> 1. **Public Retrospective Datasets**: All evaluations reported above were conducted on retrospective public clinical datasets (Parkinson@Home, FoG-STAR, PADS, Daphnet, PhysioNet, UCI Telemonitoring).  
+> 2. **No Live Prospective Clinical Testing**: STEADY has not yet undergone live prospective clinical trial testing in a healthcare facility.  
+> 3. **Wrist Freezing Detection Experimental**: Wrist freeze detection lacks lower-limb kinematic measurements; wrist freeze alerts in the application are explicitly labeled *"possible freeze (experimental)"*.  
+> 4. **PADS Task-Level Data**: PADS provides task-level labels rather than continuous event-level timestamps; it evaluates task discrimination rather than continuous false alarm rate.  
+> 5. **License Compliance**: PADS dataset is non-commercial (`CC BY-NC-SA`); Parkinson@Home requires verification of Data Use Agreement before commercial deployment.
 """
 
     with open(REPORT_PATH, "w", encoding="utf-8") as f:

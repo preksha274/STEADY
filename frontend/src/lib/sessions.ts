@@ -42,6 +42,13 @@ export interface SessionVoice {
   confidenceReason: string;
 }
 
+export interface SessionStats {
+  wearTimeMinutes: number;   // Monitored wear time in minutes
+  alertsRaised: number;      // Total tremor/freeze alerts raised
+  alertsCancelled: number;   // Alerts manually cancelled by user
+  cueDisableEvents: number;  // Cue-disable / pause events
+}
+
 export interface Session {
   id: string;
   timestamp: string; // ISO string
@@ -50,6 +57,7 @@ export interface Session {
   eeg?: SessionEEG;
   bradykinesia?: SessionBradykinesia;
   voice?: SessionVoice;
+  stats?: SessionStats;
   source: "upload" | "demo" | "seed" | "live";
 }
 
@@ -451,6 +459,12 @@ export const seedDemoSessions = (forceReset = false): Session[] => {
         confidenceReason: isLowConfidence
           ? "Short sample duration or background noise"
           : "Clean sustained vowel sample captured",
+      },
+      stats: {
+        wearTimeMinutes: Math.round(45 + Math.random() * 30),
+        alertsRaised: intensity === "high" ? 3 : intensity === "moderate" ? 2 : 1,
+        alertsCancelled: intensity === "high" ? 1 : 0,
+        cueDisableEvents: isUnusualVoice ? 1 : 0,
       },
       source: "seed",
     };

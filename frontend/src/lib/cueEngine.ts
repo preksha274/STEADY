@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getSessions } from "./sessions";
+import { steadyBandAdapter } from "./steadyBandAdapter";
+import { sensorSourceManager } from "./sensorSource";
 
 export type CueType = "audio" | "vibration" | "visual";
 
@@ -17,6 +19,13 @@ export class CueEngine {
   private timerId: number | null = null;
   private timeoutIds: number[] = [];
   private callbacks: Set<BeatCallback> = new Set();
+
+  private lastCueTimestamp: number = 0;
+  private cueTimestampsWindow: number[] = [];
+  private consecutiveCancelCount: number = 0;
+  private isAutoPausedState: boolean = false;
+  private autoPauseReason: string | null = null;
+  private walkingNotice: string | null = null;
 
   public vibrationSupported: boolean = false;
 
@@ -55,14 +64,83 @@ export class CueEngine {
   }
 
   /**
+   * Check if Freeze Assist is auto-paused due to repeated cancels
+   */
+  public isAutoPaused(): boolean {
+    return this.isAutoPausedState;
+  }
+
+  public getAutoPauseReason(): string | null {
+    return this.autoPauseReason;
+  }
+
+  public resetAutoPause(): void {
+    this.isAutoPausedState = false;
+    this.autoPauseReason = null;
+    this.consecutiveCancelCount = 0;
+  }
+
+  public getWalkingNotice(): string | null {
+    return this.walkingNotice;
+  }
+
+  /**
+   * Handle user cancel action (tracked for storm protection & sensitivity adjustment prompt)
+   */
+  public handleCancel(): void {
+    this.stop();
+    this.consecutiveCancelCount++;
+    if (this.consecutiveCancelCount >= 3) {
+      this.isAutoPausedState = true;
+      this.autoPauseReason = "Freeze Assist paused: want to adjust sensitivity?";
+    }
+  }
+
+  /**
    * Start the cue engine at specified type and BPM
    */
-  public start(type: CueType = "audio", bpm: number = 80): void {
-    if (typeof window === "undefined") return;
+  public start(type: CueType = "audio", bpm: number = 80, isWalking: boolean = false): { success: boolean; notice?: string } {
+    if (typeof window === "undefined") return { success: false };
+
+    // 1. Auto-pause check
+    if (this.isAutoPausedState) {
+      return {
+        success: false,
+        notice: "Freeze Assist paused: want to adjust sensitivity?",
+      };
+    }
+
+    // 2. Cue Storm Protection: 30s Cooldown & Max 2 cues per 5 min window
+    const now = Date.now();
+    if (now - this.lastCueTimestamp < 30000) {
+      return {
+        success: false,
+        notice: "Cue storm protection: minimum 30s cooldown between cues active.",
+      };
+    }
+
+    this.cueTimestampsWindow = this.cueTimestampsWindow.filter((t: number) => now - t < 300000);
+    if (this.cueTimestampsWindow.length >= 2) {
+      return {
+        success: false,
+        notice: "Cue storm protection: max 2 cues per 5-minute window reached.",
+      };
+    }
+
+    this.lastCueTimestamp = now;
+    this.cueTimestampsWindow.push(now);
 
     this.stop(); // Stop any running instance first
 
-    this.cueType = type;
+    // 3. Disable visual cues while walking
+    if (isWalking && type === "visual") {
+      this.cueType = this.vibrationSupported ? "vibration" : "audio";
+      this.walkingNotice = "Visual cues disabled while walking for safety; defaulting to audio/haptic.";
+    } else {
+      this.cueType = type;
+      this.walkingNotice = null;
+    }
+
     this.bpm = Math.max(30, Math.min(240, bpm));
     this.isPlayingState = true;
     this.currentBeat = 0;
@@ -86,6 +164,11 @@ export class CueEngine {
     this.timerId = window.setInterval(() => {
       this.scheduler();
     }, 25);
+
+    return {
+      success: true,
+      notice: this.walkingNotice || undefined,
+    };
   }
 
   /**
@@ -215,16 +298,22 @@ export class CueEngine {
 
     const timeoutId = window.setTimeout(() => {
       const beatInBar = (beatNum % 4) + 1;
+      const activeSource = sensorSourceManager.getSource();
 
-      // Vibration: navigator.vibrate(60) if supported
-      if (
-        (this.cueType === "vibration" || this.cueType === "audio") &&
-        this.vibrationSupported
-      ) {
-        try {
-          navigator.vibrate(60);
-        } catch (e) {
-          // Fallback silently if vibration fails
+      // Vibration cueing: route to Steady Band motor if active, else phone vibrate, else audio tone
+      if (this.cueType === "vibration" || this.cueType === "audio") {
+        if (activeSource === "band" && steadyBandAdapter.getIsConnected()) {
+          steadyBandAdapter.sendHapticCommand({
+            intensity: "high",
+            duration_ms: 80,
+            pattern: "metronome",
+          });
+        } else if (this.vibrationSupported) {
+          try {
+            navigator.vibrate(60);
+          } catch (e) {
+            // Fallback silently if phone vibration fails
+          }
         }
       }
 

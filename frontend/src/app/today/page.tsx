@@ -22,6 +22,8 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { StatusDot } from "@/components/StatusDot";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
 import { QualityLedgerBadge } from "@/components/QualityLedgerBadge";
+import { SensorBadge } from "@/components/SensorBadge";
+
 import { buildMetricQualityLedger } from "@/lib/qualityLedger";
 import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import { TechnicalDetailsExpand } from "@/components/TechnicalDetailsExpand";
@@ -234,17 +236,21 @@ export default function TodayHomePage() {
           </h1>
         </div>
 
-        {/* Simple Mode Toggle */}
-        <Link
-          href="/simple"
-          onClick={() => setIsSimpleMode(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EFF6FF] hover:bg-blue-100/80 text-[#2563EB] text-xs font-medium border-[0.5px] border-[#BFDBFE] transition-colors min-h-[44px] cursor-pointer"
-          aria-label="Switch to Simple Mode"
-        >
-          <Eye className="w-4 h-4" />
-          <span>Simple Mode</span>
-        </Link>
+        {/* Simple Mode & Sensor Badge Toggles */}
+        <div className="flex items-center gap-2">
+          <SensorBadge />
+          <Link
+            href="/simple"
+            onClick={() => setIsSimpleMode(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EFF6FF] hover:bg-blue-100/80 text-[#2563EB] text-xs font-medium border-[0.5px] border-[#BFDBFE] transition-colors min-h-[44px] cursor-pointer"
+            aria-label="Switch to Simple Mode"
+          >
+            <Eye className="w-4 h-4" />
+            <span>Simple Mode</span>
+          </Link>
+        </div>
       </header>
+
 
       {/* DAILY BASELINE FLAG CARD (Cold-start + N-of-M persistence rules) */}
       <div
@@ -356,11 +362,14 @@ export default function TodayHomePage() {
                     : "bg-[#D1FAE5] text-[#065F46] border-[#10B981]"
                 }`}
               >
-                {composite.availableCount} Signals Fused
+                {composite.availableCount} Signals Shown Together
               </span>
             </div>
             <p className="text-[11px] leading-relaxed opacity-90 font-medium">
               {composite.reason}
+            </p>
+            <p className="text-[10px] italic text-slate-500 pt-1">
+              Method: personal reference range (90th percentile band) &bull; Not a diagnosis. Talk to your doctor if you&apos;re worried.
             </p>
           </div>
         </div>

@@ -325,19 +325,39 @@ export default function VoiceAnalysisPage() {
           <div className="flex items-center gap-2">
             <Volume2 className="w-4 h-4 text-[#2563EB]" />
             <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider">
-              Sustained Vowel Test (&quot;aaah&quot;)
+              Standardized Voice Protocol
             </h2>
           </div>
           <span className="text-[10px] font-semibold text-[#64748B] bg-slate-100 px-2 py-0.5 rounded-full">
-            3s min &bull; 10s max
+            3 Takes Protocol
           </span>
         </div>
 
-        <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 text-xs text-[#1E3A8A] leading-relaxed flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold">Instructions:</span> Say &quot;aaah&quot; and hold it for as long and steady as you can at your regular speaking volume.
+        {/* 3-TAKE PROTOCOL SELECTOR */}
+        <div className="grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold">
+          <div className="p-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
+            Take 1: &quot;aaah&quot; (5s)
           </div>
+          <div className="p-2 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+            Take 2: &quot;aaah&quot; (5s)
+          </div>
+          <div className="p-2 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+            Short Phrase
+          </div>
+        </div>
+
+        {/* DISTANCE & QUIET ROOM GUIDANCE NOTICE */}
+        <div className="bg-slate-100 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-800 space-y-1">
+          <div className="flex items-center gap-2 font-bold text-[#172554]">
+            <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>Distance &amp; Quiet Room Guidance</span>
+          </div>
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Hold phone <strong>15–20 cm (6 inches)</strong> directly in front of your mouth in a quiet room with minimal ambient noise.
+          </p>
+          <p className="text-[10px] text-slate-500 italic">
+            Protocol Notice: This 3-part vocal test is our own internal design, not a clinical standard (documented in /docs/voice_protocol.md).
+          </p>
         </div>
 
         {/* LIVE WAVEFORM & LEVEL METER */}
@@ -613,12 +633,34 @@ export default function VoiceAnalysisPage() {
               </div>
             </div>
 
+            {/* HARDWARE ROUTE LOGGING DISPLAY */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 font-mono text-[10px] text-slate-600">
+              <div className="flex justify-between">
+                <span>Logged Device:</span>
+                <span className="font-bold text-[#172554]">{voiceResult.deviceRoute.deviceModel} ({voiceResult.deviceRoute.os})</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Mic Route:</span>
+                <span className="font-bold text-blue-600">{voiceResult.deviceRoute.micRoute}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Noise Estimate:</span>
+                <span className="font-bold text-slate-800">{voiceResult.precheck.snrDb} dB SNR</span>
+              </div>
+            </div>
+
             {/* Disclaimers & Save Button */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11px] text-[#64748B] flex items-start gap-2">
-              <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-              <span>
-                <strong>Estimated acoustic parameters:</strong> Extracted in-browser via Web Audio API autocorrelation. Compared against your personal rolling baseline, not clinical lab standards.
-              </span>
+            <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1">
+              <div className="font-bold flex items-center gap-1">
+                <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Device Sensitivity Notice</span>
+              </div>
+              <p className="text-[10px] leading-relaxed">
+                Shimmer (%) and HNR (dB) are <strong>device-sensitive</strong>. Voice stability is displayed as a within-person trend with confidence, never as a diagnosis.
+              </p>
+              <p className="text-[10px] font-extrabold text-amber-950 uppercase tracking-wider">
+                Exploratory, not validated for severity tracking
+              </p>
             </div>
 
             <PrimaryButton

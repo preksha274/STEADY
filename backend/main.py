@@ -18,6 +18,8 @@ from fastapi.responses import FileResponse, HTMLResponse
 import json
 from typing import Optional
 
+from api.v1.sos import router as sos_router
+
 app = FastAPI(
     title="STEADY Backend API",
     description="Parkinson's Movement Companion AI & Multi-Tenant Data API",
@@ -33,8 +35,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount API v1 router
+# Mount API v1 router and root SOS router
 app.include_router(api_v1_router)
+app.include_router(sos_router)
+
 
 SENSOR_INDEX_HTML = os.path.join(os.path.dirname(__file__), "sensor_gateway", "index.html")
 

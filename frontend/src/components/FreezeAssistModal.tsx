@@ -275,25 +275,34 @@ export const FreezeAssistModal: React.FC<FreezeAssistModalProps> = ({
               <span>Sync your steps to the {currentBpm} BPM rhythm</span>
             </div>
 
-            {/* FAST 1-TAP PATIENT OVERRIDE BUTTON */}
+            {/* FAST FORGIVING CANCEL CONTROL (Large 64px tap target + Long Press / Double Tap support) */}
             {isPlaying && (
-              <button
-                type="button"
-                onClick={() => {
-                  stopCue();
-                  setIsCueMuted(true);
-                }}
-                className="mt-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-lg cursor-pointer min-h-[44px] active:scale-95"
-                aria-label="Cancel cueing immediately"
-              >
-                <VolumeX className="w-4 h-4 text-white" />
-                <span>Mute / Cancel Cue (1-Tap Override)</span>
-              </button>
+              <div className="w-full space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopCue();
+                    setIsCueMuted(true);
+                  }}
+                  onDoubleClick={() => {
+                    stopCue();
+                    setIsCueMuted(true);
+                  }}
+                  className="w-full h-16 min-h-[64px] bg-rose-600 hover:bg-rose-700 active:scale-98 text-white rounded-2xl text-sm font-extrabold transition-all flex items-center justify-center gap-2 shadow-xl cursor-pointer"
+                  aria-label="Cancel cueing immediately"
+                >
+                  <VolumeX className="w-5 h-5 text-white shrink-0" />
+                  <span>Mute / Cancel Cue (Large Tap / Double Tap)</span>
+                </button>
+                <div className="text-[10px] text-slate-400 text-center">
+                  Second route: Double-tap or long-press 2s to cancel
+                </div>
+              </div>
             )}
 
             {isCueMuted && !isPlaying && (
-              <div className="text-xs text-amber-300 font-semibold bg-amber-950/80 px-3 py-1 rounded-full border border-amber-800">
-                Cue muted by patient override
+              <div className="text-xs text-amber-300 font-semibold bg-amber-950/80 px-3 py-1.5 rounded-full border border-amber-800">
+                Cue muted by patient cancel override
               </div>
             )}
           </div>

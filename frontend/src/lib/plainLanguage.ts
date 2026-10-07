@@ -61,6 +61,8 @@ export function translateTremor(
   };
 }
 
+export const NOT_A_DIAGNOSIS_DISCLAIMER = "Not a diagnosis. Talk to your doctor if you're worried.";
+
 /**
  * Freeze Index / Freezing of Gait translation
  */
@@ -73,9 +75,9 @@ export function translateFreezeIndex(
 
   if (isDetected || (freezeIndex && freezeIndex >= 2.5)) {
     return {
-      primary: "We noticed a change in how you were walking",
+      primary: "We noticed a hesitation in your steps — different from your usual",
       technicalDetail: `${tech} (Above 2.5 threshold)`,
-      status: "danger",
+      status: "warning",
     };
   } else if (freezeIndex && freezeIndex >= 1.8) {
     return {

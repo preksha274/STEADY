@@ -12,6 +12,28 @@
  * NOTE: These are client-side approximations, not clinical acoustic lab metrics.
  */
 
+export interface DeviceRouteInfo {
+  deviceModel: string;
+  os: string;
+  browser: string;
+  micRoute: "Built-in Mic" | "Headset Mic" | "Bluetooth Mic" | "Unknown";
+  noiseEstimateDb: number;
+}
+
+function round(v: number, decimals: number = 2): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round(v * factor) / factor;
+}
+
+export interface VoicePrecheckResult {
+  passed: boolean;
+  snrDb: number;
+  clippingPct: number;
+  voicedDurationSec: number;
+  status: "passed" | "too_noisy" | "too_short" | "clipped";
+  rejectionReason?: string;
+}
+
 export interface VoiceAnalysisResult {
   f0Hz: number;
   jitterPct: number;
@@ -22,6 +44,8 @@ export interface VoiceAnalysisResult {
   confidence: "high" | "medium" | "low";
   confidenceReason: string;
   isSimulated?: boolean;
+  precheck: VoicePrecheckResult;
+  deviceRoute: DeviceRouteInfo;
 }
 
 export interface VoiceBaselineComparison {
@@ -34,6 +58,141 @@ export interface VoiceBaselineComparison {
   isHnrUnusual: boolean;
   overallFlag: "normal" | "unusual";
   summaryText: string;
+  deviceChanged?: boolean;
+  deviceChangeNotice?: string;
+}
+
+/**
+ * Perform audio pre-checks: SNR, clipping, and voiced duration.
+ */
+export function checkVoiceQuality(
+  pcmSamples: Float32Array,
+  sampleRate: number,
+  durationSec: number
+): VoicePrecheckResult {
+  if (!pcmSamples || pcmSamples.length === 0) {
+    return {
+      passed: false,
+      snrDb: 0,
+      clippingPct: 0,
+      voicedDurationSec: 0,
+      status: "too_short",
+      rejectionReason: "No audio samples recorded",
+    };
+  }
+
+  // 1. Clipping ratio test
+  let clippedCount = 0;
+  for (let i = 0; i < pcmSamples.length; i++) {
+    if (Math.abs(pcmSamples[i]) >= 0.98) clippedCount++;
+  }
+  const clippingPct = round((clippedCount / pcmSamples.length) * 100, 2);
+
+  // 2. SNR & voiced duration estimation
+  const windowSize = Math.floor(sampleRate * 0.05); // 50ms windows
+  const windowRMS: number[] = [];
+  let voicedWindows = 0;
+
+  for (let i = 0; i < pcmSamples.length - windowSize; i += windowSize) {
+    let wSum = 0;
+    for (let j = 0; j < windowSize; j++) {
+      const v = pcmSamples[i + j];
+      wSum += v * v;
+    }
+    const rms = Math.sqrt(wSum / windowSize);
+    windowRMS.push(rms);
+    if (rms > 0.03) voicedWindows++;
+  }
+
+  const voicedDurationSec = round(voicedWindows * 0.05, 1);
+
+  const sortedRMS = [...windowRMS].sort((a, b) => a - b);
+  const noiseFloorCount = Math.max(1, Math.floor(sortedRMS.length * 0.1));
+  const noiseFloorRMS =
+    sortedRMS.slice(0, noiseFloorCount).reduce((a, b) => a + b, 0) / noiseFloorCount;
+  const meanRMS = sortedRMS.reduce((a, b) => a + b, 0) / (sortedRMS.length || 1);
+
+  const snrDb = round(20 * Math.log10(Math.max(1.01, meanRMS / Math.max(0.0001, noiseFloorRMS))), 1);
+
+  if (clippingPct > 1.0) {
+    return {
+      passed: false,
+      snrDb,
+      clippingPct,
+      voicedDurationSec,
+      status: "clipped",
+      rejectionReason: "Microphone clipping detected (>1% samples clipped). Hold phone slightly further away.",
+    };
+  }
+
+  if (snrDb < 12.0) {
+    return {
+      passed: false,
+      snrDb,
+      clippingPct,
+      voicedDurationSec,
+      status: "too_noisy",
+      rejectionReason: "Background noise too high (<12 dB SNR). Move to a quieter room.",
+    };
+  }
+
+  if (durationSec < 3.0 || voicedDurationSec < 2.0) {
+    return {
+      passed: false,
+      snrDb,
+      clippingPct,
+      voicedDurationSec,
+      status: "too_short",
+      rejectionReason: "Recording too short (<3s sustained voice). Sustain 'aaah' for full 5 seconds.",
+    };
+  }
+
+  return {
+    passed: true,
+    snrDb,
+    clippingPct,
+    voicedDurationSec,
+    status: "passed",
+  };
+}
+
+export function detectDeviceRoute(): DeviceRouteInfo {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return {
+      deviceModel: "Standard Smartphone",
+      os: "Web",
+      browser: "Browser",
+      micRoute: "Built-in Mic",
+      noiseEstimateDb: 22.0,
+    };
+  }
+
+  const ua = navigator.userAgent;
+  let deviceModel = "Standard Smartphone";
+  if (ua.includes("iPhone")) deviceModel = "Apple iPhone";
+  else if (ua.includes("Android")) deviceModel = "Android Handset";
+  else if (ua.includes("iPad")) deviceModel = "Apple iPad";
+  else if (ua.includes("Mac")) deviceModel = "Macintosh";
+  else if (ua.includes("Windows")) deviceModel = "Windows PC";
+
+  let os = "WebOS";
+  if (ua.includes("iOS") || ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+  else if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("Windows")) os = "Windows";
+  else if (ua.includes("Mac")) os = "macOS";
+
+  let browser = "Browser";
+  if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+  else if (ua.includes("Chrome")) browser = "Chrome";
+  else if (ua.includes("Firefox")) browser = "Firefox";
+
+  return {
+    deviceModel,
+    os,
+    browser,
+    micRoute: "Built-in Mic",
+    noiseEstimateDb: 24.5,
+  };
 }
 
 /**
@@ -220,6 +379,9 @@ export function extractVoiceFeatures(
   const hnrRaw = 10 * Math.log10(normAutocorrPeak / rNoise);
   const hnrDb = Math.round(Math.min(32, Math.max(6, hnrRaw)) * 10) / 10;
 
+  const precheck = checkVoiceQuality(pcmSamples, sampleRate, durationSec);
+  const deviceRoute = detectDeviceRoute();
+
   return {
     f0Hz: Math.round(f0Hz * 10) / 10,
     jitterPct: Math.round(jitterPct * 100) / 100,
@@ -229,6 +391,8 @@ export function extractVoiceFeatures(
     durationSec: Math.round(durationSec * 10) / 10,
     confidence,
     confidenceReason,
+    precheck,
+    deviceRoute,
   };
 }
 
@@ -245,6 +409,16 @@ export function getFallbackVoiceFeatures(
   const hnrDb = isUnusual ? 13.8 : 22.4;
   const loudnessDb = isUnusual ? 50 : 66;
 
+  const precheck: VoicePrecheckResult = {
+    passed: true,
+    snrDb: 28.5,
+    clippingPct: 0.0,
+    voicedDurationSec: durationSec,
+    status: "passed",
+  };
+
+  const deviceRoute = detectDeviceRoute();
+
   return {
     f0Hz,
     jitterPct,
@@ -258,6 +432,8 @@ export function getFallbackVoiceFeatures(
         ? "Clean sustained voice sample captured"
         : "Short sample duration (<3s)",
     isSimulated: true,
+    precheck,
+    deviceRoute,
   };
 }
 
@@ -265,13 +441,26 @@ export function getFallbackVoiceFeatures(
  * Compare current voice result against personal baseline.
  */
 export function compareVoiceToBaseline(
-  current: { f0Hz: number; jitterPct: number; shimmerPct: number; hnrDb: number },
-  baseline: { f0Hz: number; jitterPct: number; shimmerPct: number; hnrDb: number }
+  current: { f0Hz: number; jitterPct: number; shimmerPct: number; hnrDb: number; deviceRoute?: DeviceRouteInfo },
+  baseline: { f0Hz: number; jitterPct: number; shimmerPct: number; hnrDb: number; deviceRoute?: DeviceRouteInfo }
 ): VoiceBaselineComparison {
   const f0Diff = Math.round((current.f0Hz - baseline.f0Hz) * 10) / 10;
   const jitterDiff = Math.round((current.jitterPct - baseline.jitterPct) * 100) / 100;
   const shimmerDiff = Math.round((current.shimmerPct - baseline.shimmerPct) * 100) / 100;
   const hnrDiff = Math.round((current.hnrDb - baseline.hnrDb) * 10) / 10;
+
+  let deviceChanged = false;
+  let deviceChangeNotice: string | undefined = undefined;
+
+  if (
+    current.deviceRoute &&
+    baseline.deviceRoute &&
+    (current.deviceRoute.deviceModel !== baseline.deviceRoute.deviceModel ||
+      current.deviceRoute.micRoute !== baseline.deviceRoute.micRoute)
+  ) {
+    deviceChanged = true;
+    deviceChangeNotice = "Device changed, trend restarted";
+  }
 
   // Thresholds:
   // Jitter elevated if > 30% higher than personal baseline OR > 1.8%
@@ -284,7 +473,9 @@ export function compareVoiceToBaseline(
   const overallFlag = isJitterUnusual || isShimmerUnusual || isHnrUnusual ? "unusual" : "normal";
 
   let summaryText = "Voice stability matches your usual personal baseline.";
-  if (overallFlag === "unusual") {
+  if (deviceChanged) {
+    summaryText = "Device or microphone route changed. Trend restarted for hardware consistency.";
+  } else if (overallFlag === "unusual") {
     const issues: string[] = [];
     if (isJitterUnusual) issues.push("elevated pitch jitter");
     if (isShimmerUnusual) issues.push("increased amplitude shimmer");
@@ -302,5 +493,7 @@ export function compareVoiceToBaseline(
     isHnrUnusual,
     overallFlag,
     summaryText,
+    deviceChanged,
+    deviceChangeNotice,
   };
 }

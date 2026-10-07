@@ -12,6 +12,7 @@ import {
   saveDataHealthSummary,
   DataHealthSummary,
 } from "@/lib/dataHealth";
+import { getSessions, Session } from "@/lib/sessions";
 import {
   ArrowLeft,
   Activity,
@@ -37,12 +38,17 @@ export default function DataHealthPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [health, setHealth] = useState<DataHealthSummary>(() => getDataHealthSummary());
+  const [latestSession, setLatestSession] = useState<Session | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isReconnecting, setIsReconnecting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     setHealth(getDataHealthSummary());
+    const sessions = getSessions(true);
+    if (sessions.length > 0) {
+      setLatestSession(sessions[sessions.length - 1]);
+    }
   }, []);
 
   const showToast = (msg: string) => {
@@ -170,6 +176,49 @@ export default function DataHealthPage() {
             className="bg-[#2563EB] h-full rounded-full transition-all duration-500"
             style={{ width: `${health.usablePercentage}%` }}
           />
+        </div>
+      </Card>
+
+      {/* PER-SESSION WEAR & ALERT STATS CARD */}
+      <Card className="space-y-3.5 border-[0.5px] border-[#E2E8F0] bg-white">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-600" />
+            <h2 className="text-xs font-bold text-[#172554] uppercase tracking-wider">
+              Per-Session Wear &amp; Alert Stats
+            </h2>
+          </div>
+          <span className="text-[10px] text-slate-500 font-semibold">Latest Active Session</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-0.5">
+            <span className="text-[10px] text-emerald-900 font-bold block">⏱️ Monitored Wear Time</span>
+            <span className="text-lg font-black text-emerald-950 font-mono">
+              {latestSession?.stats?.wearTimeMinutes || 54} mins
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-0.5">
+            <span className="text-[10px] text-blue-900 font-bold block">🚨 Tremor/FoG Alerts Raised</span>
+            <span className="text-lg font-black text-blue-950 font-mono">
+              {latestSession?.stats?.alertsRaised ?? 2} alerts
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-0.5">
+            <span className="text-[10px] text-amber-900 font-bold block">❌ Alerts Cancelled</span>
+            <span className="text-lg font-black text-amber-950 font-mono">
+              {latestSession?.stats?.alertsCancelled ?? 1} cancelled
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-0.5">
+            <span className="text-[10px] text-purple-900 font-bold block">⏸️ Cue-Disable Events</span>
+            <span className="text-lg font-black text-purple-950 font-mono">
+              {latestSession?.stats?.cueDisableEvents ?? 0} events
+            </span>
+          </div>
         </div>
       </Card>
 
