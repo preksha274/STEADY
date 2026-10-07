@@ -4,9 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAnalysis } from "@/context/AnalysisContext";
+import { useFreezeDetection, FOG_PROTOTYPE_DISCLAIMER } from "@/lib/freezeDetection";
+import { useAmbientSampling, AMBIENT_SAMPLING_DISCLAIMER } from "@/lib/ambientSampling";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { FunctionalGoalsCard } from "@/components/FunctionalGoalsCard";
 import {
   User,
   Clock,
@@ -23,6 +26,10 @@ import {
   Eye,
   MapPin,
   Mic,
+  Award,
+  Activity,
+  ShieldAlert,
+  Zap,
 } from "lucide-react";
 
 const TRACKING_OPTIONS = [
@@ -36,6 +43,24 @@ const TRACKING_OPTIONS = [
 export default function SettingsPage() {
   const router = useRouter();
   const { isDemoMode, setIsDemoMode, isSimpleMode, setIsSimpleMode, resetDemoData } = useAnalysis();
+
+  // Automatic Freezing-of-Gait (FOG) Detection Hook
+  const {
+    isEnabled: isAutoFreezeEnabled,
+    toggleEnabled: toggleAutoFreeze,
+    freezeIndex,
+    isFreezeDetected,
+    confidence,
+    sampleCount,
+    sampleRateHz,
+    label: freezeLabel,
+  } = useFreezeDetection();
+
+  // Passive Ambient Movement Sampling Hook
+  const {
+    isEnabled: isAmbientEnabled,
+    toggleEnabled: toggleAmbientSampling,
+  } = useAmbientSampling();
 
   // Profile Form State
   const [name, setName] = useState("Sarah Miller");
@@ -231,6 +256,48 @@ export default function SettingsPage() {
         </div>
       </Card>
 
+      {/* SECTION: AMBIENT MOVEMENT SAMPLING (BETA) */}
+      <Card className="space-y-3.5 border-[0.5px] border-slate-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 text-[#172554]">
+            <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold">Ambient Movement Sampling</h2>
+                <span className="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-full border border-teal-200">
+                  Beta • Opt-in
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500">Modeled on passive wearable scoring</p>
+            </div>
+          </div>
+
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isAmbientEnabled}
+              onChange={toggleAmbientSampling}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+          </label>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed font-normal">
+          When enabled, STEADY periodically samples your phone&apos;s motion sensors in short bursts while the app is active, building a daily movement summary without requiring manual tests. Default is OFF.
+        </p>
+
+        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 flex items-start gap-2">
+          <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+          <span>{AMBIENT_SAMPLING_DISCLAIMER}</span>
+        </div>
+      </Card>
+
+      {/* SECTION 2: PERSONAL FUNCTIONAL GOALS */}
+      <FunctionalGoalsCard />
+
       {/* SECTION 2: PROFILE */}
       <Card className="space-y-4 border-[0.5px] border-[#E2E8F0]">
         <div className="flex items-center gap-2.5 text-[#172554]">
@@ -319,7 +386,148 @@ export default function SettingsPage() {
         </Button>
       </Card>
 
-      {/* SECTION 4: ABOUT STEADY */}
+      {/* SECTION: AUTOMATIC FREEZING-OF-GAIT (FOG) DETECTION */}
+      <Card className="space-y-4 border-amber-200 bg-amber-50/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 text-[#172554]">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-600">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#172554]">Automatic Freeze Detection</h2>
+              <div className="text-[10px] text-[#64748B]">Bachlin Freeze Index algorithm</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              toggleAutoFreeze();
+              showToast(!isAutoFreezeEnabled ? "Automatic freeze detection enabled" : "Automatic freeze detection disabled");
+            }}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              isAutoFreezeEnabled ? "bg-amber-500" : "bg-slate-300"
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                isAutoFreezeEnabled ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="p-3 bg-white rounded-xl border border-amber-200 text-xs text-amber-950 space-y-2">
+          <div className="flex items-center justify-between font-semibold">
+            <span>Enable automatic freeze detection</span>
+            <span className={isAutoFreezeEnabled ? "text-amber-700 font-bold" : "text-slate-400"}>
+              {isAutoFreezeEnabled ? "Active" : "Off"}
+            </span>
+          </div>
+
+          {/* REQUIRED PROTOTYPE DISCLAIMER LABEL */}
+          <p className="text-[11px] text-slate-600 leading-relaxed pt-1 border-t border-slate-100">
+            {freezeLabel}
+          </p>
+        </div>
+
+        {/* Live Freeze Index Monitor when enabled */}
+        {isAutoFreezeEnabled && (
+          <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#172554] flex items-center gap-1.5">
+                <Activity className="w-4 h-4 text-amber-500" />
+                Live Bachlin Freeze Index
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                isFreezeDetected ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
+              }`}>
+                {isFreezeDetected ? "FOG DETECTED (≥ 2.5)" : "Normal Gait"}
+              </span>
+            </div>
+
+            <div className="flex items-end justify-between pt-1">
+              <div>
+                <div className="text-2xl font-black text-[#172554] font-mono">
+                  {freezeIndex.toFixed(2)}
+                </div>
+                <div className="text-[10px] text-slate-500">Threshold: 2.5 ratio</div>
+              </div>
+              <div className="text-right text-[10px] text-slate-500 space-y-0.5">
+                <div>Sample Rate: <b>{sampleRateHz} Hz</b></div>
+                <div>Confidence: <b>{confidence.tier.toUpperCase()} ({confidence.score}%)</b></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* SECTION 4: CLINICIAN & EVIDENCE ZONE */}
+      <Card className="space-y-3.5 border-slate-700 bg-slate-900 text-slate-100 p-4 sm:p-5 shadow-lg">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-indigo-600/30 text-indigo-300 border border-indigo-500/30">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-white">Clinician &amp; Evidence Zone</h2>
+                <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-700/60 font-bold px-2 py-0.5 rounded-full">
+                  Technical
+                </span>
+              </div>
+              <div className="text-[10px] text-slate-300">Raw biomarker correlation metrics &amp; clinical scales</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 pt-1">
+          <Button
+            onClick={() => router.push("/validation")}
+            className="w-full justify-between bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold py-3 px-3.5 cursor-pointer rounded-xl transition"
+          >
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-indigo-400" />
+              <span>Validation Evidence (Pearson r &amp; V3 Framework)</span>
+            </div>
+            <span className="text-[10px] text-indigo-300 font-bold">View Evidence &rarr;</span>
+          </Button>
+
+          <Button
+            onClick={() => router.push("/clinical-scores")}
+            className="w-full justify-between bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold py-3 px-3.5 cursor-pointer rounded-xl transition"
+          >
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-indigo-400" />
+              <span>Doctor Clinical Scores (MDS-UPDRS Log)</span>
+            </div>
+            <span className="text-[10px] text-indigo-300 font-bold">View Log &rarr;</span>
+          </Button>
+
+          <Button
+            onClick={() => router.push("/cue-lab/prescription")}
+            className="w-full justify-between bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold py-3 px-3.5 cursor-pointer rounded-xl transition"
+          >
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-indigo-400" />
+              <span>Cue Prescription &amp; Doctor Report</span>
+            </div>
+            <span className="text-[10px] text-indigo-300 font-bold">Open Report &rarr;</span>
+          </Button>
+
+          <Button
+            onClick={() => router.push("/analyze/reliability")}
+            className="w-full justify-between bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold py-3 px-3.5 cursor-pointer rounded-xl transition"
+          >
+            <div className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 text-indigo-400" />
+              <span>Test-Retest Reliability Check</span>
+            </div>
+            <span className="text-[10px] text-indigo-300 font-bold">Run Check &rarr;</span>
+          </Button>
+        </div>
+      </Card>
+
+      {/* SECTION 5: ABOUT STEADY */}
       <Card className="space-y-3 bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0]">
         <div className="flex items-center gap-2.5 text-[#172554]">
           <div className="p-2 rounded-xl bg-slate-200 text-slate-700">

@@ -7,6 +7,8 @@ import {
   startLocationSharing,
   LocationSharingController,
 } from "@/lib/guardian";
+import { useFreezeDetection } from "@/lib/freezeDetection";
+import { useAnalysis } from "@/context/AnalysisContext";
 
 export const LOCATION_SHARING_KEY = "steady_location_sharing_enabled";
 export const LOCATION_SHARING_EVENT = "steady:location-sharing-changed";
@@ -42,12 +44,22 @@ const INACTIVITY_CHECK_MS = 60000; // evaluate prolonged inactivity every minute
  *  - registers debounced device activity (drives night-awareness + resets inactivity)
  *  - periodically evaluates prolonged inactivity
  *  - keeps opt-in location sharing alive (pings at a fixed interval)
+ *  - runs passive background Freeze-of-Gait (FOG) detection when opted-in via Settings
  *
- * Renders nothing. Awareness only - no emergency-service contact is made.
+ * Renders nothing.
  */
 export const SafetyEngine: React.FC = () => {
   const sharingRef = useRef<LocationSharingController | null>(null);
   const lastActivityRef = useRef<number>(0);
+  const { openFreezeModal } = useAnalysis();
+
+  // Passive background FOG detection hook (gated behind Settings toggle)
+  useFreezeDetection({
+    onFreezeDetected: ({ freezeIndex }) => {
+      console.log(`[SafetyEngine] Passive background FOG detected! Freeze Index: ${freezeIndex}`);
+      openFreezeModal("auto-detected", { freezeIndex });
+    },
+  });
 
   const noteActivity = () => {
     const now = Date.now();

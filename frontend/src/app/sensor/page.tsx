@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { useFreezeDetection, FOG_PROTOTYPE_DISCLAIMER } from "@/lib/freezeDetection";
 
 export default function SensorGateway() {
   const [mounted, setMounted] = useState(false);
@@ -32,6 +33,22 @@ export default function SensorGateway() {
   const [logs, setLogs] = useState<Array<{ time: string; message: string; level: "info" | "warn" | "error" | "ok" }>>([]);
   const [sampleCount, setSampleCount] = useState(0);
   const [sampleRate, setSampleRate] = useState(0);
+
+  // Freeze Index spectral hook
+  const {
+    freezeIndex,
+    freezeIndexTrend,
+    isPreFreezeWarning,
+    preFreezeStatus,
+    locomotionPower,
+    freezePower,
+    isFreezeDetected,
+    confidence: freezeConfidence,
+    isEnabled: isAutoFreezeEnabled,
+    simulateTrendSequence,
+  } = useFreezeDetection({
+    activeSession: true, // Run during live sensor stream view
+  });
 
   const runningRef = useRef(false);
   const sourceRef = useRef<string | null>(null);
@@ -649,6 +666,83 @@ export default function SensorGateway() {
           <span>Samples: {sampleCount}</span>
           <span>Rate: {sampleRate} Hz</span>
         </div>
+      </Card>
+
+      <Card className="space-y-3 bg-amber-50/40 border border-amber-200">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+            <span>⚡ Bachlin Freeze Index &amp; Degradation Trend</span>
+          </h3>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            isFreezeDetected
+              ? "bg-red-600 text-white"
+              : isPreFreezeWarning
+              ? "bg-amber-500 text-white animate-pulse"
+              : "bg-emerald-100 text-emerald-800"
+          }`}>
+            {isFreezeDetected
+              ? "FULL FOG DETECTED (≥ 2.5)"
+              : isPreFreezeWarning
+              ? "PRE-FREEZE WARNING (BUILDING)"
+              : "Normal Gait"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-white p-2.5 rounded-xl border border-amber-200/80 space-y-1">
+            <div className="text-slate-500 text-[10px]">Freeze Index Ratio</div>
+            <div className="text-xl font-black font-mono text-amber-950">{freezeIndex.toFixed(2)}</div>
+            <div className="text-[10px] text-[#64748B]">Target Band Power Ratio</div>
+          </div>
+          <div className="bg-white p-2.5 rounded-xl border border-amber-200/80 space-y-1">
+            <div className="text-slate-500 text-[10px]">Gait Degradation Trend</div>
+            <div className={`text-xl font-black font-mono ${
+              freezeIndexTrend > 0.20 ? "text-amber-600" : freezeIndexTrend < 0 ? "text-emerald-600" : "text-slate-700"
+            }`}>
+              {freezeIndexTrend >= 0 ? `+${freezeIndexTrend.toFixed(2)}` : freezeIndexTrend.toFixed(2)}/s
+            </div>
+            <div className="text-[10px] text-slate-400">Rate of FI Increase (3s)</div>
+          </div>
+        </div>
+
+        {/* Early Warning Banner */}
+        {isPreFreezeWarning && (
+          <div className="p-3 bg-amber-100/90 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-center justify-between animate-in fade-in">
+            <div>
+              <div className="font-bold flex items-center gap-1">
+                <span>⚠️ Gait degradation detected prior to full freeze</span>
+              </div>
+              <p className="text-[11px] opacity-90">Gentle haptic nudge delivered • Monitoring if trend escalates or normalizes</p>
+            </div>
+            <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full uppercase">
+              {preFreezeStatus}
+            </span>
+          </div>
+        )}
+
+        {/* Live Demo Sequence Triggers */}
+        <div className="pt-2 border-t border-amber-200/60 space-y-1.5">
+          <div className="text-[10px] font-semibold text-amber-900">Pre-Freeze Trend Demo Controls:</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => simulateTrendSequence && simulateTrendSequence("escalating")}
+              className="px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-center transition-colors min-h-[38px]"
+            >
+              ⚡ Test Escalating Pre-Warning
+            </button>
+            <button
+              onClick={() => simulateTrendSequence && simulateTrendSequence("resolving")}
+              className="px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-center transition-colors min-h-[38px]"
+            >
+              🔄 Test Resolving Pre-Warning
+            </button>
+          </div>
+        </div>
+
+        {/* REQUIRED PROTOTYPE DISCLAIMER LABEL */}
+        <p className="text-[10px] text-slate-600 pt-1 border-t border-amber-200/60 leading-relaxed">
+          {FOG_PROTOTYPE_DISCLAIMER}
+        </p>
       </Card>
 
       <Card className="space-y-2">

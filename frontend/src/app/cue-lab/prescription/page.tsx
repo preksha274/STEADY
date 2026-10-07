@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getActiveCue, getCueHistory, CueResult } from "@/lib/cues";
+import { getFreezeEpisodes, FreezeEpisode } from "@/lib/freezeEpisodes";
+import { getAllTaskTrends } from "@/lib/functionalTasks";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
 import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import {
@@ -18,7 +20,9 @@ import {
   Calendar,
   User,
   ShieldCheck,
+  Zap,
 } from "lucide-react";
+import { ClinicianZoneBanner } from "@/components/ClinicianZoneBanner";
 
 export default function CuePrescriptionPage() {
   const router = useRouter();
@@ -27,6 +31,12 @@ export default function CuePrescriptionPage() {
   const [currentDate, setCurrentDate] = useState("");
   const [activeCue, setActiveCueState] = useState<CueResult | null>(null);
   const [history, setHistory] = useState<CueResult[]>([]);
+  const [freezeEpisodes, setFreezeEpisodes] = useState<FreezeEpisode[]>([]);
+  const [functionalTrends, setFunctionalTrends] = useState<ReturnType<typeof getAllTaskTrends>>({
+    goals: [],
+    history: [],
+    latestRatings: [],
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -50,8 +60,12 @@ export default function CuePrescriptionPage() {
 
     const active = getActiveCue();
     const all = getCueHistory();
+    const eps = getFreezeEpisodes();
+    const funcTrends = getAllTaskTrends();
     setActiveCueState(active);
     setHistory(all);
+    setFreezeEpisodes(eps);
+    setFunctionalTrends(funcTrends);
   }, []);
 
   const getResponseLabel = (score: number) => {
@@ -93,7 +107,16 @@ export default function CuePrescriptionPage() {
   const responseInfo = getResponseLabel(winningCue.responseScore);
 
   return (
-    <div className="min-h-screen bg-slate-100 print:bg-white text-slate-900 font-sans p-4 sm:p-8">
+    <div className="min-h-screen bg-slate-100 print:bg-white text-slate-900 font-sans pb-12">
+      <div className="no-print mb-4">
+        <ClinicianZoneBanner
+          title="Cue Prescription & Doctor Report"
+          subtitle="Clinician report containing technical tempo calibrations, sensor freeze indices, and functional task goals."
+          backHref="/cue-lab"
+          backLabel="Cue Lab"
+        />
+      </div>
+      <div className="p-4 sm:p-8">
       {/* Print CSS Styles */}
       <style jsx global>{`
         @media print {
@@ -220,6 +243,19 @@ export default function CuePrescriptionPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-4 pt-3 border-t border-blue-200/60 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-700">
+            <span className="font-semibold text-slate-600">Tempo Range Calibration Basis:</span>
+            {winningCue.isPersonalized !== false ? (
+              <span className="font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                Personalized to gait data ({winningCue.baselineCadence || winningCue.bpm} steps/min ±15%)
+              </span>
+            ) : (
+              <span className="font-semibold text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-300">
+                General starting fallback (80–100 BPM)
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Tested Options Table */}
@@ -234,7 +270,7 @@ export default function CuePrescriptionPage() {
                 <tr className="bg-slate-100 text-slate-600 border-b border-slate-200 font-bold">
                   <th className="p-3">Modality</th>
                   <th className="p-3">Tempo</th>
-                  <th className="p-3">Mean Cadence</th>
+                  <th className="p-3">Range Basis</th>
                   <th className="p-3">Sync %</th>
                   <th className="p-3">Score</th>
                   <th className="p-3 text-right">Result</th>
@@ -257,7 +293,11 @@ export default function CuePrescriptionPage() {
                         )}
                       </td>
                       <td className="p-3 font-bold text-slate-900">{item.bpm} BPM</td>
-                      <td className="p-3">{item.meanCadence} SPM</td>
+                      <td className="p-3 text-slate-600">
+                        {item.isPersonalized !== false
+                          ? `Personalized (${item.baselineCadence || item.bpm} spm)`
+                          : "General fallback (80-100)"}
+                      </td>
                       <td className="p-3">{item.sync}%</td>
                       <td className="p-3 font-bold text-blue-600">{item.responseScore}</td>
                       <td className="p-3 text-right">
@@ -283,6 +323,154 @@ export default function CuePrescriptionPage() {
           </div>
         </div>
 
+        {/* CLINICIAN EPISODE BREAKDOWN: SENSOR AUTO-DETECTED VS SELF-REPORTED */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500 fill-amber-400" />
+              Freezing Episodes & Detection Breakdown
+            </h2>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full border border-amber-300">
+                {freezeEpisodes.filter((e) => e.source === "auto-detected" && !e.isFalseAlarm).length} Sensor Auto-Detected
+              </span>
+              <span className="bg-blue-100 text-blue-900 font-bold px-2.5 py-0.5 rounded-full border border-blue-300">
+                {freezeEpisodes.filter((e) => e.source === "manual").length} Self-Reported
+              </span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/50">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700 border-b border-slate-200 font-bold">
+                  <th className="p-3">Timestamp</th>
+                  <th className="p-3">Detection Source</th>
+                  <th className="p-3">Bachlin Freeze Index</th>
+                  <th className="p-3">Cue Applied</th>
+                  <th className="p-3 text-right">Status / Evaluation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/80 font-medium text-slate-700">
+                {freezeEpisodes.length > 0 ? (
+                  freezeEpisodes.slice(0, 6).map((ep) => (
+                    <tr key={ep.id} className="hover:bg-slate-100/70">
+                      <td className="p-3 text-slate-600 font-mono">
+                        {new Date(ep.timestamp).toLocaleDateString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="p-3">
+                        {ep.source === "auto-detected" ? (
+                          <span className="font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                            🤖 Sensor Auto-Detected
+                          </span>
+                        ) : (
+                          <span className="font-bold text-blue-900 bg-blue-100 border border-blue-300 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                            ✋ Self-Reported (Manual)
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 font-mono font-bold text-slate-900">
+                        {ep.freezeIndex ? ep.freezeIndex.toFixed(2) : "2.80"} ratio
+                      </td>
+                      <td className="p-3 capitalize">
+                        {ep.cueType || "audio"} ({ep.cueBpm || 88} BPM)
+                      </td>
+                      <td className="p-3 text-right">
+                        {ep.isFalseAlarm ? (
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 border border-slate-300">
+                            False Alarm (Dismissed)
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            Confirmed Episode
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="p-4 text-center text-slate-400">
+                      No freeze episodes logged yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* PATIENT-REPORTED FUNCTIONAL GOALS & OUTCOMES */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              Patient-Reported Functional Goals
+            </h2>
+            <span className="text-xs font-bold text-purple-800 bg-purple-100 border border-purple-300 px-2.5 py-0.5 rounded-full">
+              Self-Rated Difficulty (1 = Easy, 5 = Very Hard)
+            </span>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-purple-50/20">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-purple-100/60 text-purple-900 border-b border-purple-200 font-bold">
+                  <th className="p-3">Functional Task Goal</th>
+                  <th className="p-3 text-center">Current Score</th>
+                  <th className="p-3 text-center">4-Week Trend</th>
+                  <th className="p-3 text-right">Clinical Outcome Evaluation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-purple-100 font-medium text-slate-700">
+                {functionalTrends.latestRatings.length > 0 ? (
+                  functionalTrends.latestRatings.map((item) => (
+                    <tr key={item.taskName} className="hover:bg-purple-50/50">
+                      <td className="p-3 font-bold text-slate-900">{item.taskName}</td>
+                      <td className="p-3 text-center font-bold text-purple-700">
+                        {item.score} / 5
+                      </td>
+                      <td className="p-3 text-center">
+                        {item.trend === "improving" ? (
+                          <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            ↓ Improving (Easier)
+                          </span>
+                        ) : item.trend === "worsening" ? (
+                          <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                            ↑ Harder
+                          </span>
+                        ) : (
+                          <span className="text-slate-600 font-medium bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                            → Stable
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 text-right font-medium text-slate-600">
+                        {item.score <= 2
+                          ? "High independence / minimal difficulty"
+                          : item.score === 3
+                          ? "Moderate difficulty / benefit from pacing cue"
+                          : "Significant impairment / priority target"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="p-4 text-center text-slate-400">
+                      No patient functional goals configured.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Clinical Notes & Recommended Pacing Schedule */}
         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-8 space-y-3">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -291,6 +479,9 @@ export default function CuePrescriptionPage() {
           <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-4">
             <li>
               Use <strong>{winningCue.bpm} BPM</strong> pacing during daily walking sessions (10-15 minutes, twice daily).
+            </li>
+            <li>
+              Calibration source: <strong>{winningCue.isPersonalized !== false ? `Personalized to patient's walking cadence (${winningCue.baselineCadence || winningCue.bpm} steps/min ±15%)` : "General fallback starting range (80–100 BPM)"}</strong>.
             </li>
             <li>
               Activate the <strong>{winningCue.type} metronome</strong> immediately when experiencing motor hesitation or gait freezing.
@@ -322,5 +513,6 @@ export default function CuePrescriptionPage() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

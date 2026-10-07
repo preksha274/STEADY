@@ -278,10 +278,11 @@ export default function VideoAnalyzePage() {
     });
 
     const avgFootVis = countVis > 0 ? totalFootVis / countVis : 0;
-    const isFeetVisible = avgFootVis >= 0.45;
+    const fps = duration > 0 ? frames.length / duration : 0;
+    const isReliableVideo = avgFootVis >= 0.60 && fps >= 15.0;
 
-    // If foot landmark visibility is low, block result
-    if (!isFeetVisible) {
+    // Quality gate: Reject video if visibility < 0.60 or FPS < 15
+    if (!isReliableVideo) {
       return {
         metrics: {
           cadence_steps_per_min: 0,
@@ -296,9 +297,10 @@ export default function VideoAnalyzePage() {
           frame_count: frames.length,
         },
         confidence: "low",
-        confidence_reason: "Step back so we can see your feet. Low ankle visibility detected.",
+        confidence_reason: "not enough reliable video. Ensure full body in frame, adequate lighting, steady camera position, and >= 15 FPS.",
       };
     }
+
 
     // Smooth ankle Y signals and count step peaks
     const countPeaks = (signal: number[]) => {

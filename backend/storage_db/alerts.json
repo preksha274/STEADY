@@ -355,5 +355,646 @@
       },
       "triggered_at": "2026-10-03T09:37:34.606381+00:00"
     }
+  },
+  "ale_ebc8f8edd79e": {
+    "id": "ale_ebc8f8edd79e",
+    "user_id": "gtest_patient_loc_db1f8390",
+    "created_at": "2026-10-04T09:36:41.460790+00:00",
+    "updated_at": "2026-10-04T09:36:41.487954+00:00",
+    "patient_id": "gtest_patient_loc_db1f8390",
+    "type": "SAFE_ZONE_BREACH",
+    "priority": "IMPORTANT",
+    "message": "Safe-zone boundary crossed.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:36:41.487925+00:00",
+    "metadata": {
+      "latitude": 37.8049,
+      "longitude": -122.4094,
+      "matched_zone_ids": [],
+      "nearest_distance_m": 3449.6450743257255
+    },
+    "resolution_note": "Returned to safe zone"
+  },
+  "ale_080f8510a9e7": {
+    "id": "ale_080f8510a9e7",
+    "user_id": "gtest_patient_loc_db1f8390",
+    "created_at": "2026-10-04T09:36:41.486804+00:00",
+    "updated_at": "2026-10-04T09:36:41.486804+00:00",
+    "patient_id": "gtest_patient_loc_db1f8390",
+    "type": "SAFE_ZONE_RETURN",
+    "priority": "INFO",
+    "message": "Patient returned to a safe zone.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "matched_zone_ids": [
+        "saf_4dc9ed9ef5da"
+      ],
+      "nearest_distance_m": 0.0
+    }
+  },
+  "ale_070943c5af7c": {
+    "id": "ale_070943c5af7c",
+    "user_id": "gtest_patient_multi_db1f8390",
+    "created_at": "2026-10-04T09:36:41.528129+00:00",
+    "updated_at": "2026-10-04T09:36:41.528129+00:00",
+    "patient_id": "gtest_patient_multi_db1f8390",
+    "type": "SAFE_ZONE_RETURN",
+    "priority": "INFO",
+    "message": "Patient returned to a safe zone.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 50.0,
+      "longitude": 50.0,
+      "matched_zone_ids": [
+        "saf_dff337a873bb"
+      ],
+      "nearest_distance_m": 0.0
+    }
+  },
+  "ale_4c715edecd4b": {
+    "id": "ale_4c715edecd4b",
+    "user_id": "gtest_patient_multi_db1f8390",
+    "created_at": "2026-10-04T09:36:41.542872+00:00",
+    "updated_at": "2026-10-04T09:36:41.542872+00:00",
+    "patient_id": "gtest_patient_multi_db1f8390",
+    "type": "SAFE_ZONE_BREACH",
+    "priority": "IMPORTANT",
+    "message": "Safe-zone boundary crossed.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "matched_zone_ids": [],
+      "nearest_distance_m": 1568520.556798576
+    }
+  },
+  "ale_6165d96d0236": {
+    "id": "ale_6165d96d0236",
+    "user_id": "gtest_patient_alert_db1f8390",
+    "created_at": "2026-10-04T09:36:41.563308+00:00",
+    "updated_at": "2026-10-04T09:36:41.581720+00:00",
+    "patient_id": "gtest_patient_alert_db1f8390",
+    "type": "NIGHT_ACTIVITY",
+    "priority": "AWARENESS",
+    "message": "Test awareness alert",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:36:41.581701+00:00",
+    "metadata": {},
+    "resolution_note": "Checked in"
+  },
+  "ale_3a81950a8180": {
+    "id": "ale_3a81950a8180",
+    "user_id": "gtest_patient_sos_db1f8390",
+    "created_at": "2026-10-04T09:36:41.599531+00:00",
+    "updated_at": "2026-10-04T09:36:41.599531+00:00",
+    "patient_id": "gtest_patient_sos_db1f8390",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": {
+        "latitude": 12.34,
+        "longitude": 56.78,
+        "accuracy_m": null,
+        "captured_at": "2026-10-04T09:36:41.592104+00:00"
+      },
+      "triggered_at": "2026-10-04T09:36:41.599431+00:00"
+    }
+  },
+  "ale_56cef33e2f30": {
+    "id": "ale_56cef33e2f30",
+    "user_id": "gtest_patient_inact_db1f8390",
+    "created_at": "2026-10-04T09:36:41.620626+00:00",
+    "updated_at": "2026-10-04T09:36:41.629883+00:00",
+    "patient_id": "gtest_patient_inact_db1f8390",
+    "type": "PROLONGED_INACTIVITY",
+    "priority": "HIGH",
+    "message": "Prolonged inactivity detected. Please check on patient.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:36:41.629877+00:00",
+    "metadata": {
+      "minutes_inactive": 120.0,
+      "threshold_min": 15
+    },
+    "resolution_note": "Activity resumed"
+  },
+  "ale_668e327d3863": {
+    "id": "ale_668e327d3863",
+    "user_id": "gtest_patient_night_db1f8390",
+    "created_at": "2026-10-04T09:36:41.659565+00:00",
+    "updated_at": "2026-10-04T09:36:41.659565+00:00",
+    "patient_id": "gtest_patient_night_db1f8390",
+    "type": "NIGHT_ACTIVITY",
+    "priority": "AWARENESS",
+    "message": "Night activity detected.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "window": "2026-10-04",
+      "night_start": "14:06",
+      "night_end": "16:06"
+    }
+  },
+  "ale_61df02754544": {
+    "id": "ale_61df02754544",
+    "user_id": "gtest_patient_freeze_db1f8390",
+    "created_at": "2026-10-04T09:36:41.683793+00:00",
+    "updated_at": "2026-10-04T09:36:41.691668+00:00",
+    "patient_id": "gtest_patient_freeze_db1f8390",
+    "type": "FREEZE_ASSIST",
+    "priority": "HIGH",
+    "message": "Freeze assistance may be required.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:36:41.691654+00:00",
+    "metadata": {
+      "duration_s": 18.0,
+      "location_label": "Hallway doorway",
+      "notes": null,
+      "reported_by": "gtest_patient_freeze_db1f8390"
+    }
+  },
+  "ale_01482f8c4bb0": {
+    "id": "ale_01482f8c4bb0",
+    "user_id": "gtest_patient_freeze_db1f8390",
+    "created_at": "2026-10-04T09:36:41.696558+00:00",
+    "updated_at": "2026-10-04T09:36:41.696558+00:00",
+    "patient_id": "gtest_patient_freeze_db1f8390",
+    "type": "FREEZE_ASSIST",
+    "priority": "HIGH",
+    "message": "Freeze assistance may be required.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "duration_s": null,
+      "location_label": null,
+      "notes": null,
+      "reported_by": "gtest_patient_freeze_db1f8390"
+    }
+  },
+  "ale_fccb2838ec51": {
+    "id": "ale_fccb2838ec51",
+    "user_id": "gtest_patient_dash_a_db1f8390",
+    "created_at": "2026-10-04T09:36:41.719876+00:00",
+    "updated_at": "2026-10-04T09:36:41.719876+00:00",
+    "patient_id": "gtest_patient_dash_a_db1f8390",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": {
+        "latitude": 1.0,
+        "longitude": 2.0,
+        "accuracy_m": null,
+        "captured_at": "2026-10-04T09:36:41.711839+00:00"
+      },
+      "triggered_at": "2026-10-04T09:36:41.719849+00:00"
+    }
+  },
+  "ale_c03d3aeb689d": {
+    "id": "ale_c03d3aeb689d",
+    "user_id": "gtest_patient_loc_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.095621+00:00",
+    "updated_at": "2026-10-04T09:37:48.124182+00:00",
+    "patient_id": "gtest_patient_loc_2ace9e53",
+    "type": "SAFE_ZONE_BREACH",
+    "priority": "IMPORTANT",
+    "message": "Safe-zone boundary crossed.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:37:48.124145+00:00",
+    "metadata": {
+      "latitude": 37.8049,
+      "longitude": -122.4094,
+      "matched_zone_ids": [],
+      "nearest_distance_m": 3449.6450743257255
+    },
+    "resolution_note": "Returned to safe zone"
+  },
+  "ale_f4670223a02d": {
+    "id": "ale_f4670223a02d",
+    "user_id": "gtest_patient_loc_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.122529+00:00",
+    "updated_at": "2026-10-04T09:37:48.122529+00:00",
+    "patient_id": "gtest_patient_loc_2ace9e53",
+    "type": "SAFE_ZONE_RETURN",
+    "priority": "INFO",
+    "message": "Patient returned to a safe zone.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "matched_zone_ids": [
+        "saf_7bc24acbdaa8"
+      ],
+      "nearest_distance_m": 0.0
+    }
+  },
+  "ale_98754e87fab1": {
+    "id": "ale_98754e87fab1",
+    "user_id": "gtest_patient_multi_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.166732+00:00",
+    "updated_at": "2026-10-04T09:37:48.166732+00:00",
+    "patient_id": "gtest_patient_multi_2ace9e53",
+    "type": "SAFE_ZONE_RETURN",
+    "priority": "INFO",
+    "message": "Patient returned to a safe zone.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 50.0,
+      "longitude": 50.0,
+      "matched_zone_ids": [
+        "saf_785a8fef5de8"
+      ],
+      "nearest_distance_m": 0.0
+    }
+  },
+  "ale_56d7bfb14d65": {
+    "id": "ale_56d7bfb14d65",
+    "user_id": "gtest_patient_multi_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.184853+00:00",
+    "updated_at": "2026-10-04T09:37:48.184853+00:00",
+    "patient_id": "gtest_patient_multi_2ace9e53",
+    "type": "SAFE_ZONE_BREACH",
+    "priority": "IMPORTANT",
+    "message": "Safe-zone boundary crossed.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "matched_zone_ids": [],
+      "nearest_distance_m": 1568520.556798576
+    }
+  },
+  "ale_4dab782d8fff": {
+    "id": "ale_4dab782d8fff",
+    "user_id": "gtest_patient_alert_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.205186+00:00",
+    "updated_at": "2026-10-04T09:37:48.220450+00:00",
+    "patient_id": "gtest_patient_alert_2ace9e53",
+    "type": "NIGHT_ACTIVITY",
+    "priority": "AWARENESS",
+    "message": "Test awareness alert",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:37:48.220415+00:00",
+    "metadata": {},
+    "resolution_note": "Checked in"
+  },
+  "ale_f45e82b6e178": {
+    "id": "ale_f45e82b6e178",
+    "user_id": "gtest_patient_sos_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.239148+00:00",
+    "updated_at": "2026-10-04T09:37:48.239148+00:00",
+    "patient_id": "gtest_patient_sos_2ace9e53",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": {
+        "latitude": 12.34,
+        "longitude": 56.78,
+        "accuracy_m": null,
+        "captured_at": "2026-10-04T09:37:48.230061+00:00"
+      },
+      "triggered_at": "2026-10-04T09:37:48.239098+00:00"
+    }
+  },
+  "ale_a466b213cb54": {
+    "id": "ale_a466b213cb54",
+    "user_id": "gtest_patient_inact_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.263176+00:00",
+    "updated_at": "2026-10-04T09:37:48.274192+00:00",
+    "patient_id": "gtest_patient_inact_2ace9e53",
+    "type": "PROLONGED_INACTIVITY",
+    "priority": "HIGH",
+    "message": "Prolonged inactivity detected. Please check on patient.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:37:48.274187+00:00",
+    "metadata": {
+      "minutes_inactive": 120.0,
+      "threshold_min": 15
+    },
+    "resolution_note": "Activity resumed"
+  },
+  "ale_9b88a838f90c": {
+    "id": "ale_9b88a838f90c",
+    "user_id": "gtest_patient_night_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.304252+00:00",
+    "updated_at": "2026-10-04T09:37:48.304252+00:00",
+    "patient_id": "gtest_patient_night_2ace9e53",
+    "type": "NIGHT_ACTIVITY",
+    "priority": "AWARENESS",
+    "message": "Night activity detected.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "window": "2026-10-04",
+      "night_start": "14:07",
+      "night_end": "16:07"
+    }
+  },
+  "ale_9c29e5908d4a": {
+    "id": "ale_9c29e5908d4a",
+    "user_id": "gtest_patient_freeze_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.329224+00:00",
+    "updated_at": "2026-10-04T09:37:48.338602+00:00",
+    "patient_id": "gtest_patient_freeze_2ace9e53",
+    "type": "FREEZE_ASSIST",
+    "priority": "HIGH",
+    "message": "Freeze assistance may be required.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:37:48.338589+00:00",
+    "metadata": {
+      "duration_s": 18.0,
+      "location_label": "Hallway doorway",
+      "notes": null,
+      "reported_by": "gtest_patient_freeze_2ace9e53"
+    }
+  },
+  "ale_88f981faf3ff": {
+    "id": "ale_88f981faf3ff",
+    "user_id": "gtest_patient_freeze_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.343439+00:00",
+    "updated_at": "2026-10-04T09:37:48.343439+00:00",
+    "patient_id": "gtest_patient_freeze_2ace9e53",
+    "type": "FREEZE_ASSIST",
+    "priority": "HIGH",
+    "message": "Freeze assistance may be required.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "duration_s": null,
+      "location_label": null,
+      "notes": null,
+      "reported_by": "gtest_patient_freeze_2ace9e53"
+    }
+  },
+  "ale_f8e61fac9fef": {
+    "id": "ale_f8e61fac9fef",
+    "user_id": "gtest_patient_dash_a_2ace9e53",
+    "created_at": "2026-10-04T09:37:48.366963+00:00",
+    "updated_at": "2026-10-04T09:37:48.366963+00:00",
+    "patient_id": "gtest_patient_dash_a_2ace9e53",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": {
+        "latitude": 1.0,
+        "longitude": 2.0,
+        "accuracy_m": null,
+        "captured_at": "2026-10-04T09:37:48.359112+00:00"
+      },
+      "triggered_at": "2026-10-04T09:37:48.366935+00:00"
+    }
+  },
+  "ale_58fb9f828008": {
+    "id": "ale_58fb9f828008",
+    "user_id": "gtest_patient_loc_1c161d26",
+    "created_at": "2026-10-04T09:43:54.661446+00:00",
+    "updated_at": "2026-10-04T09:43:54.691441+00:00",
+    "patient_id": "gtest_patient_loc_1c161d26",
+    "type": "SAFE_ZONE_BREACH",
+    "priority": "IMPORTANT",
+    "message": "Safe-zone boundary crossed.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:43:54.691418+00:00",
+    "metadata": {
+      "latitude": 37.8049,
+      "longitude": -122.4094,
+      "matched_zone_ids": [],
+      "nearest_distance_m": 3449.6450743257255
+    },
+    "resolution_note": "Returned to safe zone"
+  },
+  "ale_1f204a023fb8": {
+    "id": "ale_1f204a023fb8",
+    "user_id": "gtest_patient_loc_1c161d26",
+    "created_at": "2026-10-04T09:43:54.688874+00:00",
+    "updated_at": "2026-10-04T09:43:54.688874+00:00",
+    "patient_id": "gtest_patient_loc_1c161d26",
+    "type": "SAFE_ZONE_RETURN",
+    "priority": "INFO",
+    "message": "Patient returned to a safe zone.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "matched_zone_ids": [
+        "saf_58da9c739a32"
+      ],
+      "nearest_distance_m": 0.0
+    }
+  },
+  "ale_92ad076190e7": {
+    "id": "ale_92ad076190e7",
+    "user_id": "gtest_patient_multi_1c161d26",
+    "created_at": "2026-10-04T09:43:54.733661+00:00",
+    "updated_at": "2026-10-04T09:43:54.733661+00:00",
+    "patient_id": "gtest_patient_multi_1c161d26",
+    "type": "SAFE_ZONE_RETURN",
+    "priority": "INFO",
+    "message": "Patient returned to a safe zone.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 50.0,
+      "longitude": 50.0,
+      "matched_zone_ids": [
+        "saf_9452ea5e998b"
+      ],
+      "nearest_distance_m": 0.0
+    }
+  },
+  "ale_9d160cad9d92": {
+    "id": "ale_9d160cad9d92",
+    "user_id": "gtest_patient_multi_1c161d26",
+    "created_at": "2026-10-04T09:43:54.751233+00:00",
+    "updated_at": "2026-10-04T09:43:54.751233+00:00",
+    "patient_id": "gtest_patient_multi_1c161d26",
+    "type": "SAFE_ZONE_BREACH",
+    "priority": "IMPORTANT",
+    "message": "Safe-zone boundary crossed.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "matched_zone_ids": [],
+      "nearest_distance_m": 1568520.556798576
+    }
+  },
+  "ale_ed64fb24c0e4": {
+    "id": "ale_ed64fb24c0e4",
+    "user_id": "gtest_patient_alert_1c161d26",
+    "created_at": "2026-10-04T09:43:54.771465+00:00",
+    "updated_at": "2026-10-04T09:43:54.787558+00:00",
+    "patient_id": "gtest_patient_alert_1c161d26",
+    "type": "NIGHT_ACTIVITY",
+    "priority": "AWARENESS",
+    "message": "Test awareness alert",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:43:54.787545+00:00",
+    "metadata": {},
+    "resolution_note": "Checked in"
+  },
+  "ale_0ad4a0bc3cd1": {
+    "id": "ale_0ad4a0bc3cd1",
+    "user_id": "gtest_patient_sos_1c161d26",
+    "created_at": "2026-10-04T09:43:54.805217+00:00",
+    "updated_at": "2026-10-04T09:43:54.805217+00:00",
+    "patient_id": "gtest_patient_sos_1c161d26",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": {
+        "latitude": 12.34,
+        "longitude": 56.78,
+        "accuracy_m": null,
+        "captured_at": "2026-10-04T09:43:54.796610+00:00"
+      },
+      "triggered_at": "2026-10-04T09:43:54.805188+00:00"
+    }
+  },
+  "ale_04fd5a9355ea": {
+    "id": "ale_04fd5a9355ea",
+    "user_id": "gtest_patient_inact_1c161d26",
+    "created_at": "2026-10-04T09:43:54.833874+00:00",
+    "updated_at": "2026-10-04T09:43:54.845201+00:00",
+    "patient_id": "gtest_patient_inact_1c161d26",
+    "type": "PROLONGED_INACTIVITY",
+    "priority": "HIGH",
+    "message": "Prolonged inactivity detected. Please check on patient.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:43:54.845195+00:00",
+    "metadata": {
+      "minutes_inactive": 120.0,
+      "threshold_min": 15
+    },
+    "resolution_note": "Activity resumed"
+  },
+  "ale_aa70b7784f16": {
+    "id": "ale_aa70b7784f16",
+    "user_id": "gtest_patient_night_1c161d26",
+    "created_at": "2026-10-04T09:43:54.877490+00:00",
+    "updated_at": "2026-10-04T09:43:54.877490+00:00",
+    "patient_id": "gtest_patient_night_1c161d26",
+    "type": "NIGHT_ACTIVITY",
+    "priority": "AWARENESS",
+    "message": "Night activity detected.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "window": "2026-10-04",
+      "night_start": "14:13",
+      "night_end": "16:13"
+    }
+  },
+  "ale_8116f82c1d13": {
+    "id": "ale_8116f82c1d13",
+    "user_id": "gtest_patient_freeze_1c161d26",
+    "created_at": "2026-10-04T09:43:54.902859+00:00",
+    "updated_at": "2026-10-04T09:43:54.912388+00:00",
+    "patient_id": "gtest_patient_freeze_1c161d26",
+    "type": "FREEZE_ASSIST",
+    "priority": "HIGH",
+    "message": "Freeze assistance may be required.",
+    "resolved": true,
+    "resolved_at": "2026-10-04T09:43:54.912376+00:00",
+    "metadata": {
+      "duration_s": 18.0,
+      "location_label": "Hallway doorway",
+      "notes": null,
+      "reported_by": "gtest_patient_freeze_1c161d26"
+    }
+  },
+  "ale_0dd26d60e1b9": {
+    "id": "ale_0dd26d60e1b9",
+    "user_id": "gtest_patient_freeze_1c161d26",
+    "created_at": "2026-10-04T09:43:54.918075+00:00",
+    "updated_at": "2026-10-04T09:43:54.918075+00:00",
+    "patient_id": "gtest_patient_freeze_1c161d26",
+    "type": "FREEZE_ASSIST",
+    "priority": "HIGH",
+    "message": "Freeze assistance may be required.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "duration_s": null,
+      "location_label": null,
+      "notes": null,
+      "reported_by": "gtest_patient_freeze_1c161d26"
+    }
+  },
+  "ale_25d8adfceb02": {
+    "id": "ale_25d8adfceb02",
+    "user_id": "gtest_patient_dash_a_1c161d26",
+    "created_at": "2026-10-04T09:43:54.944702+00:00",
+    "updated_at": "2026-10-04T09:43:54.944702+00:00",
+    "patient_id": "gtest_patient_dash_a_1c161d26",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": {
+        "latitude": 1.0,
+        "longitude": 2.0,
+        "accuracy_m": null,
+        "captured_at": "2026-10-04T09:43:54.936073+00:00"
+      },
+      "triggered_at": "2026-10-04T09:43:54.944676+00:00"
+    }
+  },
+  "ale_e3a0732ce264": {
+    "id": "ale_e3a0732ce264",
+    "user_id": "user_sarah_miller_example_com",
+    "created_at": "2026-10-07T06:17:45.570635+00:00",
+    "updated_at": "2026-10-07T06:17:45.570635+00:00",
+    "patient_id": "user_sarah_miller_example_com",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": null,
+      "triggered_at": "2026-10-07T06:17:45.557428+00:00"
+    }
+  },
+  "ale_92795a9e50c6": {
+    "id": "ale_92795a9e50c6",
+    "user_id": "user_sarah_miller_example_com",
+    "created_at": "2026-10-07T08:33:43.698540+00:00",
+    "updated_at": "2026-10-07T08:33:43.698540+00:00",
+    "patient_id": "user_sarah_miller_example_com",
+    "type": "SOS",
+    "priority": "CRITICAL",
+    "message": "SOS requested by patient.",
+    "resolved": false,
+    "resolved_at": null,
+    "metadata": {
+      "location": null,
+      "triggered_at": "2026-10-07T08:33:43.686363+00:00"
+    }
   }
 }

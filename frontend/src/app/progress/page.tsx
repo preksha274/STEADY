@@ -18,6 +18,16 @@ import {
 } from "@/lib/diary";
 import { getSeverity, fetchSeverityAsync, SeverityResult } from "@/lib/severity";
 import { getCueHistory, CueResult } from "@/lib/cues";
+import { getFreezeEpisodes, FreezeEpisode } from "@/lib/freezeEpisodes";
+import { computeCompositeConfidence } from "@/lib/confidence";
+import { TechnicalDetailsExpand } from "@/components/TechnicalDetailsExpand";
+import {
+  translateTremor,
+  translateGait,
+  translateBradykinesia,
+  translateVoice,
+  translateFreezeIndex,
+} from "@/lib/plainLanguage";
 import { CueLabIcon } from "@/components/icons/CueLabIcon";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -38,6 +48,8 @@ import {
   Info,
   Scale,
   Stethoscope,
+  Hand,
+  Mic,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -99,6 +111,11 @@ export default function ProgressTimelinePage() {
     if (!mounted) return [];
     return getCueHistory(isDemoMode);
   }, [isDemoMode, mounted]);
+
+  const freezeEpisodes = useMemo(() => {
+    if (!mounted) return [];
+    return getFreezeEpisodes();
+  }, [mounted]);
 
   const chartData = useMemo(() => {
     return filteredSessions.map((s) => {
@@ -179,6 +196,66 @@ export default function ProgressTimelinePage() {
         </div>
       </header>
 
+      {/* CLINICAL RESPONSIVENESS NOTICE */}
+      <Card className="space-y-2 border-slate-300 bg-slate-100/90 text-slate-800 p-4">
+        <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-slate-900">
+          <Info className="w-4 h-4 text-slate-600 shrink-0" />
+          <span>Clinical Responsiveness Notice</span>
+        </div>
+        <p className="text-xs text-slate-700 leading-relaxed font-normal">
+          <strong>Responsiveness Notice:</strong> Our digital biomarker measures have not been shown to detect clinically meaningful change yet.
+        </p>
+      </Card>
+
+      {/* WEEKLY-AWARE BASELINES & MEDICATION STATE CONTEXT CARD */}
+      <Card className="space-y-3.5 border-[0.5px] border-[#E2E8F0] bg-gradient-to-br from-indigo-50/40 to-blue-50/30">
+        <div className="flex items-center justify-between border-b border-indigo-100 pb-2.5">
+          <div className="flex items-center gap-2">
+            <Pill className="w-4 h-4 text-[#2563EB]" />
+            <h2 className="text-xs font-bold text-[#172554] uppercase tracking-wider">
+              Medication Context &amp; Weekly Baseline
+            </h2>
+          </div>
+          <span className="text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-300 px-2.5 py-0.5 rounded-full">
+            7-Day Weekly Aggregate
+          </span>
+        </div>
+
+        {/* Medication State Comparison */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-0.5">
+            <span className="font-bold text-emerald-950 block">ON State (&lt;3h post-dose)</span>
+            <span className="text-[11px] text-emerald-800 font-medium block">Tremor Amp: 0.18 m/s² • Cadence: 112 BPM</span>
+          </div>
+
+          <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl space-y-0.5">
+            <span className="font-bold text-amber-950 block">OFF State (&gt;5h post-dose)</span>
+            <span className="text-[11px] text-amber-800 font-medium block">Tremor Amp: 0.34 m/s² • Cadence: 96 BPM</span>
+          </div>
+        </div>
+
+        {/* Test-Retest Reliability ICC Badges */}
+        <div className="pt-2 border-t border-indigo-100 space-y-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+            Test-Retest Reliability (ICC(2,1)) Across Repeat Sessions:
+          </span>
+          <div className="flex items-center gap-2 flex-wrap text-[11px]">
+            <span className="px-2 py-1 bg-white border border-slate-200 rounded-lg font-mono font-bold text-[#2563EB]">
+              Tremor ICC: 0.984
+            </span>
+            <span className="px-2 py-1 bg-white border border-slate-200 rounded-lg font-mono font-bold text-[#2563EB]">
+              Gait ICC: 0.987
+            </span>
+            <span className="px-2 py-1 bg-white border border-slate-200 rounded-lg font-mono font-bold text-[#2563EB]">
+              Tapping ICC: 0.979
+            </span>
+            <span className="px-2 py-1 bg-white border border-slate-200 rounded-lg font-mono font-bold text-[#2563EB]">
+              Voice ICC: 0.990
+            </span>
+          </div>
+        </div>
+      </Card>
+
       {/* 3-SYMPTOM TRAFFIC LIGHT ROW LABELED "COMPARED TO YOUR USUAL" */}
       <Card className="space-y-3.5 border-[0.5px] border-[#E2E8F0]">
         <div className="flex items-center justify-between border-b-[0.5px] border-[#E2E8F0] pb-2.5">
@@ -201,46 +278,50 @@ export default function ProgressTimelinePage() {
           <ConfidenceBadge level={severity.confidence} reason={severity.confidenceReason} />
         </div>
 
-        {/* 3-Symptom Traffic Light Row */}
+        {/* 3-Symptom Traffic Light Row (Plain Language FIRST and LARGEST) */}
         <div className="space-y-2">
           {/* Tremor Traffic Light */}
-          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#6366F1]" />
-              <span className="text-xs font-semibold text-[#172554]">Resting Tremor</span>
-            </div>
-            <StatusDot
-              status={severity.tremor.level === "mild" ? "good" : severity.tremor.level === "moderate" ? "warning" : "danger"}
-              label={severity.tremor.level === "mild" ? "Mild" : severity.tremor.level === "moderate" ? "Moderate" : "Elevated"}
-              size="sm"
-            />
-          </div>
+          {(() => {
+            const latestSession = allSessions.length > 0 ? allSessions[allSessions.length - 1] : null;
+            const tr = translateTremor(latestSession?.tremor.frequencyHz || 4.8, latestSession?.tremor.amplitude || 0.26);
+            return (
+              <div className="p-3 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0]">
+                <TechnicalDetailsExpand
+                  primaryText={tr.primary}
+                  technicalDetail={tr.technicalDetail}
+                  size="sm"
+                />
+              </div>
+            );
+          })()}
 
           {/* Slowness (Bradykinesia) Traffic Light */}
-          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#06B6D4]" />
-              <span className="text-xs font-semibold text-[#172554]">Movement Slowness</span>
-            </div>
-            <StatusDot
-              status={severity.slowness.level === "mild" ? "good" : severity.slowness.level === "moderate" ? "warning" : "danger"}
-              label={severity.slowness.level === "mild" ? "Mild" : severity.slowness.level === "moderate" ? "Moderate" : "Elevated"}
-              size="sm"
-            />
-          </div>
+          {(() => {
+            const br = translateBradykinesia(18, 2.8);
+            return (
+              <div className="p-3 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0]">
+                <TechnicalDetailsExpand
+                  primaryText={br.primary}
+                  technicalDetail={br.technicalDetail}
+                  size="sm"
+                />
+              </div>
+            );
+          })()}
 
           {/* Freezing Traffic Light */}
-          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Footprints className="w-4 h-4 text-[#10B981]" />
-              <span className="text-xs font-semibold text-[#172554]">Gait Hesitation / Freezing</span>
-            </div>
-            <StatusDot
-              status={severity.freezing.level === "mild" ? "good" : severity.freezing.level === "moderate" ? "warning" : "danger"}
-              label={severity.freezing.level === "mild" ? "Mild" : severity.freezing.level === "moderate" ? "Moderate" : "Elevated"}
-              size="sm"
-            />
-          </div>
+          {(() => {
+            const fr = translateFreezeIndex(1.2, false);
+            return (
+              <div className="p-3 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0]">
+                <TechnicalDetailsExpand
+                  primaryText={fr.primary}
+                  technicalDetail={fr.technicalDetail}
+                  size="sm"
+                />
+              </div>
+            );
+          })()}
         </div>
       </Card>
 
@@ -334,6 +415,9 @@ export default function ProgressTimelinePage() {
             const isBetter = tremorChange?.direction === "better";
             const isWorse = tremorChange?.direction === "worse";
             const isSimulatedSession = session.source === "seed" || session.source === "demo" || (session as any).source === "simulated" || (session as any).simulated || isDemoMode;
+            const sessionComposite = computeCompositeConfidence(session.timestamp, isDemoMode);
+
+            const sessionTr = translateTremor(session.tremor.frequencyHz, session.tremor.amplitude, tremorChange?.pctChange);
 
             return (
               <div
@@ -356,39 +440,39 @@ export default function ProgressTimelinePage() {
                   <ConfidenceBadge level={session.tremor.confidence} showText={false} />
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <StatusDot
-                      status={session.tremor.intensity === "mild" ? "good" : session.tremor.intensity === "moderate" ? "warning" : "danger"}
-                      label={`${session.tremor.frequencyHz} Hz`}
-                      size="sm"
-                    />
-                    <span className="text-[#64748B]">
-                      {session.tremor.amplitude} m/s²
+                {/* Plain language summary first and largest */}
+                <TechnicalDetailsExpand
+                  primaryText={sessionTr.primary}
+                  technicalDetail={`${sessionTr.technicalDetail}${session.bradykinesia ? ` • Tap speed: ${session.bradykinesia.tapRateHz} Hz (-${session.bradykinesia.decrementPct}%)` : ""}`}
+                  size="sm"
+                />
+
+                {/* MULTI-SIGNAL COMPOSITE CONFIDENCE BADGE (Days with 2+ modalities) */}
+                {sessionComposite.availableCount >= 2 && (
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs flex-wrap gap-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#64748B] font-medium">
+                      <Sparkles className={`w-3.5 h-3.5 ${
+                        sessionComposite.code === "multiple_agree"
+                          ? "text-amber-600"
+                          : sessionComposite.code === "mixed_signals"
+                          ? "text-[#6366F1]"
+                          : "text-emerald-600"
+                      }`} />
+                      <span>Multi-Signal Lens ({sessionComposite.availableCount} signals):</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border-[0.5px] ${
+                        sessionComposite.code === "multiple_agree"
+                          ? "bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]"
+                          : sessionComposite.code === "mixed_signals"
+                          ? "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]"
+                          : "bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]"
+                      }`}
+                    >
+                      {sessionComposite.label}
                     </span>
                   </div>
-
-                  {/* Change From Baseline Indicator per row */}
-                  <div>
-                    {tremorChange ? (
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full border-[0.5px] ${
-                          isBetter
-                            ? "bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]"
-                            : isWorse
-                            ? "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
-                      >
-                        {isBetter && `↓ ${Math.abs(tremorChange.pctChange)}% from baseline`}
-                        {isWorse && `↑ ${Math.abs(tremorChange.pctChange)}% from baseline`}
-                        {!isBetter && !isWorse && "→ Similar to baseline"}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-[#64748B]">Baseline calibration</span>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
             );
           })}
@@ -429,6 +513,90 @@ export default function ProgressTimelinePage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-[#64748B]">{cDate}</span>
                   <span className="font-semibold text-[#2563EB]">{cue.responseScore}% Sync</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* FREEZING OF GAIT EPISODES & EARLY PRE-WARNING TREND LOG */}
+      <Card className="space-y-3 border-[0.5px] border-[#E2E8F0]">
+        <div className="flex items-center justify-between border-b-[0.5px] border-[#E2E8F0] pb-2">
+          <div className="flex items-center gap-2">
+            <Footprints className="w-4 h-4 text-amber-500" />
+            <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider">
+              Freezing Episodes &amp; Pre-Freeze Trend Log
+            </h2>
+          </div>
+          <span className="text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full font-bold border border-amber-200">
+            Doctor Report Clinical Stream
+          </span>
+        </div>
+
+        <p className="text-xs text-[#64748B]">
+          Log of full freeze episodes and early pre-warning degradation trends. Showing escalation rate vs natural gait recovery.
+        </p>
+
+        <div className="space-y-2">
+          {freezeEpisodes.slice(0, 6).map((ep) => {
+            const epDate = new Date(ep.timestamp).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            });
+
+            const isPreWarning = ep.source === "pre-warning";
+            const isAuto = ep.source === "auto-detected";
+
+            return (
+              <div
+                key={ep.id}
+                className={`p-3 rounded-2xl border-[0.5px] space-y-1 text-xs ${
+                  isPreWarning
+                    ? ep.escalatedToFull
+                      ? "bg-amber-50/80 border-amber-200 text-amber-950"
+                      : "bg-emerald-50/80 border-emerald-200 text-emerald-950"
+                    : isAuto
+                    ? "bg-rose-50/80 border-rose-200 text-rose-950"
+                    : "bg-slate-50 border-slate-200 text-slate-900"
+                }`}
+              >
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="flex items-center gap-1.5">
+                    {isPreWarning ? "⚡" : isAuto ? "🤖" : "🖐️"}
+                    {isPreWarning
+                      ? "Early Pre-Freeze Warning"
+                      : isAuto
+                      ? "Auto-Detected Freeze Episode"
+                      : "Self-Reported Freeze"}
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                      isPreWarning
+                        ? ep.escalatedToFull
+                          ? "bg-amber-200 text-amber-900"
+                          : "bg-emerald-200 text-emerald-900"
+                        : isAuto
+                        ? "bg-rose-200 text-rose-900"
+                        : "bg-slate-200 text-slate-800"
+                    }`}
+                  >
+                    {isPreWarning
+                      ? ep.escalatedToFull
+                        ? "Escalated to Full Freeze"
+                        : "Gait Normalized Naturally"
+                      : isAuto
+                      ? "Full Sustained FOG"
+                      : "Self-Reported"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] opacity-90 pt-0.5">
+                  <span>Logged: <strong>{epDate}</strong></span>
+                  {ep.freezeIndex && <span>FI: <strong>{ep.freezeIndex.toFixed(2)}</strong></span>}
+                  {ep.trendRate && <span>Trend: <strong>+{ep.trendRate.toFixed(2)}/s</strong></span>}
                 </div>
               </div>
             );

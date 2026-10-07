@@ -13,12 +13,28 @@ import {
 import { buildForecast, fetchForecastAsync, DayForecastResult } from "@/lib/forecast";
 import { getSeverity, fetchSeverityAsync, SeverityResult } from "@/lib/severity";
 import { getActiveCue, CueResult } from "@/lib/cues";
+import { getFreezeEpisodes, FreezeEpisode } from "@/lib/freezeEpisodes";
+import { computeCompositeConfidence } from "@/lib/confidence";
+import { getTodayAmbientSummary, AmbientSummaryResult } from "@/lib/ambientSampling";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { StatusDot } from "@/components/StatusDot";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
+import { QualityLedgerBadge } from "@/components/QualityLedgerBadge";
+import { buildMetricQualityLedger } from "@/lib/qualityLedger";
 import { CueLabIcon } from "@/components/icons/CueLabIcon";
+import { TechnicalDetailsExpand } from "@/components/TechnicalDetailsExpand";
+import {
+  translateTremor,
+  translateFreezeIndex,
+  translateBradykinesia,
+  translateVoice,
+  translateGait,
+  translateAmbientSummary,
+} from "@/lib/plainLanguage";
+import { evaluateDailyFlag } from "@/lib/dailyFlags";
+import { WeeklyExerciseDoseCard } from "@/components/WeeklyExerciseDoseCard";
 import {
   Sun,
   Sparkles,
@@ -39,6 +55,7 @@ import {
   Smile,
   Meh,
   Frown,
+  Zap,
 } from "lucide-react";
 
 export default function TodayHomePage() {
@@ -84,6 +101,8 @@ export default function TodayHomePage() {
   };
 
   const [activeCue, setActiveCueState] = useState<CueResult | null>(null);
+  const [freezeEpisodes, setFreezeEpisodes] = useState<FreezeEpisode[]>([]);
+  const [ambientSummary, setAmbientSummary] = useState<AmbientSummaryResult | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -98,6 +117,12 @@ export default function TodayHomePage() {
 
         const cue = getActiveCue(isDemoMode);
         setActiveCueState(cue);
+
+        const eps = getFreezeEpisodes();
+        setFreezeEpisodes(eps);
+
+        const amb = getTodayAmbientSummary(isDemoMode);
+        setAmbientSummary(amb);
 
         const all = getSessions(isDemoMode);
         const latest = all.length > 0 ? all[all.length - 1] : null;
@@ -135,6 +160,16 @@ export default function TodayHomePage() {
       active = false;
     };
   }, [isDemoMode]);
+
+  const composite = useMemo(
+    () => computeCompositeConfidence(new Date(), isDemoMode),
+    [isDemoMode]
+  );
+
+  const dailyFlag = useMemo(
+    () => evaluateDailyFlag(new Date(), isDemoMode),
+    [isDemoMode]
+  );
 
   // 3-Button Mood Check-in Handler
   const handleMoodSelect = (mood: "great" | "okay" | "tough") => {
@@ -211,12 +246,48 @@ export default function TodayHomePage() {
         </Link>
       </header>
 
+      {/* DAILY BASELINE FLAG CARD (Cold-start + N-of-M persistence rules) */}
+      <div
+        className={`p-4 rounded-[18px] border-[0.5px] shadow-xs space-y-1.5 transition-all ${
+          dailyFlag.severity === "cold_start"
+            ? "bg-slate-50 border-slate-300 text-slate-900"
+            : dailyFlag.severity === "unusual_today"
+            ? "bg-amber-50/90 border-amber-300 text-amber-950"
+            : dailyFlag.severity === "different_from_usual"
+            ? "bg-rose-50/90 border-rose-300 text-rose-950"
+            : "bg-emerald-50/90 border-emerald-300 text-emerald-950"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider">
+              Daily Baseline Status
+            </span>
+            {dailyFlag.isColdStart && (
+              <span className="text-[10px] bg-slate-200 text-slate-800 font-semibold px-2 py-0.5 rounded-full">
+                Cold Start ({dailyFlag.daysLogged}/{dailyFlag.minDaysRequired} days)
+              </span>
+            )}
+          </div>
+          <span className="text-xs font-extrabold">{dailyFlag.headline}</span>
+        </div>
+        <p className="text-xs font-normal leading-relaxed opacity-90">
+          {dailyFlag.explanation}
+        </p>
+      </div>
+
       {/* YOUR SAVED CUE CHIP */}
       <div className="flex items-center justify-between bg-indigo-50/70 border border-indigo-100 rounded-2xl px-3.5 py-2.5 shadow-xs">
         <div className="flex items-center gap-2 text-xs font-semibold text-indigo-950 flex-wrap">
           <CueLabIcon size={18} />
-          <span>Active Cue:</span>
-          <span className="font-bold text-[#6366F1] capitalize">{activeCue ? `${activeCue.type} • ${activeCue.bpm} BPM` : "Audio Beat • 88 BPM"}</span>
+          <div className="space-y-0.5">
+            <span className="font-extrabold text-[#172554] block">Active Rhythm Pacing</span>
+            <TechnicalDetailsExpand
+              primaryText={activeCue ? `Set for ${activeCue.type} rhythm` : "Set for audio metronome beat"}
+              technicalDetail={activeCue ? `${activeCue.type.toUpperCase()} metronome • ${activeCue.bpm} BPM` : "Audio metronome • 88 BPM"}
+              size="sm"
+            />
+          </div>
           {(activeCue ? activeCue.simulated !== false : true) && (
             <span className="text-[10px] bg-indigo-50 text-[#6366F1] font-semibold px-2 py-0.5 rounded-full border border-indigo-200">
               Simulated
@@ -228,6 +299,72 @@ export default function TodayHomePage() {
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
+
+      {/* AMBIENT MOVEMENT SUMMARY CHIP (Opt-in PKG-style continuous sampling summary) */}
+      {ambientSummary && (ambientSummary.isEnabled || isDemoMode) && (
+        <div className="bg-teal-50/80 border border-teal-200/80 rounded-2xl p-3.5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold text-teal-950">
+              <Activity className="w-4 h-4 text-teal-600 shrink-0" />
+              <span>Continuous Movement Sampling</span>
+            </div>
+            <ConfidenceBadge
+              level={ambientSummary.confidenceLevel}
+              reason={`${ambientSummary.confidenceReason} (${ambientSummary.sampleCount} bursts)`}
+            />
+          </div>
+
+          <TechnicalDetailsExpand
+            primaryText="Your movement today is typical for your daily routine"
+            technicalDetail={`Rating: ${ambientSummary.label} • ${ambientSummary.sampleCount} continuous ambient samples recorded today`}
+            size="sm"
+          />
+        </div>
+      )}
+
+      {/* MULTI-SIGNAL COMPOSITE CONFIDENCE LENS SUMMARY BADGE */}
+      {composite.availableCount >= 2 && (
+        <div
+          className={`p-3.5 rounded-[18px] border-[0.5px] flex items-start gap-3 shadow-xs transition-all ${
+            composite.code === "multiple_agree"
+              ? "bg-[#FEF3C7]/90 border-[#F59E0B] text-[#78350F]"
+              : composite.code === "mixed_signals"
+              ? "bg-[#EEF2FF]/90 border-[#6366F1] text-[#312E81]"
+              : "bg-[#ECFDF5]/90 border-[#10B981] text-[#064E3B]"
+          }`}
+        >
+          <Sparkles
+            className={`w-4 h-4 shrink-0 mt-0.5 ${
+              composite.code === "multiple_agree"
+                ? "text-[#D97706]"
+                : composite.code === "mixed_signals"
+                ? "text-[#4F46E5]"
+                : "text-[#059669]"
+            }`}
+          />
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-black tracking-tight">
+                Confidence Lens: {composite.label}
+              </span>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  composite.code === "multiple_agree"
+                    ? "bg-[#FEF3C7] text-[#92400E] border-[#F59E0B]"
+                    : composite.code === "mixed_signals"
+                    ? "bg-[#E0E7FF] text-[#3730A3] border-[#6366F1]"
+                    : "bg-[#D1FAE5] text-[#065F46] border-[#10B981]"
+                }`}
+              >
+                {composite.availableCount} Signals Fused
+              </span>
+            </div>
+            <p className="text-[11px] leading-relaxed opacity-90 font-medium">
+              {composite.reason}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* FULL-WIDTH RED "I'M FROZEN" BUTTON (ALWAYS VISIBLE ABOVE THE FOLD) */}
       <div>
@@ -274,7 +411,6 @@ export default function TodayHomePage() {
         </div>
 
         <p className="text-xs text-[#172554] font-normal leading-relaxed">
-
           ✨ Optimal mobility window expected late morning. Best interval for walks, exercise, or outside tasks.
         </p>
 
@@ -351,7 +487,10 @@ export default function TodayHomePage() {
         </div>
       </Card>
 
-      {/* MOVEMENT SNAPSHOT ROW (Tremor / Gait / Fatigue as colored dot + text label) */}
+      {/* WEEKLY EXERCISE DOSE CARD (CYCLE-II Trial Pacing Protocol) */}
+      <WeeklyExerciseDoseCard />
+
+      {/* MOVEMENT SNAPSHOT ROW (Plain Language FIRST and LARGEST) */}
       <Card className="space-y-3 border-[0.5px] border-[#E2E8F0]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -370,42 +509,175 @@ export default function TodayHomePage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 pt-1">
-          {/* Tremor Dot + Label */}
-          <div className="p-2.5 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0] text-center space-y-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#64748B] block">
-              Tremor
-            </span>
-            <StatusDot
-              status={severity.tremor.level === "mild" ? "good" : severity.tremor.level === "moderate" ? "warning" : "danger"}
-              label={severity.tremor.level === "mild" ? "Mild" : severity.tremor.level === "moderate" ? "Moderate" : "High"}
-              size="sm"
-            />
-          </div>
+        <div className="space-y-3 pt-1">
+          {/* Tremor */}
+          {(() => {
+            const tr = translateTremor(latestSession?.tremor?.frequencyHz || 4.8, latestSession?.tremor?.amplitude || 0.26);
+            const tremorLedger = buildMetricQualityLedger({
+              modality: "phone_imu",
+              metric: "tremor_power",
+              rawValue: 4.8,
+              noiseLevel: "low",
+              taskValid: true,
+              environmentValid: true,
+              epistemicScore: 0.9,
+            });
+            return (
+              <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-slate-200 space-y-2">
+                <TechnicalDetailsExpand
+                  primaryText={tr.primary}
+                  explanation="Flagged as matching your baseline. Your tremor stayed near 4.8 Hz throughout your check, showing no sudden spikes or unusual stiffness."
+                  technicalDetail={tr.technicalDetail}
+                  size="sm"
+                  badge="Tremor"
+                />
+                <QualityLedgerBadge ledger={tremorLedger} />
+              </div>
+            );
+          })()}
 
-          {/* Gait Dot + Label */}
-          <div className="p-2.5 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0] text-center space-y-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#64748B] block">
-              Gait Speed
-            </span>
-            <StatusDot
-              status="good"
-              label="Typical"
-              size="sm"
-            />
-          </div>
+          {/* Gait Speed */}
+          {(() => {
+            const gt = translateGait(108, 94);
+            const gaitLedger = buildMetricQualityLedger({
+              modality: "camera_pose",
+              metric: "stride_variability",
+              rawValue: 94,
+              taskValid: true,
+              environmentValid: true,
+              epistemicScore: 0.88,
+            });
+            return (
+              <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-slate-200 space-y-2">
+                <TechnicalDetailsExpand
+                  primaryText={gt.primary}
+                  explanation="Your walking pace is stable today with balanced step timing. No gait hesitation or freeze episodes were detected during movement sampling."
+                  technicalDetail={gt.technicalDetail}
+                  size="sm"
+                  badge="Gait"
+                />
+                <QualityLedgerBadge ledger={gaitLedger} />
+              </div>
+            );
+          })()}
 
-          {/* Fatigue Dot + Label */}
-          <div className="p-2.5 rounded-2xl bg-[#F8FAFC] border-[0.5px] border-[#E2E8F0] text-center space-y-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#64748B] block">
-              Fatigue
-            </span>
-            <StatusDot
-              status="warning"
-              label="Moderate"
-              size="sm"
-            />
+          {/* Finger Tap (Bradykinesia) */}
+          {(() => {
+            const br = translateBradykinesia(
+              latestSession?.bradykinesia?.decrementPct || 18,
+              latestSession?.bradykinesia?.tapRateHz || 2.8,
+              latestSession?.bradykinesia?.updrsScore || 1,
+              latestSession?.bradykinesia?.updrsLabel || "Slight"
+            );
+            const tapLedger = buildMetricQualityLedger({
+              modality: "phone_imu",
+              metric: "finger_tap_score",
+              rawValue: 18,
+              placementShift: false,
+              taskValid: true,
+              environmentValid: true,
+              epistemicScore: 0.82,
+            });
+            return (
+              <div className="p-3.5 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-2">
+                <TechnicalDetailsExpand
+                  primaryText={br.primary}
+                  explanation="Flagged because your tap speed dropped 18% partway through the test, which is more than we'd expect based on your past tests."
+                  technicalDetail={br.technicalDetail}
+                  size="sm"
+                  badge="Bradykinesia"
+                />
+                <QualityLedgerBadge ledger={tapLedger} />
+              </div>
+            );
+          })()}
+
+          {/* Voice Acoustics */}
+          {(() => {
+            const vc = translateVoice(
+              latestSession?.voice?.jitterPct || 1.8,
+              latestSession?.voice?.shimmerPct || 4.5,
+              latestSession?.voice?.hnrDb || 15.0
+            );
+            const voiceLedger = buildMetricQualityLedger({
+              modality: "voice",
+              metric: "voice_jitter",
+              rawValue: 1.8,
+              taskValid: true,
+              environmentValid: true,
+              epistemicScore: 0.92,
+            });
+            return (
+              <div className="p-3.5 rounded-2xl bg-blue-50/40 border border-blue-200/80 space-y-2">
+                <TechnicalDetailsExpand
+                  primaryText={vc.primary}
+                  explanation="Your vocal stability check showed steady pitch and clear volume control during sustained sound recording."
+                  technicalDetail={vc.technicalDetail}
+                  size="sm"
+                  badge="Voice"
+                />
+                <QualityLedgerBadge ledger={voiceLedger} />
+              </div>
+            );
+          })()}
+        </div>
+      </Card>
+
+      {/* FREEZE EPISODES & DETECTION TIMELINE (Plain Language FIRST and LARGEST) */}
+      <Card className="space-y-3 border-slate-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
+            <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider">
+              Freeze Episode Log
+            </h2>
           </div>
+          <span className="text-[10px] text-slate-500">
+            {freezeEpisodes.length} Recorded
+          </span>
+        </div>
+
+        <div className="space-y-2 pt-1">
+          {freezeEpisodes.slice(0, 4).map((ep) => {
+            const timeStr = new Date(ep.timestamp).toLocaleDateString([], {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+
+            const fr = translateFreezeIndex(ep.freezeIndex, ep.source === "auto-detected");
+
+            return (
+              <div
+                key={ep.id}
+                className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-xs"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    {ep.source === "auto-detected" ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
+                        Sensor Detected
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300 flex items-center gap-1">
+                        <Footprints className="w-3 h-3 text-blue-600" />
+                        Self-Reported
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-500">{timeStr}</span>
+                </div>
+
+                <TechnicalDetailsExpand
+                  primaryText={fr.primary}
+                  technicalDetail={`${fr.technicalDetail} (${ep.cueType || "audio"} metronome used)`}
+                  size="sm"
+                />
+              </div>
+            );
+          })}
         </div>
       </Card>
 

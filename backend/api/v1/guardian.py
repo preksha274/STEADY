@@ -207,3 +207,221 @@ async def update_guardian_settings(
 
     settings = await save_settings(target, updates)
     return {"patient_id": target, **_settings_view(settings)}
+
+
+class SafeZoneRequest(BaseModel):
+    patient_id: Optional[str] = None
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    radius_m: float = Field(150.0, ge=10, le=5000)
+    label: str = Field("Home Safe Zone")
+    location_sharing_enabled: Optional[bool] = None
+
+
+class GuardianLocationRequest(BaseModel):
+    patient_id: Optional[str] = None
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    location_sharing_enabled: Optional[bool] = None
+    is_simulated: Optional[bool] = False
+
+
+@router.post("/safe-zone")
+async def set_guardian_safe_zone(
+    body: SafeZoneRequest,
+    user: AuthenticatedUser = Depends(get_current_user),
+):
+    """Set patient safe zone (home base + radius) and optional location sharing toggle."""
+    target = body.patient_id or user.user_id
+    assert_patient_access(user, target)
+
+    from steady_ai.geofence import haversine_m
+    from .guardian_common import SAFE_ZONES, get_patient_safe_zones
+
+    # Update or create safe zone
+    zone_data = {
+        "patient_id": target,
+        "name": body.label,
+        "latitude": float(body.latitude),
+        "longitude": float(body.longitude),
+        "radius_m": float(body.radius_m),
+        "enabled": True,
+        "created_at": utc_now_iso(),
+    }
+    
+    # Store in SAFE_ZONES collection
+    existing_zones = get_patient_safe_zones(target)
+    if existing_zones:
+        doc_id = existing_zones[0]["id"]
+        saved_zone = await db.update_document(SAFE_ZONES, user_id=target, doc_id=doc_id, updates=zone_data)
+    else:
+        saved_zone = await db.create_document(SAFE_ZONES, user_id=target, data=zone_data)
+
+    settings_update: Dict[str, Any] = {
+        "safe_zone_lat": float(body.latitude),
+        "safe_zone_lng": float(body.longitude),
+        "safe_zone_radius_m": float(body.radius_m),
+        "safe_zone_label": body.label,
+    }
+    if body.location_sharing_enabled is not None:
+        settings_update["location_sharing_enabled"] = bool(body.location_sharing_enabled)
+
+    await save_settings(target, settings_update)
+    return {"status": "ok", "safe_zone": saved_zone}
+
+
+@router.post("/location")
+async def post_guardian_location(
+    body: GuardianLocationRequest,
+    user: AuthenticatedUser = Depends(get_current_user),
+):
+    """Post patient location ping and evaluate safe zone transitions."""
+    target = body.patient_id or user.user_id
+    assert_patient_access(user, target)
+
+    from steady_ai.geofence import haversine_m
+
+    settings = await get_settings(target)
+    
+    if body.location_sharing_enabled is not None:
+        await save_settings(target, {"location_sharing_enabled": bool(body.location_sharing_enabled)})
+        settings["location_sharing_enabled"] = bool(body.location_sharing_enabled)
+
+    lat = float(body.latitude)
+    lng = float(body.longitude)
+
+    # Fetch safe zone center
+    zones = get_patient_safe_zones(target)
+    safe_lat = zones[0]["latitude"] if zones else settings.get("safe_zone_lat", lat)
+    safe_lng = zones[0]["longitude"] if zones else settings.get("safe_zone_lng", lng)
+    radius_m = zones[0]["radius_m"] if zones else settings.get("safe_zone_radius_m", 150.0)
+
+    distance_m = round(haversine_m(lat, lng, safe_lat, safe_lng), 1)
+    is_inside = distance_m <= radius_m
+
+    # Store location ping
+    doc_data = {
+        "patient_id": target,
+        "latitude": lat,
+        "longitude": lng,
+        "distance_m": distance_m,
+        "is_inside": is_inside,
+        "is_simulated": bool(body.is_simulated),
+        "captured_at": utc_now_iso(),
+        "received_at": utc_now_iso(),
+        "source": "guardian_gps",
+    }
+    await db.create_document(LOCATION_PINGS, user_id=target, data=doc_data)
+
+    # Evaluate transition vs previous geofence_inside state
+    prev_inside = settings.get("geofence_inside")
+    alert_triggered = False
+
+    if prev_inside is not None and prev_inside is True and not is_inside:
+        # Transition OUTSIDE safe zone -> Create Breach Alert
+        await create_alert(
+            target,
+            "SAFE_ZONE_BREACH",
+            "IMPORTANT",
+            f"Patient left safe zone ({distance_m}m from home base).",
+            {
+                "latitude": lat,
+                "longitude": lng,
+                "distance_m": distance_m,
+                "radius_m": radius_m,
+                "is_simulated": bool(body.is_simulated),
+            },
+        )
+        alert_triggered = True
+    elif prev_inside is not None and prev_inside is False and is_inside:
+        # Transition INSIDE safe zone -> Create Return Alert & resolve breach
+        await create_alert(
+            target,
+            "SAFE_ZONE_RETURN",
+            "INFO",
+            "Patient returned to safe zone.",
+            {
+                "latitude": lat,
+                "longitude": lng,
+                "distance_m": distance_m,
+                "radius_m": radius_m,
+            },
+        )
+        await resolve_open_alerts(target, "SAFE_ZONE_BREACH", "Returned to safe zone")
+        alert_triggered = True
+
+    await save_settings(
+        target,
+        {
+            "geofence_inside": is_inside,
+            "geofence_last_distance_m": distance_m,
+            "geofence_last_evaluated_at": utc_now_iso(),
+            "last_activity_at": utc_now_iso(),
+        },
+    )
+
+    return {
+        "status": "ok",
+        "inside": is_inside,
+        "distance_m": distance_m,
+        "sharing_enabled": bool(settings.get("location_sharing_enabled", False)),
+        "alert_triggered": alert_triggered,
+        "captured_at": doc_data["captured_at"],
+    }
+
+
+@router.get("/status")
+async def get_guardian_status(
+    patient_id: Optional[str] = Query(None, description="Target patient ID"),
+    user: AuthenticatedUser = Depends(get_current_user),
+):
+    """
+    Get live Guardian status for caregiver / patient view.
+    Respects consent: Returns latest_location = None if location_sharing_enabled is False.
+    """
+    target = patient_id or user.user_id
+    assert_patient_access(user, target)
+
+    settings = await get_settings(target)
+    zones = get_patient_safe_zones(target)
+
+    sharing_enabled = bool(settings.get("location_sharing_enabled", False))
+
+    # Safe zone representation
+    if zones:
+        safe_zone = {
+            "latitude": zones[0]["latitude"],
+            "longitude": zones[0]["longitude"],
+            "radius_m": zones[0]["radius_m"],
+            "label": zones[0].get("name", "Home Safe Zone"),
+        }
+    else:
+        safe_zone = {
+            "latitude": settings.get("safe_zone_lat", 37.7749),
+            "longitude": settings.get("safe_zone_lng", -122.4194),
+            "radius_m": settings.get("safe_zone_radius_m", 150.0),
+            "label": settings.get("safe_zone_label", "Home Safe Zone"),
+        }
+
+    # Latest location ping
+    pings = await db.query_documents(LOCATION_PINGS, user_id=target, limit=1)
+    latest_ping = pings[0] if pings else None
+
+    # Compute current inside state & distance
+    inside = settings.get("geofence_inside", True)
+    distance_m = settings.get("geofence_last_distance_m", 0.0)
+
+    # Alerts history
+    alerts = await db.query_documents(ALERTS, user_id=target, limit=100)
+    sorted_alerts = sorted(alerts, key=lambda x: str(x.get("created_at", "")), reverse=True)[:15]
+
+    return {
+        "patient_id": target,
+        "sharing_enabled": sharing_enabled,
+        "latest_location": latest_ping if sharing_enabled else None,
+        "safe_zone": safe_zone,
+        "inside": inside if sharing_enabled else True,
+        "distance_m": distance_m if sharing_enabled else 0.0,
+        "alerts": sorted_alerts,
+        "evaluated_at": settings.get("geofence_last_evaluated_at") or utc_now_iso(),
+    }

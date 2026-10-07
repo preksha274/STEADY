@@ -9,6 +9,7 @@ import {
   seedDemoSessions,
 } from "@/lib/sessions";
 import { seedDemoDiary } from "@/lib/diary";
+import { seedDemoVoiceChecks } from "@/lib/confidence";
 
 export interface IMUMetrics {
   tremor_frequency_hz: number;
@@ -111,12 +112,16 @@ interface AnalysisContextType {
   isDemoMode: boolean;
   isSimpleMode: boolean;
   isFreezeModalOpen: boolean;
+  freezeTriggerSource: "manual" | "auto-detected";
+  freezeTriggerIndex?: number;
   isDoseLogModalOpen: boolean;
   isMoreSheetOpen: boolean;
   isLoaded: boolean;
   setIsDemoMode: (enabled: boolean) => void;
   setIsSimpleMode: (enabled: boolean) => void;
   setIsFreezeModalOpen: (open: boolean) => void;
+  openFreezeModal: (source?: "manual" | "auto-detected", info?: { freezeIndex?: number }) => void;
+  closeFreezeModal: () => void;
   setIsDoseLogModalOpen: (open: boolean) => void;
   setIsMoreSheetOpen: (open: boolean) => void;
   setIMUResult: (result: IMUAnalysisResult | null) => void;
@@ -136,9 +141,21 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isDemoMode, setIsDemoModeState] = useState<boolean>(true);
   const [isSimpleMode, setIsSimpleModeState] = useState<boolean>(false);
   const [isFreezeModalOpen, setIsFreezeModalOpen] = useState<boolean>(false);
+  const [freezeTriggerSource, setFreezeTriggerSource] = useState<"manual" | "auto-detected">("manual");
+  const [freezeTriggerIndex, setFreezeTriggerIndex] = useState<number | undefined>(undefined);
   const [isDoseLogModalOpen, setIsDoseLogModalOpen] = useState<boolean>(false);
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+
+  const openFreezeModal = (source: "manual" | "auto-detected" = "manual", info?: { freezeIndex?: number }) => {
+    setFreezeTriggerSource(source);
+    setFreezeTriggerIndex(info?.freezeIndex);
+    setIsFreezeModalOpen(true);
+  };
+
+  const closeFreezeModal = () => {
+    setIsFreezeModalOpen(false);
+  };
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
 
@@ -147,6 +164,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       seedDemoSessions(false);
       seedDemoDiary(false);
+      seedDemoVoiceChecks(false);
 
       const storedDemoMode = localStorage.getItem("steady_demo_mode") || localStorage.getItem("movepilot_demo_mode");
       if (storedDemoMode !== null) {
@@ -249,6 +267,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     clearAnalysis();
     seedDemoSessions(true);
     seedDemoDiary(true);
+    seedDemoVoiceChecks(true);
   };
 
   return (
@@ -260,12 +279,16 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isDemoMode,
         isSimpleMode,
         isFreezeModalOpen,
+        freezeTriggerSource,
+        freezeTriggerIndex,
         isDoseLogModalOpen,
         isMoreSheetOpen,
         isLoaded,
         setIsDemoMode,
         setIsSimpleMode,
         setIsFreezeModalOpen,
+        openFreezeModal,
+        closeFreezeModal,
         setIsDoseLogModalOpen,
         setIsMoreSheetOpen,
         setIMUResult,

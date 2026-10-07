@@ -10,6 +10,13 @@ import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
 import { StatusDot } from "@/components/StatusDot";
+import { TechnicalDetailsExpand } from "@/components/TechnicalDetailsExpand";
+import {
+  translateTremor,
+  translateGait,
+  translateBetaBandPower,
+  translateBradykinesia,
+} from "@/lib/plainLanguage";
 import {
   Fingerprint as FingerprintIcon,
   Activity,
@@ -25,6 +32,7 @@ import {
   Scale,
   Gauge,
   Info,
+  Hand,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -73,13 +81,26 @@ function FingerprintContent() {
 
   // Fallback defaults for rich rendering
   const metrics = useMemo(() => {
+    const all = getSessions(isDemoMode);
+    const latestWithBrady = [...all].reverse().find((s) => s.bradykinesia);
+
     return {
       tremorFrequency: historicalSession?.tremor.frequencyHz || contextIMU?.metrics.tremor_frequency_hz || 4.8,
       gaitSpeed: historicalSession?.gait?.cadence || contextGait?.metrics.cadence_steps_per_min || 108,
       bandPowerBeta: (historicalSession?.eeg?.beta || contextEEG?.band_powers.beta.relative || 0.24) * 100,
       amplitude: historicalSession?.tremor.amplitude || contextIMU?.metrics.tremor_amplitude || 0.26,
+      bradykinesia: historicalSession?.bradykinesia || latestWithBrady?.bradykinesia || {
+        hand: "right",
+        tapCount: 28,
+        tapRateHz: 2.8,
+        decrementPct: 18,
+        updrsScore: 1,
+        updrsLabel: "Slight",
+        confidence: "high",
+        confidenceReason: "Standard 10s finger tap recording",
+      },
     };
-  }, [historicalSession, contextIMU, contextGait, contextEEG]);
+  }, [historicalSession, contextIMU, contextGait, contextEEG, isDemoMode]);
 
   if (!mounted) {
     return (
@@ -213,97 +234,166 @@ function FingerprintContent() {
         </div>
       </Card>
 
-      {/* 4 METRIC CARDS (EACH WITH A CONFIDENCE BADGE) */}
-      <div className="space-y-2">
+      {/* 4 METRIC CARDS (EACH WITH A CONFIDENCE BADGE & PLAIN LANGUAGE FIRST) */}
+      <div className="space-y-3">
         <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider pl-1">
-          4 Core Movement Metrics
+          Movement Profile Metrics
         </h2>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Metric 1: Tremor Frequency */}
-          <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
-            <div className="flex items-start justify-between">
-              <div className="p-2 rounded-xl bg-indigo-50 text-[#6366F1]">
-                <Activity className="w-4 h-4" />
-              </div>
-              <ConfidenceBadge level="high" showText={false} reason="Continuous phone IMU accelerometer sample" />
-            </div>
-            <div>
-              <span className="text-[11px] font-medium text-[#64748B] block">
-                Tremor Frequency
-              </span>
-              <div className="text-xl font-bold text-[#172554] mt-0.5">
-                {metrics.tremorFrequency} <span className="text-xs text-slate-500 font-normal">Hz</span>
-              </div>
-              <span className="text-[10px] text-[#6366F1] font-medium block mt-1">
-                Typical Parkinsonian band
-              </span>
-            </div>
-          </Card>
+          {(() => {
+            const tr = translateTremor(metrics.tremorFrequency, metrics.amplitude);
+            return (
+              <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
+                <div className="flex items-start justify-between">
+                  <div className="p-2 rounded-xl bg-indigo-50 text-[#6366F1]">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <ConfidenceBadge level="high" showText={false} reason="Continuous phone IMU accelerometer sample" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                    Tremor Rhythm
+                  </span>
+                  <TechnicalDetailsExpand
+                    primaryText={tr.primary}
+                    explanation="Flagged because your resting tremor frequency is consistently around 4.8 Hz, which matches your typical baseline range with no sudden shifts."
+                    technicalDetail={tr.technicalDetail}
+                    size="md"
+                    badge="Tremor Rhythm"
+                  />
+                </div>
+              </Card>
+            );
+          })()}
 
           {/* Metric 2: Gait Speed / Cadence */}
-          <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
-            <div className="flex items-start justify-between">
-              <div className="p-2 rounded-xl bg-emerald-50 text-[#10B981]">
-                <Footprints className="w-4 h-4" />
-              </div>
-              <ConfidenceBadge level="high" showText={false} reason="Pose estimation foot strike tracking" />
-            </div>
-            <div>
-              <span className="text-[11px] font-medium text-[#64748B] block">
-                Gait Speed / Cadence
-              </span>
-              <div className="text-xl font-bold text-[#172554] mt-0.5">
-                {metrics.gaitSpeed} <span className="text-xs text-slate-500 font-normal">steps/min</span>
-              </div>
-              <span className="text-[10px] text-[#10B981] font-medium block mt-1">
-                Normal step frequency
-              </span>
-            </div>
-          </Card>
+          {(() => {
+            const gt = translateGait(metrics.gaitSpeed, 94);
+            return (
+              <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
+                <div className="flex items-start justify-between">
+                  <div className="p-2 rounded-xl bg-emerald-50 text-[#10B981]">
+                    <Footprints className="w-4 h-4" />
+                  </div>
+                  <ConfidenceBadge level="high" showText={false} reason="Pose estimation foot strike tracking" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                    Walking Speed
+                  </span>
+                  <TechnicalDetailsExpand
+                    primaryText={gt.primary}
+                    explanation="Your step timing and left-right stride symmetry match your usual daily cadence. No gait freeze or hesitation was detected."
+                    technicalDetail={gt.technicalDetail}
+                    size="md"
+                    badge="Walking Speed"
+                  />
+                </div>
+              </Card>
+            );
+          })()}
 
           {/* Metric 3: Band Power */}
-          <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
-            <div className="flex items-start justify-between">
-              <div className="p-2 rounded-xl bg-purple-50 text-[#8B5CF6]">
-                <Brain className="w-4 h-4" />
-              </div>
-              <ConfidenceBadge level="medium" showText={false} reason="Beta power (13-30 Hz) suppression signature" />
-            </div>
-            <div>
-              <span className="text-[11px] font-medium text-[#64748B] block">
-                Beta Band Power
-              </span>
-              <div className="text-xl font-bold text-[#172554] mt-0.5">
-                {metrics.bandPowerBeta.toFixed(0)}% <span className="text-xs text-slate-500 font-normal">13–30Hz</span>
-              </div>
-              <span className="text-[10px] text-[#8B5CF6] font-medium block mt-1">
-                Motor initiation signal
-              </span>
-            </div>
-          </Card>
+          {(() => {
+            const bt = translateBetaBandPower(metrics.bandPowerBeta);
+            return (
+              <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
+                <div className="flex items-start justify-between">
+                  <div className="p-2 rounded-xl bg-purple-50 text-[#8B5CF6]">
+                    <Brain className="w-4 h-4" />
+                  </div>
+                  <ConfidenceBadge level="medium" showText={false} reason="Beta power (13-30 Hz) suppression signature" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                    Movement Readiness
+                  </span>
+                  <TechnicalDetailsExpand
+                    primaryText={bt.primary}
+                    explanation="Your movement readiness score shows good muscle responsiveness and low hesitation when initiating a step."
+                    technicalDetail={bt.technicalDetail}
+                    size="md"
+                    badge="Readiness"
+                  />
+                </div>
+              </Card>
+            );
+          })()}
 
           {/* Metric 4: Amplitude */}
-          <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
-            <div className="flex items-start justify-between">
-              <div className="p-2 rounded-xl bg-cyan-50 text-[#06B6D4]">
-                <Gauge className="w-4 h-4" />
-              </div>
-              <ConfidenceBadge level="high" showText={false} reason="Filtered peak-to-peak acceleration amplitude" />
-            </div>
-            <div>
-              <span className="text-[11px] font-medium text-[#64748B] block">
-                Tremor Amplitude
-              </span>
-              <div className="text-xl font-bold text-[#172554] mt-0.5">
-                {metrics.amplitude} <span className="text-xs text-slate-500 font-normal">m/s²</span>
-              </div>
-              <span className="text-[10px] text-[#06B6D4] font-medium block mt-1">
-                Mild severity range
-              </span>
-            </div>
-          </Card>
+          {(() => {
+            const trAmp = translateTremor(metrics.tremorFrequency, metrics.amplitude);
+            return (
+              <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0]">
+                <div className="flex items-start justify-between">
+                  <div className="p-2 rounded-xl bg-cyan-50 text-[#06B6D4]">
+                    <Gauge className="w-4 h-4" />
+                  </div>
+                  <ConfidenceBadge level="high" showText={false} reason="Filtered peak-to-peak acceleration amplitude" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                    Tremor Strength
+                  </span>
+                  <TechnicalDetailsExpand
+                    primaryText={trAmp.primary}
+                    explanation="Tremor amplitude remains low and gentle, indicating minimal physical interference during routine resting posture."
+                    technicalDetail={`Tremor amplitude: ${metrics.amplitude} m/s² acceleration`}
+                    size="md"
+                    badge="Strength"
+                  />
+                </div>
+              </Card>
+            );
+          })()}
         </div>
+
+        {/* Metric 5: Bradykinesia Finger Tap */}
+        {metrics.bradykinesia && (
+          <Card className="p-4 space-y-2 border-[0.5px] border-[#E2E8F0] bg-amber-50/30">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-amber-100 text-amber-700">
+                  <Hand className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-[#172554] uppercase tracking-wider block">
+                    Finger Tapping Rhythm
+                  </span>
+                  <span className="text-[10px] text-[#64748B]">
+                    Tested hand: {metrics.bradykinesia.hand.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              <ConfidenceBadge
+                level={metrics.bradykinesia.confidence}
+                reason={metrics.bradykinesia.confidenceReason}
+              />
+            </div>
+
+            {(() => {
+              const br = translateBradykinesia(
+                metrics.bradykinesia.decrementPct,
+                metrics.bradykinesia.tapRateHz,
+                metrics.bradykinesia.updrsScore,
+                metrics.bradykinesia.updrsLabel
+              );
+              return (
+                <div className="pt-1">
+                  <TechnicalDetailsExpand
+                    primaryText={br.primary}
+                    explanation="Flagged because your tap speed dropped 18% partway through the test, which is more than we'd expect based on your past tests."
+                    technicalDetail={br.technicalDetail}
+                    size="md"
+                    badge="Finger Tapping"
+                  />
+                </div>
+              );
+            })()}
+          </Card>
+        )}
       </div>
 
       {/* Navigation to Progress Timeline */}
