@@ -7,6 +7,9 @@ import { FreezeAssistModal } from "./FreezeAssistModal";
 import { MedicationDoseLogModal } from "./MedicationDoseLogModal";
 import { VoiceAssistantModal } from "./VoiceAssistantModal";
 import { MoreSheet } from "./MoreSheet";
+import { SafetyEngine } from "./SafetyEngine";
+
+import { BandWatchdogBanner } from "./BandWatchdogBanner";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -24,6 +27,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#172554] antialiased">
+      <BandWatchdogBanner />
       <main className={`flex-1 ${hideBottomNav ? "" : "pb-24"}`}>
         {children}
       </main>
@@ -32,6 +36,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <MedicationDoseLogModal />
       <VoiceAssistantModal />
       <MoreSheet />
+      <SafetyEngine />
     </div>
   );
 };

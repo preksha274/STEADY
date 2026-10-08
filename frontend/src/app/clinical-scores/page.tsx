@@ -20,6 +20,7 @@ import {
   Hash,
   X,
 } from "lucide-react";
+import { ClinicianZoneBanner } from "@/components/ClinicianZoneBanner";
 
 export default function ClinicalScoresPage() {
   const router = useRouter();
@@ -126,9 +127,15 @@ export default function ClinicalScoresPage() {
   const activeMaxScore = activeChartPart === "III" ? 132 : 52;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#172554] p-4 sm:p-6 max-w-lg mx-auto space-y-5 text-left pb-24">
-      {/* Top Header */}
-      <header className="flex items-center justify-between border-b border-slate-200 pb-3">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#172554] text-left pb-24 space-y-4">
+      <ClinicianZoneBanner
+        title="Clinical Scores & Assessment Log"
+        subtitle="MDS-UPDRS scale logs entered by clinicians. Research reference & appointment tracking."
+        backHref="/today"
+      />
+      <div className="p-4 sm:p-6 max-w-lg mx-auto space-y-5">
+        {/* Top Header */}
+        <header className="flex items-center justify-between border-b border-slate-200 pb-3">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => router.back()}
@@ -502,5 +509,6 @@ export default function ClinicalScoresPage() {
         )}
       </div>
     </div>
-  );
+  </div>
+);
 }

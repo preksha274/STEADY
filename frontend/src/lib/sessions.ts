@@ -20,12 +20,44 @@ export interface SessionEEG {
   confidence: "high" | "medium" | "low";
 }
 
+export interface SessionBradykinesia {
+  hand: "right" | "left" | "both";
+  tapCount: number;
+  tapRateHz: number;
+  amplitudePx?: number;
+  decrementPct: number;
+  updrsScore: 0 | 1 | 2 | 3 | 4;
+  updrsLabel: "Normal" | "Slight" | "Mild" | "Moderate" | "Severe";
+  confidence: "high" | "medium" | "low";
+  confidenceReason: string;
+}
+
+export interface SessionVoice {
+  f0Hz: number;
+  jitterPct: number;
+  shimmerPct: number;
+  hnrDb: number;
+  loudnessDb: number;
+  confidence: "high" | "medium" | "low";
+  confidenceReason: string;
+}
+
+export interface SessionStats {
+  wearTimeMinutes: number;   // Monitored wear time in minutes
+  alertsRaised: number;      // Total tremor/freeze alerts raised
+  alertsCancelled: number;   // Alerts manually cancelled by user
+  cueDisableEvents: number;  // Cue-disable / pause events
+}
+
 export interface Session {
   id: string;
   timestamp: string; // ISO string
   tremor: SessionTremor;
   gait?: SessionGait;
   eeg?: SessionEEG;
+  bradykinesia?: SessionBradykinesia;
+  voice?: SessionVoice;
+  stats?: SessionStats;
   source: "upload" | "demo" | "seed" | "live" | "band";
 }
 
@@ -34,6 +66,10 @@ export interface Baseline {
   tremorFrequencyMean: number;
   gaitCadenceMean: number | null;
   eegBetaMean: number | null;
+  voiceF0Mean: number | null;
+  voiceJitterMean: number | null;
+  voiceShimmerMean: number | null;
+  voiceHnrMean: number | null;
   sampleCount: number;
 }
 
@@ -49,6 +85,9 @@ export interface BaselineComparison {
   tremorFrequency: MetricChange;
   gaitCadence: MetricChange | null;
   eegBeta: MetricChange | null;
+  voiceJitter: MetricChange | null;
+  voiceShimmer: MetricChange | null;
+  voiceHnr: MetricChange | null;
 }
 
 const STORAGE_KEY = "movepilot_sessions";
@@ -137,6 +176,7 @@ export const getBaseline = (
 
   const gaitSessions = priorSessions.filter((s) => s.gait && typeof s.gait.cadence === "number");
   const eegSessions = priorSessions.filter((s) => s.eeg && typeof s.eeg.beta === "number");
+  const voiceSessions = priorSessions.filter((s) => s.voice && typeof s.voice.jitterPct === "number");
 
   const tremorAmplitudeMean =
     tremorAmps.reduce((a, b) => a + b, 0) / tremorAmps.length;
@@ -153,11 +193,35 @@ export const getBaseline = (
       ? eegSessions.reduce((sum, s) => sum + s.eeg!.beta, 0) / eegSessions.length
       : null;
 
+  const voiceF0Mean =
+    voiceSessions.length > 0
+      ? voiceSessions.reduce((sum, s) => sum + s.voice!.f0Hz, 0) / voiceSessions.length
+      : null;
+
+  const voiceJitterMean =
+    voiceSessions.length > 0
+      ? voiceSessions.reduce((sum, s) => sum + s.voice!.jitterPct, 0) / voiceSessions.length
+      : null;
+
+  const voiceShimmerMean =
+    voiceSessions.length > 0
+      ? voiceSessions.reduce((sum, s) => sum + s.voice!.shimmerPct, 0) / voiceSessions.length
+      : null;
+
+  const voiceHnrMean =
+    voiceSessions.length > 0
+      ? voiceSessions.reduce((sum, s) => sum + s.voice!.hnrDb, 0) / voiceSessions.length
+      : null;
+
   return {
     tremorAmplitudeMean: round(tremorAmplitudeMean, 4),
     tremorFrequencyMean: round(tremorFrequencyMean, 2),
     gaitCadenceMean: gaitCadenceMean !== null ? round(gaitCadenceMean, 1) : null,
     eegBetaMean: eegBetaMean !== null ? round(eegBetaMean, 4) : null,
+    voiceF0Mean: voiceF0Mean !== null ? round(voiceF0Mean, 1) : null,
+    voiceJitterMean: voiceJitterMean !== null ? round(voiceJitterMean, 2) : null,
+    voiceShimmerMean: voiceShimmerMean !== null ? round(voiceShimmerMean, 2) : null,
+    voiceHnrMean: voiceHnrMean !== null ? round(voiceHnrMean, 1) : null,
     sampleCount: priorSessions.length,
   };
 };
@@ -224,11 +288,41 @@ export const getChangeFromBaseline = (
         )
       : null;
 
+  const voiceJitter =
+    session.voice && baseline.voiceJitterMean !== null
+      ? calcChange(
+          session.voice.jitterPct,
+          baseline.voiceJitterMean,
+          true // lower jitter is better
+        )
+      : null;
+
+  const voiceShimmer =
+    session.voice && baseline.voiceShimmerMean !== null
+      ? calcChange(
+          session.voice.shimmerPct,
+          baseline.voiceShimmerMean,
+          true // lower shimmer is better
+        )
+      : null;
+
+  const voiceHnr =
+    session.voice && baseline.voiceHnrMean !== null
+      ? calcChange(
+          session.voice.hnrDb,
+          baseline.voiceHnrMean,
+          false // higher HNR is better
+        )
+      : null;
+
   return {
     tremorAmplitude,
     tremorFrequency,
     gaitCadence,
     eegBeta,
+    voiceJitter,
+    voiceShimmer,
+    voiceHnr,
   };
 };
 
@@ -279,6 +373,47 @@ export const seedDemoSessions = (forceReset = false): Session[] => {
     const theta = Math.round((0.08 + (Math.random() - 0.5) * 0.02) * 1000) / 1000;
     const delta = Math.round((0.05 + (Math.random() - 0.5) * 0.01) * 1000) / 1000;
 
+    // Bradykinesia Finger-Tap (MDS-UPDRS Item 3.4/3.6)
+    // Tap rate improves from ~2.1 Hz to ~3.2 Hz; Decrement drops from ~29% to ~12%
+    const baseTapRate = 2.1 + progressFactor * 1.1 + (Math.random() - 0.5) * 0.3;
+    const tapRateHz = Math.round(Math.max(1.4, baseTapRate) * 10) / 10;
+    const rawCount = Math.round(tapRateHz * 10);
+    const tapCount = isLowConfidence ? Math.min(12, rawCount) : rawCount;
+    const decrementPct = Math.round(Math.max(8, 29 - progressFactor * 16 + (Math.random() - 0.5) * 4));
+    
+    let updrsScore: 0 | 1 | 2 | 3 | 4 = 1;
+    let updrsLabel: "Normal" | "Slight" | "Mild" | "Moderate" | "Severe" = "Slight";
+
+    if (tapRateHz >= 3.5 && decrementPct <= 10) {
+      updrsScore = 0;
+      updrsLabel = "Normal";
+    } else if (tapRateHz >= 2.8 && decrementPct <= 20) {
+      updrsScore = 1;
+      updrsLabel = "Slight";
+    } else if (tapRateHz >= 2.0 && decrementPct <= 35) {
+      updrsScore = 2;
+      updrsLabel = "Mild";
+    } else if (tapRateHz >= 1.2 && decrementPct <= 50) {
+      updrsScore = 3;
+      updrsLabel = "Moderate";
+    } else {
+      updrsScore = 4;
+      updrsLabel = "Severe";
+    }
+
+    // Voice Check (Sustained vowel "aaah")
+    const isUnusualVoice = i === 15 || i === 7 || i === 4;
+    const voiceJitterPct = isUnusualVoice
+      ? Math.round((2.45 + (17 - i) * 0.02 + (Math.random() - 0.5) * 0.3) * 100) / 100
+      : Math.round((0.68 + (Math.random() - 0.5) * 0.12) * 100) / 100;
+    const voiceShimmerPct = isUnusualVoice
+      ? Math.round((5.12 + (17 - i) * 0.04 + (Math.random() - 0.5) * 0.4) * 100) / 100
+      : Math.round((2.15 + (Math.random() - 0.5) * 0.25) * 100) / 100;
+    const voiceHnrDb = isUnusualVoice
+      ? Math.round((13.8 + (Math.random() - 0.5) * 1.2) * 10) / 10
+      : Math.round((22.4 + progressFactor * 2.2 + (Math.random() - 0.5) * 1.5) * 10) / 10;
+    const voiceLoudnessDb = isUnusualVoice ? (i === 15 ? 48 : i === 7 ? 50 : 52) : 66;
+
     const session: Session = {
       id: `seed_session_${18 - i}`,
       timestamp: sessionDate.toISOString(),
@@ -300,6 +435,36 @@ export const seedDemoSessions = (forceReset = false): Session[] => {
         alpha,
         beta,
         confidence: isLowConfidence ? "medium" : "high",
+      },
+      bradykinesia: {
+        hand: i % 2 === 0 ? "right" : "left",
+        tapCount,
+        tapRateHz,
+        amplitudePx: 320 + Math.round(progressFactor * 60),
+        decrementPct,
+        updrsScore,
+        updrsLabel,
+        confidence: tapCount >= 15 && !isLowConfidence ? "high" : "low",
+        confidenceReason: tapCount < 15
+          ? `Fewer than 15 taps recorded (${tapCount} taps)`
+          : "Sufficient tap volume recorded over 10s window",
+      },
+      voice: {
+        f0Hz: Math.round((138 + (Math.random() - 0.5) * 8) * 10) / 10,
+        jitterPct: voiceJitterPct,
+        shimmerPct: voiceShimmerPct,
+        hnrDb: voiceHnrDb,
+        loudnessDb: voiceLoudnessDb,
+        confidence: isLowConfidence ? "low" : "high",
+        confidenceReason: isLowConfidence
+          ? "Short sample duration or background noise"
+          : "Clean sustained vowel sample captured",
+      },
+      stats: {
+        wearTimeMinutes: Math.round(45 + Math.random() * 30),
+        alertsRaised: intensity === "high" ? 3 : intensity === "moderate" ? 2 : 1,
+        alertsCancelled: intensity === "high" ? 1 : 0,
+        cueDisableEvents: isUnusualVoice ? 1 : 0,
       },
       source: "seed",
     };

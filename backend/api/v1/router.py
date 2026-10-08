@@ -31,6 +31,12 @@ from .voice_checks import router as voice_checks_router
 from .reports import router as reports_router
 from .clinical_scores import router as clinical_scores_router
 from .wearable import router as wearable_router
+from .guardian_links import router as guardian_links_router
+from .safe_zones import router as safe_zones_router
+from .location_pings import router as location_pings_router
+from .alerts import router as alerts_router
+from .guardian import router as guardian_router
+from .sos import router as sos_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 
@@ -48,4 +54,9 @@ api_v1_router.include_router(voice_checks_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(clinical_scores_router)
 api_v1_router.include_router(wearable_router)
-
+api_v1_router.include_router(guardian_links_router)
+api_v1_router.include_router(safe_zones_router)
+api_v1_router.include_router(location_pings_router)
+api_v1_router.include_router(alerts_router)
+api_v1_router.include_router(guardian_router)
+api_v1_router.include_router(sos_router)

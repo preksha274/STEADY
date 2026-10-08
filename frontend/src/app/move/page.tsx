@@ -4,8 +4,12 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCueEngine, CueType } from "@/lib/cueEngine";
 import { getActiveCue, CueResult } from "@/lib/cues";
+import { useFreezeDetection, FOG_PROTOTYPE_DISCLAIMER } from "@/lib/freezeDetection";
+import { TechnicalDetailsExpand } from "@/components/TechnicalDetailsExpand";
+import { translateFreezeIndex, translateRhythmSync } from "@/lib/plainLanguage";
 import { VisualPulse } from "@/components/VisualPulse";
 import { voiceGuide } from "@/lib/voiceGuide";
+import { recordExerciseDoseSession } from "@/lib/exerciseDose";
 import {
   getTodaySessionPlan,
   TodaySessionPlan,
@@ -54,6 +58,17 @@ export default function MoveCoachPage() {
 
   // Workout state
   const [isSessionActive, setIsSessionActive] = useState(false);
+
+  // Automatic Freezing-of-Gait (FOG) Detection during active session
+  const {
+    isFreezeDetected,
+    freezeIndex,
+    confidence: freezeConfidence,
+    label: freezeLabel,
+  } = useFreezeDetection({
+    activeSession: isSessionActive,
+  });
+
   const [isPaused, setIsPaused] = useState(false);
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [repCount, setRepCount] = useState(0);
@@ -592,12 +607,27 @@ export default function MoveCoachPage() {
     });
   };
 
+  const [doseContribution, setDoseContribution] = useState<number | null>(null);
+
   // Hard Stop Trigger Enforcement
   const triggerHardStop = (reason: "target_reached" | "fatigue_shrink") => {
     stopCue(); // IMMEDIATELY stop beat/tempo
     setIsSessionActive(false);
     setIsHardStopped(true);
     setStopReason(reason);
+
+    // Record session towards Weekly Exercise Dose
+    try {
+      const durSec = sessionSeconds > 0 ? sessionSeconds : 720; // default to 12 mins for demo session if short
+      const res = recordExerciseDoseSession({
+        totalDurationSec: durSec,
+        avgSyncScore: syncScore,
+        exerciseName: selectedExercise.name,
+      });
+      setDoseContribution(res.newSession.qualifyingMinutes);
+    } catch (err) {
+      console.error("Failed recording dose contribution", err);
+    }
 
     const message =
       reason === "target_reached"
@@ -632,6 +662,18 @@ export default function MoveCoachPage() {
     stopCue();
     setIsSessionActive(false);
     setIsPaused(false);
+    if (sessionSeconds > 5) {
+      try {
+        const res = recordExerciseDoseSession({
+          totalDurationSec: sessionSeconds,
+          avgSyncScore: syncScore,
+          exerciseName: selectedExercise.name,
+        });
+        setDoseContribution(res.newSession.qualifyingMinutes);
+      } catch (err) {
+        console.error("Failed recording dose contribution", err);
+      }
+    }
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach((track) => track.stop());
@@ -824,12 +866,13 @@ export default function MoveCoachPage() {
               </span>
             </h1>
             <p className="text-xs text-slate-400">
-              Synced to {currentBpm} BPM {currentType} cue
+              General exercise and engagement support (Synced to {currentBpm} BPM {currentType} cue)
             </p>
           </div>
         </div>
 
         {/* Audio Coaching & Mic Toggles */}
+
         <div className="flex items-center gap-1.5">
           {/* Spoken Form Coaching Mute Toggle */}
           <button
@@ -871,6 +914,56 @@ export default function MoveCoachPage() {
           </div>
         </div>
       </header>
+
+      {/* Mandatory General Exercise Support Notice */}
+      <div className="p-3 bg-amber-950/60 border border-amber-500/40 rounded-2xl text-xs text-amber-200 space-y-1">
+        <div className="flex items-center gap-2 font-bold text-amber-300">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>General Exercise Support Notice</span>
+        </div>
+        <p className="text-[11px] text-amber-200 font-normal leading-relaxed">
+          Move Coach routines (amplitude reaches, dual-task walking, tai-chi balance) provide general exercise support. Please <strong>check with your doctor or physiotherapist first</strong>. STEADY makes no medical treatment or cognitive-benefit claims.
+        </p>
+      </div>
+
+
+      {/* AUTOMATIC FREEZING-OF-GAIT (FOG) LIVE ALERT BANNER */}
+      {isSessionActive && (isFreezeDetected || freezeIndex >= 2.5) && (
+        <div className="p-4 bg-red-950/90 border-2 border-red-500 rounded-3xl text-white space-y-2 shadow-2xl animate-in fade-in slide-in-from-top duration-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-black text-red-300 text-sm">
+              <Zap className="w-5 h-5 text-amber-400 animate-bounce" />
+              <span>Gait Pause Alert</span>
+            </div>
+          </div>
+          
+          <TechnicalDetailsExpand
+            primaryText="We noticed a change in how you were walking"
+            technicalDetail={`Freeze Index ratio: ${freezeIndex.toFixed(2)} (Exceeded 2.5 threshold) • Motor hesitation detected`}
+            size="md"
+            className="text-white"
+          />
+
+          <div className="flex items-center justify-between pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("trigger-freeze-assist"));
+              }}
+              className="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer"
+            >
+              <Zap className="w-4 h-4 fill-white" />
+              <span>Open Freeze Assist Now</span>
+            </button>
+            <span className="text-[10px] text-red-300">Confidence: {freezeConfidence.tier.toUpperCase()}</span>
+          </div>
+
+          {/* REQUIRED PROTOTYPE DISCLAIMER LABEL */}
+          <p className="text-[10px] text-red-300/80 pt-1.5 border-t border-red-800/80 leading-tight">
+            {freezeLabel}
+          </p>
+        </div>
+      )}
 
       {/* HIGHLIGHTED TODAY'S EXERCISE PRE-CAMERA PREVIEW CARD */}
       {!isSessionActive && !isHardStopped && (
@@ -1352,6 +1445,17 @@ export default function MoveCoachPage() {
               <span className="text-[10px] text-slate-400 block">Duration</span>
               <span className="text-lg font-black text-emerald-400">{formatTime(sessionSeconds)}</span>
             </div>
+          </div>
+
+          {/* Weekly Exercise Dose Contribution */}
+          <div className="p-3 bg-emerald-950/80 rounded-xl border border-emerald-500/40 flex items-center justify-between text-xs">
+            <span className="text-emerald-200 font-medium flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Weekly Exercise Dose</span>
+            </span>
+            <span className="font-extrabold text-emerald-300 text-sm">
+              +{doseContribution ?? Math.max(1, Math.round((sessionSeconds || 720) / 60))} min toward your weekly goal
+            </span>
           </div>
 
           {/* End Session Button (Default Action) */}

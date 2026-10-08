@@ -103,9 +103,9 @@ export default function GamesHomePage() {
           <div>
             <h1 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
               <Brain className="w-5 h-5 text-indigo-400" />
-              <span>Brain &amp; Movement</span>
+              <span>Engagement &amp; Movement Support</span>
             </h1>
-            <p className="text-xs text-slate-400">Daily cognitive &amp; rhythmic entrainment</p>
+            <p className="text-xs text-slate-400">General exercise and engagement support</p>
           </div>
         </div>
 
@@ -117,6 +117,18 @@ export default function GamesHomePage() {
           <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </header>
+
+      {/* Mandatory Exercise & Engagement Support Disclaimer */}
+      <div className="p-3 bg-amber-950/60 border border-amber-500/40 rounded-2xl text-xs text-amber-200 space-y-1">
+        <div className="flex items-center gap-2 font-bold text-amber-300">
+          <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>General Engagement Support Notice</span>
+        </div>
+        <p className="text-[11px] text-amber-200 font-normal leading-relaxed">
+          These games provide general exercise and engagement support only. Please <strong>check with your doctor or physiotherapist first</strong>. STEADY makes no medical treatment or cognitive-benefit claims.
+        </p>
+      </div>
+
 
       {/* 🔥 VISUAL STREAK CARD WITH MON-SUN WEEK STRIP */}
       <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 border border-indigo-500/30 shadow-xl space-y-3.5">

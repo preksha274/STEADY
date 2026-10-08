@@ -10,6 +10,8 @@ export interface CueResult {
   sync: number;
   simulated: boolean;
   source?: "user" | "seed";
+  isPersonalized?: boolean;
+  baselineCadence?: number | null;
 }
 
 const HISTORY_STORAGE_KEY = "movepilot_cue_history";
@@ -35,6 +37,8 @@ export function seedDemoCues(): CueResult[] {
       sync: 90,
       simulated: true,
       source: "seed",
+      isPersonalized: true,
+      baselineCadence: 88,
     },
     {
       id: "cue-seed-2",
@@ -46,6 +50,8 @@ export function seedDemoCues(): CueResult[] {
       sync: 84,
       simulated: true,
       source: "seed",
+      isPersonalized: true,
+      baselineCadence: 88,
     },
     {
       id: "cue-seed-3",
@@ -57,6 +63,8 @@ export function seedDemoCues(): CueResult[] {
       sync: 78,
       simulated: true,
       source: "seed",
+      isPersonalized: true,
+      baselineCadence: 88,
     },
     {
       id: "cue-seed-4",
@@ -68,6 +76,8 @@ export function seedDemoCues(): CueResult[] {
       sync: 72,
       simulated: true,
       source: "seed",
+      isPersonalized: true,
+      baselineCadence: 88,
     },
   ];
 
@@ -197,6 +207,198 @@ export function clearCueHistory(): void {
   localStorage.removeItem("movepilot_saved_cue");
 }
 
+export interface CueCalibrationResult {
+  vibrationIntensity: "low" | "medium" | "high";
+  rhythm: string;
+  canFeel: boolean;
+  isComfortable: boolean;
+  perceptionThresholdMet: boolean;
+  recommendAudio: boolean;
+  updatedAt: string;
+}
+
+export type CueSessionFeedback = "helped" | "no_effect" | "annoying";
+
+const CALIBRATION_KEY = "steady_cue_calibration";
+const FEEDBACK_LOG_KEY = "steady_cue_feedback_log";
+
+export function saveCueCalibration(data: Omit<CueCalibrationResult, "updatedAt" | "perceptionThresholdMet" | "recommendAudio">): CueCalibrationResult {
+  const recommendAudio = !data.canFeel || !data.isComfortable;
+  const result: CueCalibrationResult = {
+    ...data,
+    perceptionThresholdMet: data.canFeel && data.isComfortable,
+    recommendAudio,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(CALIBRATION_KEY, JSON.stringify(result));
+    } catch (e) {
+      console.error("Failed to save cue calibration", e);
+    }
+  }
+  return result;
+}
+
+export function getCueCalibration(): CueCalibrationResult {
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(CALIBRATION_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+  }
+  return {
+    vibrationIntensity: "medium",
+    rhythm: "100 BPM Metronome",
+    canFeel: true,
+    isComfortable: true,
+    perceptionThresholdMet: true,
+    recommendAudio: false,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function logCueFeedback(feedback: CueSessionFeedback): CueSessionFeedback[] {
+  if (typeof window === "undefined") return [feedback];
+
+  try {
+    const raw = localStorage.getItem(FEEDBACK_LOG_KEY);
+    const existing: CueSessionFeedback[] = raw ? JSON.parse(raw) : [];
+    const updated = [...existing, feedback];
+    localStorage.setItem(FEEDBACK_LOG_KEY, JSON.stringify(updated));
+
+    return updated;
+  } catch (e) {
+    return [feedback];
+  }
+}
+
+export function getCueFeedbackLog(): CueSessionFeedback[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(FEEDBACK_LOG_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export interface CuePolicyState {
+  action: "cue_active" | "suggest_switch" | "abstain";
+  currentModality: "audio" | "vibration" | "visual";
+  suggestedModality?: "audio" | "vibration" | "visual";
+  reason: string;
+  hasFatigue: boolean;
+  dropPercent: number;
+  noResponseDetected: boolean;
+  activeCue: CueResult | null;
+}
+
+export function getCuePolicyState(isDemoMode: boolean = false): CuePolicyState {
+
+  const activeCue = getActiveCue(isDemoMode);
+  const history = getCueHistory(isDemoMode);
+  const currentModality = activeCue?.type || "audio";
+
+  const fatigueInfo = hasCueFatigue(isDemoMode);
+  const feedbackLog = getCueFeedbackLog();
+
+  // Non-responder check: 3 consecutive "no_effect" or "annoying" responses
+  const recentFeedback = feedbackLog.slice(-3);
+  const isNonResponder =
+    recentFeedback.length >= 3 &&
+    recentFeedback.every((f) => f === "no_effect" || f === "annoying");
+
+  // Check if all recent session scores are below threshold (< 50 response score)
+  const recentSessions = history.slice(-5);
+  const avgResponse =
+    recentSessions.length > 0
+      ? recentSessions.reduce((acc, s) => acc + s.responseScore, 0) / recentSessions.length
+      : 80;
+
+  const noResponseDetected = isNonResponder || (recentSessions.length >= 3 && avgResponse < 50);
+
+  // Next modality rotation mapping
+  const modalityRotation: Record<"audio" | "vibration" | "visual", "audio" | "vibration" | "visual"> = {
+    audio: "vibration",
+    vibration: "visual",
+    visual: "audio",
+  };
+
+  if (noResponseDetected) {
+    return {
+      action: "abstain",
+      currentModality,
+      reason: isNonResponder
+        ? "Cueing paused by policy due to repeated non-response / discomfort feedback. Re-calibrate in Cue Lab before resuming."
+        : "Cueing doesn't appear to be helping during this session. Policy recommends taking a resting break without automatic cueing.",
+      hasFatigue: fatigueInfo.isFatigued,
+      dropPercent: fatigueInfo.dropPercent,
+      noResponseDetected: true,
+      activeCue,
+    };
+  }
+
+
+  if (fatigueInfo.isFatigued) {
+    const suggestedModality = modalityRotation[currentModality];
+    return {
+      action: "suggest_switch",
+      currentModality,
+      suggestedModality,
+      reason: `Response to ${currentModality.toUpperCase()} pacing has dropped ${fatigueInfo.dropPercent}% due to motor habituation. Policy recommends switching to ${suggestedModality.toUpperCase()} pacing.`,
+      hasFatigue: true,
+      dropPercent: fatigueInfo.dropPercent,
+      noResponseDetected: false,
+      activeCue,
+    };
+  }
+
+  return {
+    action: "cue_active",
+    currentModality,
+    reason: `Response-aware policy active. ${currentModality.toUpperCase()} pacing calibrated to ${activeCue?.bpm || 88} BPM with ${activeCue?.sync || 85}% gait sync.`,
+    hasFatigue: false,
+    dropPercent: 0,
+    noResponseDetected: false,
+    activeCue,
+  };
+}
+
+export type FogSubtype = "trembling" | "akinetic" | "unsure";
+
+export interface TurningCuePolicyOptions {
+  allowVisualForTurning: boolean;
+  fogSubtype?: FogSubtype;
+}
+
+/**
+ * Turning Cue Policy Evaluator:
+ * Audio/Haptic is offered by default for turning or freezing during turns.
+ * Visual cues are NOT offered for turning by default unless user explicitly opts in.
+ */
+export function getTurningCueRecommendation(
+  modality: "audio" | "vibration" | "visual",
+  options: TurningCuePolicyOptions = { allowVisualForTurning: false }
+): { recommendedModality: "audio" | "vibration" | "visual"; warning?: string } {
+  if (modality === "visual" && !options.allowVisualForTurning) {
+    return {
+      recommendedModality: "vibration",
+      warning: "Visual line cues are disabled by default during turning for safety. Recommended Audio or Haptic pacing, or opt in to visual cues in Cue Lab settings.",
+    };
+  }
+
+  if (options.fogSubtype === "akinetic" && modality === "audio") {
+    return {
+      recommendedModality: "vibration",
+      warning: "Akinetic freezing responds best to high-amplitude haptic vibration over audio beat.",
+    };
+  }
+
+  return { recommendedModality: modality };
+}
+
 /**
  * Cue fatigue logic:
  * Checks if the last 3 or more uses of the active cue show a response score
@@ -213,15 +415,13 @@ export function hasCueFatigue(isDemoMode: boolean = false): {
   }
 
   const history = getCueHistory(isDemoMode);
-  // Find all past uses for the active cue's type
   const sameTypeUses = history.filter((item) => item.type === activeCue.type);
 
   if (sameTypeUses.length < 3) {
     return { isFatigued: false, dropPercent: 0, currentCue: activeCue };
   }
 
-  // Get last 3 (or more) uses
-  const recentUses = sameTypeUses.slice(-4); // take up to last 4
+  const recentUses = sameTypeUses.slice(-4);
   const bestScore = Math.max(...recentUses.map((u) => u.responseScore));
   const latestScore = recentUses[recentUses.length - 1].responseScore;
 
@@ -237,3 +437,4 @@ export function hasCueFatigue(isDemoMode: boolean = false): {
     currentCue: activeCue,
   };
 }
+

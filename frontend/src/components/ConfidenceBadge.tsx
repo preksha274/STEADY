@@ -8,6 +8,7 @@ export type ConfidenceLevel = "high" | "medium" | "low" | "simulated";
 interface ConfidenceBadgeProps {
   level?: ConfidenceLevel;
   reason?: string;
+  attribution?: string;
   className?: string;
   showText?: boolean;
   isSimulated?: boolean;
@@ -16,6 +17,7 @@ interface ConfidenceBadgeProps {
 export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
   level = "high",
   reason,
+  attribution,
   className = "",
   showText = true,
   isSimulated = false,
@@ -58,6 +60,13 @@ export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
   const Icon = current.icon;
   const displayReason = reason || current.defaultReason;
 
+  // Extract attribution text if contained in reason or passed explicitly
+  const effectiveAttribution =
+    attribution ||
+    (displayReason.toLowerCase().includes("flagged because") || displayReason.toLowerCase().includes("driven primarily")
+      ? displayReason
+      : null);
+
   return (
     <div className="relative inline-block">
       <button
@@ -73,14 +82,26 @@ export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
         {showText && <span>{current.label}</span>}
       </button>
 
-      {/* Popover / Tooltip */}
+      {/* Popover / Tooltip with Rule Feature-Attribution Explanation */}
       {showPopover && (
-        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-56 p-3 bg-[#172554] text-white text-xs rounded-2xl shadow-xl border border-slate-700 animate-in fade-in duration-150 pointer-events-none text-left">
+        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-64 p-3 bg-[#172554] text-white text-xs rounded-2xl shadow-xl border border-slate-700 animate-in fade-in duration-150 pointer-events-none text-left">
           <div className="font-semibold flex items-center gap-1.5 mb-1 text-blue-200">
             <Info className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
             <span>{current.label}</span>
           </div>
           <div className="text-slate-300 font-normal leading-normal">{displayReason}</div>
+
+          {effectiveAttribution && (
+            <div className="mt-2 pt-2 border-t border-slate-700/80 text-[11px] text-amber-300 leading-snug">
+              <span className="font-bold text-amber-400 block mb-0.5">Feature Attribution:</span>
+              {effectiveAttribution}
+            </div>
+          )}
+
+          <div className="mt-2 pt-2 border-t border-slate-700/80 text-[10px] text-slate-400 italic leading-tight">
+            Note: Calibration was tested on public, unpaired datasets, not on real prospective users yet.
+          </div>
+
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#172554]" />
         </div>
       )}

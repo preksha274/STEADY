@@ -108,6 +108,8 @@ class PSDPoint(BaseModel):
 class TremorMetrics(BaseModel):
     tremor_frequency_hz: float
     tremor_amplitude: float
+    pct_time_in_tremor: float = 0.0  # Primary trend metric (% time in 3.5-7.5Hz tremor)
+    tremor_volume: float = 0.0  # tremor_amplitude x duration_s
     intensity: SymptomSeverityTier
     signal_magnitude: float
     variability: float
@@ -115,6 +117,14 @@ class TremorMetrics(BaseModel):
     step_cadence_spm: Optional[float] = None
     step_regularity: Optional[float] = None
     asymmetry_index: Optional[float] = None
+    strap_side: str = "right"  # "left" or "right"
+    orientation: str = "dorsal"  # "dorsal", "palmar", or "medial"
+    clipping_detected: bool = False
+    dropped_packets: int = 0
+    timestamp_jitter_s: float = 0.0
+    context_state: str = "rest"  # "rest", "posture", "moving", or "not_assessed"
+    periodicity_strength: float = 0.0
+    axis_consistency: float = 0.0
 
 
 class TremorScopeSessionOutput(BaseModel):

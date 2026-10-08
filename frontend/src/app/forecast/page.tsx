@@ -12,6 +12,8 @@ import {
   MergedForecastWindow,
 } from "@/lib/forecast";
 import { getDiaryEntries, DiaryEntry, getDoseLogs, DoseLog } from "@/lib/diary";
+import { TechnicalDetailsExpand } from "@/components/TechnicalDetailsExpand";
+import { translateForecastWindow } from "@/lib/plainLanguage";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -110,7 +112,7 @@ export default function DayForecastNeuroDiaryPage() {
         </div>
       </header>
 
-      {/* BEST-WINDOW BADGE HERO CARD */}
+      {/* BEST-WINDOW BADGE HERO CARD (Plain Language FIRST and LARGEST) */}
       <div className="bg-background-gradient rounded-[18px] border-[0.5px] border-[#E2E8F0] p-5 shadow-xs space-y-3 relative overflow-hidden">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -119,30 +121,31 @@ export default function DayForecastNeuroDiaryPage() {
             </div>
             <div>
               <span className="text-xs font-semibold text-[#172554] uppercase tracking-wider flex items-center gap-1.5">
-                <span>✨ Best Mobility Window</span>
+                <span>✨ Day Forecast</span>
                 {forecast.isOfflineFallback && (
                   <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-semibold normal-case">
                     Offline estimate
                   </span>
                 )}
               </span>
-              <div className="text-xl font-bold text-[#172554] mt-0.5">
-                {forecast.bestWindow ? forecast.bestWindow.timeSpanLabel : "10:00 AM – 12:30 PM"}
-              </div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
             <ConfidenceBadge level={forecast.confidenceLevel} reason="Calculated from baseline & daily diary responses" />
-            <span className="text-[10px] font-medium text-[#2563EB]/90">
-              {isDemoMode ? "Forecast confidence: 21 of 14 days logged" : "Forecast confidence: 5 of 14 days logged"}
-            </span>
           </div>
         </div>
 
-
-        <p className="text-xs text-[#172554] font-normal leading-relaxed">
-          Peak medication effect interval. Movement and outdoor tasks are easiest during this window.
-        </p>
+        {(() => {
+          const windowLabel = forecast.bestWindow ? forecast.bestWindow.timeSpanLabel : "10:00 AM – 12:30 PM";
+          const fw = translateForecastWindow(windowLabel, true);
+          return (
+            <TechnicalDetailsExpand
+              primaryText={fw.primary}
+              technicalDetail={`Best mobility window: ${windowLabel} • Calculated from baseline & dose schedule`}
+              size="lg"
+            />
+          );
+        })()}
 
         {/* HOURLY GOOD/HARD WINDOW BAR (GREEN/AMBER SEGMENTS) */}
         <div className="space-y-1.5 pt-2 border-t border-blue-100">
@@ -232,6 +235,102 @@ export default function DayForecastNeuroDiaryPage() {
               />
             </ComposedChart>
           </ResponsiveContainer>
+        </div>
+      </Card>
+
+      {/* PREDICTIVE SIGNALS & INPUT MODEL CARD */}
+      <Card className="space-y-3 border-[0.5px] border-[#E2E8F0]">
+        <div className="flex items-center justify-between border-b-[0.5px] border-[#E2E8F0] pb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <h2 className="text-xs font-semibold text-[#172554] uppercase tracking-wider">
+              Based On: Predictive Signals &amp; Input Model
+            </h2>
+          </div>
+          <span className="text-[10px] text-[#2563EB] font-medium bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+            Multimodal Fusion
+          </span>
+        </div>
+
+        <p className="text-xs text-[#64748B]">
+          In accordance with published wearing-off research, your prediction model incorporates dose timing, last night&apos;s sleep, and recent 24-48h activity.
+        </p>
+
+        {/* Signals List */}
+        <div className="space-y-2 pt-1">
+          {forecast.signals && forecast.signals.map((sig, idx) => {
+            const isPenalty = sig.status === "penalty";
+            const isCautious = sig.status === "cautious";
+            return (
+              <div
+                key={idx}
+                className={`p-3 rounded-xl border-[0.5px] text-xs space-y-1 ${
+                  isPenalty
+                    ? "bg-rose-50 border-rose-200 text-rose-950"
+                    : isCautious
+                    ? "bg-amber-50 border-amber-200 text-amber-950"
+                    : "bg-[#F8FAFC] border-slate-200 text-slate-900"
+                }`}
+              >
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="flex items-center gap-1.5">
+                    {sig.category === "sleep" ? "🌙" : sig.category === "activity" ? "🏃" : sig.category === "medication" ? "💊" : "📊"}
+                    {sig.name}
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      isPenalty
+                        ? "bg-rose-100 text-rose-800"
+                        : isCautious
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-emerald-100 text-emerald-800"
+                    }`}
+                  >
+                    {isPenalty ? "Penalty Applied" : isCautious ? "Cautious Penalty" : "Active Boost / Normal"}
+                  </span>
+                </div>
+                <p className="text-[11px] opacity-90 leading-relaxed">{sig.detail}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* LIVE DEMO SLEEP SCENARIO TOGGLE BUTTONS */}
+        <div className="pt-2 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-[#172554]">
+            <span>Test Live Forecast Response:</span>
+            <span className="text-slate-400 font-normal">Demo scenario controls</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => {
+                const entries = getDiaryEntries(true);
+                if (entries.length > 0) {
+                  const updated = [...entries];
+                  updated[0] = { ...updated[0], sleepHours: 4.5, sleepQuality: 2 };
+                  localStorage.setItem("movepilot_diary_entries", JSON.stringify(updated));
+                  setForecast(buildForecast(isDemoMode));
+                }
+              }}
+              className="px-3 py-2 text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-center transition-colors min-h-[44px]"
+            >
+              🌙 Simulate Poor Sleep (4.5h)
+            </button>
+            <button
+              onClick={() => {
+                const entries = getDiaryEntries(true);
+                if (entries.length > 0) {
+                  const updated = [...entries];
+                  updated[0] = { ...updated[0], sleepHours: 8.0, sleepQuality: 5 };
+                  localStorage.setItem("movepilot_diary_entries", JSON.stringify(updated));
+                  setForecast(buildForecast(isDemoMode));
+                }
+              }}
+              className="px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-center transition-colors min-h-[44px]"
+            >
+              ☀️ Simulate Restful Sleep (8.0h)
+            </button>
+          </div>
         </div>
       </Card>
 

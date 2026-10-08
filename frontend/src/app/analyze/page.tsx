@@ -10,6 +10,8 @@ import { Button } from "@/components/Button";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
 import { useSteadyBand, RecordedSessionMeta } from "@/lib/useSteadyBand";
+import { WeeklyExerciseDoseCard } from "@/components/WeeklyExerciseDoseCard";
+import { FunctionalGoalsCard } from "@/components/FunctionalGoalsCard";
 import {
   Activity,
   Video as VideoIcon,
@@ -36,6 +38,8 @@ import {
   Zap,
   VolumeX,
   Radio,
+  Hand,
+  Mic,
 } from "lucide-react";
 import { WearableStatusDot } from "@/components/WearableStatusDot";
 import { STEADY_BAND_BAUD_RATE } from "@/lib/webSerial";
@@ -570,24 +574,30 @@ export default function AnalyzePage() {
         </p>
       </header>
 
+      {/* Weekly Exercise Dose & Functional Goals Section */}
+      <section className="space-y-4">
+        <WeeklyExerciseDoseCard />
+        <FunctionalGoalsCard />
+      </section>
+
       {/* Selectable Modality Cards */}
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <button
           onClick={() => setActiveType("motion")}
-          className={`p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-between ${
+          className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-between ${
             activeType === "motion"
               ? "bg-blue-50/80 border-[#2563EB] ring-2 ring-blue-500/20 shadow-xs"
               : "bg-white border-slate-200 hover:bg-slate-50"
           }`}
         >
           <div
-            className={`p-2.5 rounded-xl mb-2 ${
+            className={`p-2 rounded-xl mb-1.5 ${
               activeType === "motion"
                 ? "bg-[#2563EB] text-white"
                 : "bg-blue-50 text-[#2563EB]"
             }`}
           >
-            <Activity className="w-5 h-5" />
+            <Activity className="w-4 h-4" />
           </div>
           <div>
             <span className="text-xs font-bold text-[#172554] block leading-tight">Motion</span>
@@ -597,50 +607,76 @@ export default function AnalyzePage() {
 
         <button
           onClick={() => setActiveType("video")}
-          className={`p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-between ${
+          className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-between ${
             activeType === "video"
               ? "bg-cyan-50/80 border-[#06B6D4] ring-2 ring-cyan-500/20 shadow-xs"
               : "bg-white border-slate-200 hover:bg-slate-50"
           }`}
         >
           <div
-            className={`p-2.5 rounded-xl mb-2 ${
+            className={`p-2 rounded-xl mb-1.5 ${
               activeType === "video"
                 ? "bg-[#06B6D4] text-white"
                 : "bg-cyan-50 text-[#06B6D4]"
             }`}
           >
-            <VideoIcon className="w-5 h-5" />
+            <VideoIcon className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-xs font-bold text-[#172554] block leading-tight">Video</span>
-            <span className="text-[10px] text-[#64748B] block mt-0.5">Pose Check</span>
+            <span className="text-[11px] font-bold text-[#172554] block leading-tight">Video</span>
+            <span className="text-[9px] text-[#64748B] block mt-0.5">Pose Check</span>
           </div>
         </button>
 
         <button
           onClick={() => setActiveType("eeg")}
-          className={`p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-between relative ${
+          className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-between relative ${
             activeType === "eeg"
               ? "bg-purple-50/80 border-[#8B5CF6] ring-2 ring-purple-500/20 shadow-xs"
               : "bg-white border-slate-200 hover:bg-slate-50"
           }`}
         >
-          <span className="absolute -top-2 right-2 px-1.5 py-0.5 bg-purple-100 text-[#8B5CF6] text-[9px] font-bold rounded-full border border-purple-200 uppercase">
-            Optional
+          <span className="absolute -top-2 right-1 px-1.5 py-0.5 bg-purple-100 text-[#8B5CF6] text-[8px] font-bold rounded-full border border-purple-200 uppercase">
+            Opt
           </span>
           <div
-            className={`p-2.5 rounded-xl mb-2 ${
+            className={`p-2 rounded-xl mb-1.5 ${
               activeType === "eeg"
                 ? "bg-[#8B5CF6] text-white"
                 : "bg-purple-50 text-[#8B5CF6]"
             }`}
           >
-            <Brain className="w-5 h-5" />
+            <Brain className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-xs font-bold text-[#172554] block leading-tight">EEG</span>
-            <span className="text-[10px] text-[#64748B] block mt-0.5">Band Power</span>
+            <span className="text-[11px] font-bold text-[#172554] block leading-tight">EEG</span>
+            <span className="text-[9px] text-[#64748B] block mt-0.5">Band Power</span>
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push("/analyze/bradykinesia")}
+          className="p-3 rounded-2xl border border-amber-200 bg-amber-50/40 hover:bg-amber-100/70 hover:border-amber-400 text-center transition-all flex flex-col items-center justify-between cursor-pointer group shadow-2xs"
+        >
+          <div className="p-2 rounded-xl mb-1.5 bg-amber-500 text-white shadow-2xs group-hover:scale-105 transition-transform">
+            <Hand className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold text-[#172554] block leading-tight">✋ Tap</span>
+            <span className="text-[9px] text-amber-800 font-medium block mt-0.5">Bradykinesia</span>
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push("/analyze/voice")}
+          className="p-3 rounded-2xl border border-blue-200 bg-blue-50/40 hover:bg-blue-100/70 hover:border-blue-400 text-center transition-all flex flex-col items-center justify-between cursor-pointer group shadow-2xs col-span-2 sm:col-span-1"
+        >
+          <div className="p-2 rounded-xl mb-1.5 bg-[#2563EB] text-white shadow-2xs group-hover:scale-105 transition-transform">
+            <Mic className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold text-[#172554] block leading-tight">🎤 Voice</span>
+            <span className="text-[9px] text-blue-800 font-medium block mt-0.5">Acoustics</span>
           </div>
         </button>
       </div>
