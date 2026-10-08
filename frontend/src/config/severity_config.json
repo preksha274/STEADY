@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "name": "STEADY Movement Severity Configuration",
+  "disclaimer": "Green = good, Yellow = moderate, Red = high. Based on movement only. This is not a medical assessment.",
+  "tremor_ratio_thresholds": {
+    "good_max_pct": 15.0,
+    "moderate_max_pct": 30.0
+  },
+  "sustained_tremor_seconds": {
+    "moderate_min_s": 10.0,
+    "high_min_s": 30.0
+  },
+  "data_quality_pct": {
+    "good_min_pct": 90.0,
+    "moderate_min_pct": 70.0
+  },
+  "levels": {
+    "GOOD": {
+      "level": "GOOD",
+      "label": "Good",
+      "status": "good",
+      "color": "emerald",
+      "textColor": "text-emerald-800",
+      "bgColor": "bg-emerald-50",
+      "borderColor": "border-emerald-200",
+      "badgeBg": "bg-emerald-100",
+      "badgeText": "text-emerald-900",
+      "badgeBorder": "border-emerald-300",
+      "hex": "#059669",
+      "icon": "check-circle-2"
+    },
+    "MODERATE": {
+      "level": "MODERATE",
+      "label": "Moderate",
+      "status": "moderate",
+      "color": "amber",
+      "textColor": "text-amber-800",
+      "bgColor": "bg-amber-50",
+      "borderColor": "border-amber-200",
+      "badgeBg": "bg-amber-100",
+      "badgeText": "text-amber-900",
+      "badgeBorder": "border-amber-300",
+      "hex": "#D97706",
+      "icon": "alert-triangle"
+    },
+    "HIGH": {
+      "level": "HIGH",
+      "label": "High - check on them",
+      "status": "high",
+      "color": "rose",
+      "textColor": "text-rose-800",
+      "bgColor": "bg-rose-50",
+      "borderColor": "border-rose-200",
+      "badgeBg": "bg-rose-100",
+      "badgeText": "text-rose-900",
+      "badgeBorder": "border-rose-300",
+      "hex": "#E11D48",
+      "icon": "alert-octagon"
+    },
+    "NO_DATA": {
+      "level": "NO_DATA",
+      "label": "No data",
+      "status": "no_data",
+      "color": "slate",
+      "textColor": "text-slate-700",
+      "bgColor": "bg-slate-50",
+      "borderColor": "border-slate-200",
+      "badgeBg": "bg-slate-100",
+      "badgeText": "text-slate-800",
+      "badgeBorder": "border-slate-300",
+      "hex": "#64748B",
+      "icon": "help-circle"
+    }
+  }
+}

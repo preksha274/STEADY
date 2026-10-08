@@ -12,7 +12,9 @@ import {
   X,
   ChevronRight,
   Sparkles,
+  Activity,
 } from "lucide-react";
+import { WearableStatusDot } from "@/components/WearableStatusDot";
 
 export const MoreSheet: React.FC = () => {
   const { isMoreSheetOpen, setIsMoreSheetOpen } = useAnalysis();
@@ -22,11 +24,21 @@ export const MoreSheet: React.FC = () => {
 
   const menuItems = [
     {
+      label: "Steady Wearable",
+      description: "Live wrist-band monitoring, history and reports",
+      href: "/wearable",
+      icon: Activity,
+      isNew: true,
+      badge: "Live",
+      color: "bg-teal-100 text-teal-700 border-teal-200",
+      showStatusDot: true,
+    },
+    {
       label: "Daily Brain & Movement",
       description: "Focus & Rhythm daily micro-games",
       href: "/games",
       icon: Brain,
-      isNew: true,
+      isNew: false,
       badge: "Games",
       color: "bg-purple-100 text-purple-700 border-purple-200",
     },
@@ -122,6 +134,7 @@ export const MoreSheet: React.FC = () => {
                       <span className="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition">
                         {item.label}
                       </span>
+                      {item.showStatusDot && <WearableStatusDot size="sm" />}
                       {item.isNew && (
                         <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs">
                           <Sparkles className="w-2.5 h-2.5" />

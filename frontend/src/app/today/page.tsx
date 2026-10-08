@@ -39,7 +39,9 @@ import {
   Smile,
   Meh,
   Frown,
+  Watch,
 } from "lucide-react";
+import { WearableStatusDot } from "@/components/WearableStatusDot";
 
 export default function TodayHomePage() {
   const router = useRouter();
@@ -436,6 +438,31 @@ export default function TodayHomePage() {
           </Button>
         </div>
       </Card>
+
+      {/* STEADY WEARABLE CARD */}
+      <Link href="/wearable" className="block">
+        <Card className="space-y-3 border-[0.5px] border-[#E2E8F0] hover:border-[#2563EB] hover:shadow-xs transition-all bg-gradient-to-r from-blue-50/50 to-indigo-50/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-100/80 text-[#2563EB]">
+                <Watch className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#172554] block">
+                    Steady Wearable
+                  </span>
+                  <WearableStatusDot size="sm" />
+                </div>
+                <p className="text-xs text-[#64748B] font-normal">
+                  Live wrist-band monitoring, history and reports
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-[#2563EB] shrink-0" />
+          </div>
+        </Card>
+      </Link>
 
       {/* Navigation Quick Links */}
       <div className="grid grid-cols-3 gap-2.5 pt-1">

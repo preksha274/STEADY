@@ -30,6 +30,7 @@ from .dose_logs import router as dose_logs_router
 from .voice_checks import router as voice_checks_router
 from .reports import router as reports_router
 from .clinical_scores import router as clinical_scores_router
+from .wearable import router as wearable_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 
@@ -46,3 +47,5 @@ api_v1_router.include_router(dose_logs_router)
 api_v1_router.include_router(voice_checks_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(clinical_scores_router)
+api_v1_router.include_router(wearable_router)
+

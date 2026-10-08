@@ -1,0 +1,1514 @@
+[
+  {
+    "timestamp": "2026-10-01T09:55:56Z",
+    "amplitude_g": 0.197,
+    "freq_hz": 5.11,
+    "tremor_pct": 23.1,
+    "not_assessed_pct": 3.7,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-01T10:55:56Z",
+    "amplitude_g": 0.1917,
+    "freq_hz": 5.46,
+    "tremor_pct": 18.2,
+    "not_assessed_pct": 2.1,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-01T11:55:56Z",
+    "amplitude_g": 0.2305,
+    "freq_hz": 4.74,
+    "tremor_pct": 31.5,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-01T12:55:56Z",
+    "amplitude_g": 0.2148,
+    "freq_hz": 5.12,
+    "tremor_pct": 25.2,
+    "not_assessed_pct": 3.5,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-01T13:55:56Z",
+    "amplitude_g": 0.2175,
+    "freq_hz": 4.79,
+    "tremor_pct": 23.7,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-01T14:55:56Z",
+    "amplitude_g": 0.2424,
+    "freq_hz": 4.69,
+    "tremor_pct": 25.7,
+    "not_assessed_pct": 3.1,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-01T15:55:56Z",
+    "amplitude_g": 0.2768,
+    "freq_hz": 4.92,
+    "tremor_pct": 31.0,
+    "not_assessed_pct": 1.3,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-01T16:55:56Z",
+    "amplitude_g": 0.256,
+    "freq_hz": 4.8,
+    "tremor_pct": 26.5,
+    "not_assessed_pct": 2.0,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-01T17:55:56Z",
+    "amplitude_g": 0.212,
+    "freq_hz": 5.09,
+    "tremor_pct": 20.9,
+    "not_assessed_pct": 3.5,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-01T18:55:56Z",
+    "amplitude_g": 0.1869,
+    "freq_hz": 5.42,
+    "tremor_pct": 25.5,
+    "not_assessed_pct": 3.6,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-01T19:55:56Z",
+    "amplitude_g": 0.1893,
+    "freq_hz": 4.73,
+    "tremor_pct": 24.9,
+    "not_assessed_pct": 2.7,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-01T20:55:56Z",
+    "amplitude_g": 0.1749,
+    "freq_hz": 5.32,
+    "tremor_pct": 23.0,
+    "not_assessed_pct": 1.3,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-01T21:55:56Z",
+    "amplitude_g": 0.1548,
+    "freq_hz": 5.29,
+    "tremor_pct": 19.0,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-01T22:55:56Z",
+    "amplitude_g": 0.0865,
+    "freq_hz": 5.44,
+    "tremor_pct": 7.4,
+    "not_assessed_pct": 1.5,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-01T23:55:56Z",
+    "amplitude_g": 0.0944,
+    "freq_hz": 5.07,
+    "tremor_pct": 15.6,
+    "not_assessed_pct": 2.9,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-02T00:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 5.4,
+    "tremor_pct": 7.2,
+    "not_assessed_pct": 2.5,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-02T01:55:56Z",
+    "amplitude_g": 0.0473,
+    "freq_hz": 4.92,
+    "tremor_pct": 4.4,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-02T02:55:56Z",
+    "amplitude_g": 0.0515,
+    "freq_hz": 4.76,
+    "tremor_pct": 6.0,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-02T03:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 4.75,
+    "tremor_pct": 4.6,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-02T04:55:56Z",
+    "amplitude_g": 0.083,
+    "freq_hz": 4.9,
+    "tremor_pct": 7.8,
+    "not_assessed_pct": 1.0,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-02T05:55:56Z",
+    "amplitude_g": 0.0502,
+    "freq_hz": 4.55,
+    "tremor_pct": 8.6,
+    "not_assessed_pct": 2.1,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-02T06:55:56Z",
+    "amplitude_g": 0.1364,
+    "freq_hz": 5.38,
+    "tremor_pct": 15.2,
+    "not_assessed_pct": 2.6,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-02T07:55:56Z",
+    "amplitude_g": 0.0957,
+    "freq_hz": 4.63,
+    "tremor_pct": 13.1,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-02T08:55:56Z",
+    "amplitude_g": 0.171,
+    "freq_hz": 4.98,
+    "tremor_pct": 17.6,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-02T09:55:56Z",
+    "amplitude_g": 0.1552,
+    "freq_hz": 5.05,
+    "tremor_pct": 21.2,
+    "not_assessed_pct": 2.7,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-02T10:55:56Z",
+    "amplitude_g": 0.2143,
+    "freq_hz": 5.17,
+    "tremor_pct": 26.2,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-02T11:55:56Z",
+    "amplitude_g": 0.2142,
+    "freq_hz": 4.99,
+    "tremor_pct": 26.5,
+    "not_assessed_pct": 3.8,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-02T12:55:56Z",
+    "amplitude_g": 0.2577,
+    "freq_hz": 5.21,
+    "tremor_pct": 26.9,
+    "not_assessed_pct": 2.0,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-02T13:55:56Z",
+    "amplitude_g": 0.2381,
+    "freq_hz": 5.14,
+    "tremor_pct": 28.9,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-02T14:55:56Z",
+    "amplitude_g": 0.2838,
+    "freq_hz": 4.81,
+    "tremor_pct": 33.4,
+    "not_assessed_pct": 3.7,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-02T15:55:56Z",
+    "amplitude_g": 0.2468,
+    "freq_hz": 5.3,
+    "tremor_pct": 25.5,
+    "not_assessed_pct": 3.5,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-02T16:55:56Z",
+    "amplitude_g": 0.2677,
+    "freq_hz": 5.28,
+    "tremor_pct": 29.5,
+    "not_assessed_pct": 3.0,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-02T17:55:56Z",
+    "amplitude_g": 0.2202,
+    "freq_hz": 5.26,
+    "tremor_pct": 26.2,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-02T18:55:56Z",
+    "amplitude_g": 0.211,
+    "freq_hz": 5.06,
+    "tremor_pct": 24.9,
+    "not_assessed_pct": 2.5,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-02T19:55:56Z",
+    "amplitude_g": 0.1996,
+    "freq_hz": 5.15,
+    "tremor_pct": 26.4,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-02T20:55:56Z",
+    "amplitude_g": 0.1632,
+    "freq_hz": 4.59,
+    "tremor_pct": 23.3,
+    "not_assessed_pct": 3.2,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-02T21:55:56Z",
+    "amplitude_g": 0.1137,
+    "freq_hz": 4.86,
+    "tremor_pct": 12.3,
+    "not_assessed_pct": 2.5,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-02T22:55:56Z",
+    "amplitude_g": 0.1274,
+    "freq_hz": 5.05,
+    "tremor_pct": 11.8,
+    "not_assessed_pct": 1.7,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-02T23:55:56Z",
+    "amplitude_g": 0.0695,
+    "freq_hz": 4.59,
+    "tremor_pct": 10.3,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-03T00:55:56Z",
+    "amplitude_g": 0.0439,
+    "freq_hz": 4.57,
+    "tremor_pct": 3.7,
+    "not_assessed_pct": 3.1,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T01:55:56Z",
+    "amplitude_g": 0.0714,
+    "freq_hz": 5.1,
+    "tremor_pct": 8.8,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T02:55:56Z",
+    "amplitude_g": 0.0448,
+    "freq_hz": 5.2,
+    "tremor_pct": 9.4,
+    "not_assessed_pct": 3.6,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-03T03:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 4.97,
+    "tremor_pct": 2.0,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-03T04:55:56Z",
+    "amplitude_g": 0.0669,
+    "freq_hz": 4.86,
+    "tremor_pct": 6.7,
+    "not_assessed_pct": 1.6,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-03T05:55:56Z",
+    "amplitude_g": 0.1068,
+    "freq_hz": 5.15,
+    "tremor_pct": 8.8,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-03T06:55:56Z",
+    "amplitude_g": 0.0787,
+    "freq_hz": 5.49,
+    "tremor_pct": 5.8,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-03T07:55:56Z",
+    "amplitude_g": 0.116,
+    "freq_hz": 5.46,
+    "tremor_pct": 14.8,
+    "not_assessed_pct": 3.2,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-03T08:55:56Z",
+    "amplitude_g": 0.1759,
+    "freq_hz": 4.99,
+    "tremor_pct": 24.0,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-03T09:55:56Z",
+    "amplitude_g": 0.1867,
+    "freq_hz": 5.02,
+    "tremor_pct": 23.5,
+    "not_assessed_pct": 2.6,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-03T10:55:56Z",
+    "amplitude_g": 0.1967,
+    "freq_hz": 5.31,
+    "tremor_pct": 20.3,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T11:55:56Z",
+    "amplitude_g": 0.2452,
+    "freq_hz": 4.95,
+    "tremor_pct": 29.1,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-03T12:55:56Z",
+    "amplitude_g": 0.2172,
+    "freq_hz": 5.06,
+    "tremor_pct": 23.0,
+    "not_assessed_pct": 1.2,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-03T13:55:56Z",
+    "amplitude_g": 0.2306,
+    "freq_hz": 5.22,
+    "tremor_pct": 24.8,
+    "not_assessed_pct": 2.9,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-03T14:55:56Z",
+    "amplitude_g": 0.2548,
+    "freq_hz": 4.74,
+    "tremor_pct": 29.9,
+    "not_assessed_pct": 3.6,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-03T15:55:56Z",
+    "amplitude_g": 0.241,
+    "freq_hz": 4.61,
+    "tremor_pct": 31.2,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-03T16:55:56Z",
+    "amplitude_g": 0.2158,
+    "freq_hz": 5.11,
+    "tremor_pct": 22.2,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T17:55:56Z",
+    "amplitude_g": 0.2089,
+    "freq_hz": 5.06,
+    "tremor_pct": 20.1,
+    "not_assessed_pct": 2.7,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T18:55:56Z",
+    "amplitude_g": 0.2378,
+    "freq_hz": 4.95,
+    "tremor_pct": 25.7,
+    "not_assessed_pct": 1.7,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T19:55:56Z",
+    "amplitude_g": 0.1922,
+    "freq_hz": 5.29,
+    "tremor_pct": 22.6,
+    "not_assessed_pct": 3.2,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-03T20:55:56Z",
+    "amplitude_g": 0.1397,
+    "freq_hz": 5.37,
+    "tremor_pct": 13.4,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-03T21:55:56Z",
+    "amplitude_g": 0.1205,
+    "freq_hz": 5.48,
+    "tremor_pct": 13.4,
+    "not_assessed_pct": 3.3,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-03T22:55:56Z",
+    "amplitude_g": 0.1267,
+    "freq_hz": 4.9,
+    "tremor_pct": 16.5,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-03T23:55:56Z",
+    "amplitude_g": 0.089,
+    "freq_hz": 4.81,
+    "tremor_pct": 7.8,
+    "not_assessed_pct": 2.1,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-04T00:55:56Z",
+    "amplitude_g": 0.0989,
+    "freq_hz": 4.85,
+    "tremor_pct": 11.1,
+    "not_assessed_pct": 3.9,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-04T01:55:56Z",
+    "amplitude_g": 0.0754,
+    "freq_hz": 4.94,
+    "tremor_pct": 9.0,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-04T02:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 5.41,
+    "tremor_pct": 2.0,
+    "not_assessed_pct": 3.4,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-04T03:55:56Z",
+    "amplitude_g": 0.0787,
+    "freq_hz": 4.88,
+    "tremor_pct": 5.1,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-04T04:55:56Z",
+    "amplitude_g": 0.0998,
+    "freq_hz": 5.23,
+    "tremor_pct": 8.9,
+    "not_assessed_pct": 3.1,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-04T05:55:56Z",
+    "amplitude_g": 0.0522,
+    "freq_hz": 4.6,
+    "tremor_pct": 3.2,
+    "not_assessed_pct": 2.6,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-04T06:55:56Z",
+    "amplitude_g": 0.1272,
+    "freq_hz": 4.83,
+    "tremor_pct": 17.5,
+    "not_assessed_pct": 1.3,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-04T07:55:56Z",
+    "amplitude_g": 0.1578,
+    "freq_hz": 5.46,
+    "tremor_pct": 20.1,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-04T08:55:56Z",
+    "amplitude_g": 0.1364,
+    "freq_hz": 4.93,
+    "tremor_pct": 16.8,
+    "not_assessed_pct": 2.6,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-04T09:55:56Z",
+    "amplitude_g": 0.1747,
+    "freq_hz": 4.61,
+    "tremor_pct": 19.4,
+    "not_assessed_pct": 3.1,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-04T10:55:56Z",
+    "amplitude_g": 0.2205,
+    "freq_hz": 5.3,
+    "tremor_pct": 27.2,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-04T11:55:56Z",
+    "amplitude_g": 0.214,
+    "freq_hz": 4.84,
+    "tremor_pct": 24.6,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-04T12:55:56Z",
+    "amplitude_g": 0.2187,
+    "freq_hz": 5.47,
+    "tremor_pct": 23.0,
+    "not_assessed_pct": 3.3,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-04T13:55:56Z",
+    "amplitude_g": 0.2613,
+    "freq_hz": 4.59,
+    "tremor_pct": 30.0,
+    "not_assessed_pct": 1.2,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-04T14:55:56Z",
+    "amplitude_g": 0.2589,
+    "freq_hz": 5.23,
+    "tremor_pct": 30.8,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-04T15:55:56Z",
+    "amplitude_g": 0.2725,
+    "freq_hz": 4.61,
+    "tremor_pct": 28.5,
+    "not_assessed_pct": 2.1,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-04T16:55:56Z",
+    "amplitude_g": 0.2431,
+    "freq_hz": 4.59,
+    "tremor_pct": 24.5,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-04T17:55:56Z",
+    "amplitude_g": 0.1924,
+    "freq_hz": 4.54,
+    "tremor_pct": 24.6,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-04T18:55:56Z",
+    "amplitude_g": 0.2286,
+    "freq_hz": 4.82,
+    "tremor_pct": 22.9,
+    "not_assessed_pct": 3.5,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-04T19:55:56Z",
+    "amplitude_g": 0.1569,
+    "freq_hz": 5.49,
+    "tremor_pct": 19.8,
+    "not_assessed_pct": 2.9,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-04T20:55:56Z",
+    "amplitude_g": 0.1323,
+    "freq_hz": 4.75,
+    "tremor_pct": 16.0,
+    "not_assessed_pct": 1.3,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-04T21:55:56Z",
+    "amplitude_g": 0.1161,
+    "freq_hz": 5.16,
+    "tremor_pct": 14.4,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-04T22:55:56Z",
+    "amplitude_g": 0.1328,
+    "freq_hz": 4.6,
+    "tremor_pct": 20.1,
+    "not_assessed_pct": 3.0,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-04T23:55:56Z",
+    "amplitude_g": 0.0754,
+    "freq_hz": 5.18,
+    "tremor_pct": 13.5,
+    "not_assessed_pct": 2.6,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-05T00:55:56Z",
+    "amplitude_g": 0.059,
+    "freq_hz": 5.39,
+    "tremor_pct": 2.4,
+    "not_assessed_pct": 1.7,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-05T01:55:56Z",
+    "amplitude_g": 0.0727,
+    "freq_hz": 5.38,
+    "tremor_pct": 12.2,
+    "not_assessed_pct": 3.3,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-05T02:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 5.41,
+    "tremor_pct": 4.5,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-05T03:55:56Z",
+    "amplitude_g": 0.0812,
+    "freq_hz": 5.45,
+    "tremor_pct": 7.7,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-05T04:55:56Z",
+    "amplitude_g": 0.0712,
+    "freq_hz": 4.63,
+    "tremor_pct": 7.7,
+    "not_assessed_pct": 2.9,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-05T05:55:56Z",
+    "amplitude_g": 0.0557,
+    "freq_hz": 4.63,
+    "tremor_pct": 8.3,
+    "not_assessed_pct": 3.9,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-05T06:55:56Z",
+    "amplitude_g": 0.1045,
+    "freq_hz": 5.37,
+    "tremor_pct": 11.1,
+    "not_assessed_pct": 2.5,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-05T07:55:56Z",
+    "amplitude_g": 0.1612,
+    "freq_hz": 4.99,
+    "tremor_pct": 15.7,
+    "not_assessed_pct": 3.6,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-05T08:55:56Z",
+    "amplitude_g": 0.1421,
+    "freq_hz": 4.69,
+    "tremor_pct": 13.2,
+    "not_assessed_pct": 1.8,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-05T09:55:56Z",
+    "amplitude_g": 0.1717,
+    "freq_hz": 5.42,
+    "tremor_pct": 21.8,
+    "not_assessed_pct": 2.9,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-05T10:55:56Z",
+    "amplitude_g": 0.2042,
+    "freq_hz": 5.43,
+    "tremor_pct": 21.1,
+    "not_assessed_pct": 1.7,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-05T11:55:56Z",
+    "amplitude_g": 0.2339,
+    "freq_hz": 5.5,
+    "tremor_pct": 23.4,
+    "not_assessed_pct": 1.8,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-05T12:55:56Z",
+    "amplitude_g": 0.2116,
+    "freq_hz": 5.37,
+    "tremor_pct": 22.0,
+    "not_assessed_pct": 3.1,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-05T13:55:56Z",
+    "amplitude_g": 0.2822,
+    "freq_hz": 4.85,
+    "tremor_pct": 37.1,
+    "not_assessed_pct": 2.5,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-05T14:55:56Z",
+    "amplitude_g": 0.2331,
+    "freq_hz": 4.89,
+    "tremor_pct": 27.0,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-05T15:55:56Z",
+    "amplitude_g": 0.2668,
+    "freq_hz": 4.51,
+    "tremor_pct": 36.0,
+    "not_assessed_pct": 2.7,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-05T16:55:56Z",
+    "amplitude_g": 0.2658,
+    "freq_hz": 5.09,
+    "tremor_pct": 33.4,
+    "not_assessed_pct": 2.4,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-05T17:55:56Z",
+    "amplitude_g": 0.245,
+    "freq_hz": 4.91,
+    "tremor_pct": 31.0,
+    "not_assessed_pct": 1.6,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-05T18:55:56Z",
+    "amplitude_g": 0.2141,
+    "freq_hz": 4.67,
+    "tremor_pct": 30.2,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-05T19:55:56Z",
+    "amplitude_g": 0.1963,
+    "freq_hz": 4.96,
+    "tremor_pct": 25.7,
+    "not_assessed_pct": 3.9,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-05T20:55:56Z",
+    "amplitude_g": 0.1288,
+    "freq_hz": 4.6,
+    "tremor_pct": 20.4,
+    "not_assessed_pct": 3.4,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-05T21:55:56Z",
+    "amplitude_g": 0.1087,
+    "freq_hz": 5.23,
+    "tremor_pct": 10.8,
+    "not_assessed_pct": 1.8,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-05T22:55:56Z",
+    "amplitude_g": 0.1229,
+    "freq_hz": 5.35,
+    "tremor_pct": 17.7,
+    "not_assessed_pct": 3.0,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-05T23:55:56Z",
+    "amplitude_g": 0.0895,
+    "freq_hz": 4.84,
+    "tremor_pct": 11.6,
+    "not_assessed_pct": 3.5,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-06T00:55:56Z",
+    "amplitude_g": 0.0466,
+    "freq_hz": 5.26,
+    "tremor_pct": 2.5,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-06T01:55:56Z",
+    "amplitude_g": 0.0427,
+    "freq_hz": 5.32,
+    "tremor_pct": 8.2,
+    "not_assessed_pct": 2.0,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-06T02:55:56Z",
+    "amplitude_g": 0.0731,
+    "freq_hz": 4.7,
+    "tremor_pct": 13.3,
+    "not_assessed_pct": 3.9,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-06T03:55:56Z",
+    "amplitude_g": 0.0583,
+    "freq_hz": 5.32,
+    "tremor_pct": 8.0,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-06T04:55:56Z",
+    "amplitude_g": 0.069,
+    "freq_hz": 5.12,
+    "tremor_pct": 8.7,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-06T05:55:56Z",
+    "amplitude_g": 0.0828,
+    "freq_hz": 4.71,
+    "tremor_pct": 13.9,
+    "not_assessed_pct": 1.6,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-06T06:55:56Z",
+    "amplitude_g": 0.0922,
+    "freq_hz": 4.7,
+    "tremor_pct": 9.0,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-06T07:55:56Z",
+    "amplitude_g": 0.1387,
+    "freq_hz": 4.74,
+    "tremor_pct": 20.9,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-06T08:55:56Z",
+    "amplitude_g": 0.1895,
+    "freq_hz": 5.08,
+    "tremor_pct": 27.2,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-06T09:55:56Z",
+    "amplitude_g": 0.1771,
+    "freq_hz": 4.76,
+    "tremor_pct": 16.5,
+    "not_assessed_pct": 1.3,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-06T10:55:56Z",
+    "amplitude_g": 0.2231,
+    "freq_hz": 5.43,
+    "tremor_pct": 24.9,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-06T11:55:56Z",
+    "amplitude_g": 0.2153,
+    "freq_hz": 4.98,
+    "tremor_pct": 26.6,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-06T12:55:56Z",
+    "amplitude_g": 0.22,
+    "freq_hz": 5.43,
+    "tremor_pct": 28.4,
+    "not_assessed_pct": 1.7,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-06T13:55:56Z",
+    "amplitude_g": 0.2719,
+    "freq_hz": 5.05,
+    "tremor_pct": 33.3,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-06T14:55:56Z",
+    "amplitude_g": 0.235,
+    "freq_hz": 5.03,
+    "tremor_pct": 29.4,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-06T15:55:56Z",
+    "amplitude_g": 0.2181,
+    "freq_hz": 5.38,
+    "tremor_pct": 25.7,
+    "not_assessed_pct": 1.6,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-06T16:55:56Z",
+    "amplitude_g": 0.2555,
+    "freq_hz": 4.66,
+    "tremor_pct": 30.5,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-06T17:55:56Z",
+    "amplitude_g": 0.2554,
+    "freq_hz": 4.83,
+    "tremor_pct": 34.8,
+    "not_assessed_pct": 3.0,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-06T18:55:56Z",
+    "amplitude_g": 0.1898,
+    "freq_hz": 5.11,
+    "tremor_pct": 19.3,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-06T19:55:56Z",
+    "amplitude_g": 0.1771,
+    "freq_hz": 4.77,
+    "tremor_pct": 21.8,
+    "not_assessed_pct": 3.4,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-06T20:55:56Z",
+    "amplitude_g": 0.1405,
+    "freq_hz": 4.98,
+    "tremor_pct": 15.0,
+    "not_assessed_pct": 3.0,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-06T21:55:56Z",
+    "amplitude_g": 0.1255,
+    "freq_hz": 5.13,
+    "tremor_pct": 15.8,
+    "not_assessed_pct": 3.9,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-06T22:55:56Z",
+    "amplitude_g": 0.1303,
+    "freq_hz": 5.16,
+    "tremor_pct": 16.3,
+    "not_assessed_pct": 2.5,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-06T23:55:56Z",
+    "amplitude_g": 0.055,
+    "freq_hz": 5.03,
+    "tremor_pct": 5.7,
+    "not_assessed_pct": 3.4,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-07T00:55:56Z",
+    "amplitude_g": 0.0545,
+    "freq_hz": 4.61,
+    "tremor_pct": 3.8,
+    "not_assessed_pct": 3.5,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-07T01:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 4.56,
+    "tremor_pct": 5.1,
+    "not_assessed_pct": 1.6,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-07T02:55:56Z",
+    "amplitude_g": 0.0461,
+    "freq_hz": 5.24,
+    "tremor_pct": 6.0,
+    "not_assessed_pct": 1.2,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-07T03:55:56Z",
+    "amplitude_g": 0.0456,
+    "freq_hz": 5.34,
+    "tremor_pct": 2.0,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-07T04:55:56Z",
+    "amplitude_g": 0.0763,
+    "freq_hz": 5.41,
+    "tremor_pct": 5.4,
+    "not_assessed_pct": 1.6,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-07T05:55:56Z",
+    "amplitude_g": 0.113,
+    "freq_hz": 4.54,
+    "tremor_pct": 13.7,
+    "not_assessed_pct": 1.3,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-07T06:55:56Z",
+    "amplitude_g": 0.1302,
+    "freq_hz": 4.71,
+    "tremor_pct": 13.3,
+    "not_assessed_pct": 2.0,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-07T07:55:56Z",
+    "amplitude_g": 0.1571,
+    "freq_hz": 5.3,
+    "tremor_pct": 20.4,
+    "not_assessed_pct": 3.8,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-07T08:55:56Z",
+    "amplitude_g": 0.1201,
+    "freq_hz": 5.06,
+    "tremor_pct": 13.5,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 2
+  },
+  {
+    "timestamp": "2026-10-07T09:55:56Z",
+    "amplitude_g": 0.1489,
+    "freq_hz": 5.08,
+    "tremor_pct": 14.8,
+    "not_assessed_pct": 3.7,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-07T10:55:56Z",
+    "amplitude_g": 0.2276,
+    "freq_hz": 5.41,
+    "tremor_pct": 31.7,
+    "not_assessed_pct": 2.1,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-07T11:55:56Z",
+    "amplitude_g": 0.2601,
+    "freq_hz": 5.28,
+    "tremor_pct": 32.1,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-07T12:55:56Z",
+    "amplitude_g": 0.2234,
+    "freq_hz": 5.11,
+    "tremor_pct": 31.0,
+    "not_assessed_pct": 3.6,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-07T13:55:56Z",
+    "amplitude_g": 0.2767,
+    "freq_hz": 5.4,
+    "tremor_pct": 30.5,
+    "not_assessed_pct": 2.0,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-07T14:55:56Z",
+    "amplitude_g": 0.2635,
+    "freq_hz": 4.78,
+    "tremor_pct": 27.8,
+    "not_assessed_pct": 1.9,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-07T15:55:56Z",
+    "amplitude_g": 0.2737,
+    "freq_hz": 4.73,
+    "tremor_pct": 31.7,
+    "not_assessed_pct": 1.5,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-07T16:55:56Z",
+    "amplitude_g": 0.2397,
+    "freq_hz": 4.76,
+    "tremor_pct": 25.6,
+    "not_assessed_pct": 1.1,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-07T17:55:56Z",
+    "amplitude_g": 0.2276,
+    "freq_hz": 4.94,
+    "tremor_pct": 27.4,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-07T18:55:56Z",
+    "amplitude_g": 0.2221,
+    "freq_hz": 4.66,
+    "tremor_pct": 29.8,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-07T19:55:56Z",
+    "amplitude_g": 0.173,
+    "freq_hz": 5.29,
+    "tremor_pct": 21.5,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-07T20:55:56Z",
+    "amplitude_g": 0.1491,
+    "freq_hz": 4.63,
+    "tremor_pct": 13.4,
+    "not_assessed_pct": 4.0,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-07T21:55:56Z",
+    "amplitude_g": 0.1167,
+    "freq_hz": 4.56,
+    "tremor_pct": 12.6,
+    "not_assessed_pct": 1.4,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-07T22:55:56Z",
+    "amplitude_g": 0.1235,
+    "freq_hz": 4.66,
+    "tremor_pct": 18.6,
+    "not_assessed_pct": 1.2,
+    "sample_count": 6000,
+    "drops_count": 3
+  },
+  {
+    "timestamp": "2026-10-07T23:55:56Z",
+    "amplitude_g": 0.0547,
+    "freq_hz": 5.38,
+    "tremor_pct": 9.6,
+    "not_assessed_pct": 1.8,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-08T00:55:56Z",
+    "amplitude_g": 0.092,
+    "freq_hz": 5.03,
+    "tremor_pct": 9.1,
+    "not_assessed_pct": 3.8,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-08T01:55:56Z",
+    "amplitude_g": 0.0429,
+    "freq_hz": 5.3,
+    "tremor_pct": 5.7,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 0
+  },
+  {
+    "timestamp": "2026-10-08T02:55:56Z",
+    "amplitude_g": 0.0505,
+    "freq_hz": 4.91,
+    "tremor_pct": 4.0,
+    "not_assessed_pct": 2.7,
+    "sample_count": 6000,
+    "drops_count": 5
+  },
+  {
+    "timestamp": "2026-10-08T03:55:56Z",
+    "amplitude_g": 0.04,
+    "freq_hz": 4.78,
+    "tremor_pct": 6.7,
+    "not_assessed_pct": 1.5,
+    "sample_count": 6000,
+    "drops_count": 1
+  },
+  {
+    "timestamp": "2026-10-08T04:55:56Z",
+    "amplitude_g": 0.0838,
+    "freq_hz": 4.76,
+    "tremor_pct": 13.8,
+    "not_assessed_pct": 3.2,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-08T05:55:56Z",
+    "amplitude_g": 0.0617,
+    "freq_hz": 5.25,
+    "tremor_pct": 12.2,
+    "not_assessed_pct": 1.7,
+    "sample_count": 6000,
+    "drops_count": 6
+  },
+  {
+    "timestamp": "2026-10-08T06:55:56Z",
+    "amplitude_g": 0.1075,
+    "freq_hz": 4.71,
+    "tremor_pct": 13.1,
+    "not_assessed_pct": 2.8,
+    "sample_count": 6000,
+    "drops_count": 4
+  },
+  {
+    "timestamp": "2026-10-08T07:55:56Z",
+    "amplitude_g": 0.0949,
+    "freq_hz": 4.64,
+    "tremor_pct": 6.9,
+    "not_assessed_pct": 2.2,
+    "sample_count": 6000,
+    "drops_count": 7
+  },
+  {
+    "timestamp": "2026-10-08T08:55:56Z",
+    "amplitude_g": 0.1291,
+    "freq_hz": 4.8,
+    "tremor_pct": 18.2,
+    "not_assessed_pct": 2.3,
+    "sample_count": 6000,
+    "drops_count": 1
+  }
+]

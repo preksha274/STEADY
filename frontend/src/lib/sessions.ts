@@ -26,7 +26,7 @@ export interface Session {
   tremor: SessionTremor;
   gait?: SessionGait;
   eeg?: SessionEEG;
-  source: "upload" | "demo" | "seed" | "live";
+  source: "upload" | "demo" | "seed" | "live" | "band";
 }
 
 export interface Baseline {
